@@ -1,0 +1,13 @@
+release/arduino.o
+release/arduino1.o
+release/client.o
+release/connection.o
+release/equipement.o
+release/local.o
+release/mailing.o
+release/main.o
+release/mainwindow.o
+release/qrcode.o
+release/smsmanager.o
+release/moc_mainwindow.o
+release/moc_smsmanager.o

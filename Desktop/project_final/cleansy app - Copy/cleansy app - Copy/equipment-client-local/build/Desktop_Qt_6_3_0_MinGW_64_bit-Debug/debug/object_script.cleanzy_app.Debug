@@ -1,0 +1,13 @@
+debug/arduino.o
+debug/arduino1.o
+debug/client.o
+debug/connection.o
+debug/equipement.o
+debug/local.o
+debug/mailing.o
+debug/main.o
+debug/mainwindow.o
+debug/qrcode.o
+debug/smsmanager.o
+debug/moc_mainwindow.o
+debug/moc_smsmanager.o
