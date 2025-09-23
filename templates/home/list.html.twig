@@ -1,0 +1,28 @@
+
+<table border="1">
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Age</th>
+<th>images</th>
+<th>Action</th>
+</tr>
+{# #}
+{{user[1].name}}   {# afficher une varibale #}
+{%  for u in user %}     {# éxécuter une action :boucle  #}
+{% if u.age > 20 %}     {# éxécuter une action : condition  #}
+<tr>
+<td>{{u.id}}   </td> 
+<td>{{u.name | lower}}    </td>  {# les filtres : exemple upper , lower #}
+<td>{{u.age}}    </td>
+<td> <img src="{{u.image}}" alt="{{u.name}}" width="50px" height="50px"> </td> {# Affichage de l'image   #}
+<td> <a href="{{path('det', {'name': u.name})}}"> details </a>  </td>
+{% endif %}
+{% endfor %}
+</tr>
+<table>
+    {% set x = 5%}   {# éxécuter une action : declaration d'une variable  #}
+    {{x}}
+
+
+<h1> le nombre des elements est   {{ user | length }}  <h1>
