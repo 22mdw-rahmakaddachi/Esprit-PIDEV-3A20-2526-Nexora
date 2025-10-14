@@ -2,8 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
+use App\Form\UserType;
+use App\Repository\ClassroomRepository;
+use App\Repository\UserRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -69,4 +75,85 @@ final class HomeController extends AbstractController
             'controller_name' => 'HomeController',
             'n' => $name,
         ]);    }
+
+          #[Route('/Listuser', name: 'list_User')]
+          //1- injection dedependance :  UserRepository
+    public function listUser(UserRepository $repo): Response
+    {
+        //2- recuperer la liste des utilisateurs
+        $listUser=$repo->findAll();
+        return $this->render('home/user.html.twig', [
+            //3- passer la liste des utilisateurs à la vue user.html.twig
+            'userBD' => $listUser,
+        ]);
+    }
+     #[Route('/add', name: 'add')]
+     //1- injection dedependance :  ManagerRegistry
+    public function addUser(ManagerRegistry $mr, ClassroomRepository $repo,Request $request): Response
+    {
+        //1- récupération de l'objet classroom  avec ref=1
+        $c = $repo->find(1);
+        //2- creation de l'instance
+        $user = new User();
+        //3- creation du formulaire et le lier à l'objet user
+       $form= $this->createForm(UserType::class, $user);
+       //3-1  traiter la requete
+       $form->handleRequest($request);
+         //3-2  vérifier si le formulaire est soumis
+         if ($form-> isSubmitted()){
+ //4- recuperer l'entity manager
+        $em = $mr->getManager();
+        //5-informer doctrine  pour ajouter un objet  persist
+        $em->persist($user);
+        //6-envoyer  flush
+        $em->flush();
+        //7- redirection vers la liste des utilisateurs
+        return $this->redirectToRoute('list_User');
+         }
+       
+        //3
+        return $this->render('home/add.html.twig', [
+            'f' => $form->createView(),
+        ]);
+    }
+     #[Route('/update/{id}', name: 'update_User')]
+     //1- injection dedependance :  ManagerRegistry
+    public function updateUser(ManagerRegistry $mr, int $id, UserRepository $repo, Request $request): Response
+    {
+        //2- récupération de l'objet à modifier
+        $user= $repo->find($id);
+       //3- creation du formulaire et le lier à l'objet user
+       $form= $this->createForm(UserType::class, $user);
+       //3-1  traiter la requete
+       $form->handleRequest($request);
+         //3-2  vérifier si le formulaire est soumis
+         if ($form-> isSubmitted()){
+ //4- recuperer l'entity manager
+        $em = $mr->getManager();
+        //6-envoyer  flush
+        $em->flush();
+        //7- redirection vers la liste des utilisateurs
+        return $this->redirectToRoute('list_User');
+         }
+       
+        //3
+        return $this->render('home/add.html.twig', [
+            'f' => $form->createView(),
+        ]);
+    }
+  #[Route('/remove/{id}', name: 'remove_User')]
+     //1- injection dedependance :  ManagerRegistry
+    public function removeUser(ManagerRegistry $mr, int $id, UserRepository $repo): Response
+    {
+        //2- récupération de l'objet à supprimer
+        $user= $repo->find($id);
+        //4- recuperer l'entity manager
+        $em = $mr->getManager();
+        //5-informer doctrine  pour supprimer un objet  
+        $em->remove($user);
+        //6-envoyer  flush
+        $em->flush();
+        //7- redirection vers la liste des utilisateurs
+        return $this->redirectToRoute('list_User');
+    }
 }

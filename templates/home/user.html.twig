@@ -1,0 +1,12 @@
+
+
+
+
+  {% for user in userBD %}
+    <tr>
+      <td>{{ user.id }}</td>
+      <td>{{ user.name }}</td>
+      <td>{{ user.age }}</td>
+      <td>{{ user.moyenne }}</td>
+    </tr>
+  {% endfor %}
