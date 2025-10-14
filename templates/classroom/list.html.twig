@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Classroom{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <h2 class="text-center text-primary mb-4">Liste des Utilisateurs</h2>
+
+    
+
+    <table border="1" class="table table-bordered table-striped align-middle text-center shadow-sm">
+        <thead class="table-dark">
+            <tr>
+                <th>Ref</th>
+                <th>Name</th>
+                <th>CreatedAt</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for c in classroom %}
+            <tr>
+                <td>{{ c.ref }}</td>
+                <td>{{ c.name }}</td>
+                <td>{{ c.CreatedAt | date }}</td>
+                <td>  
+                     <a href="{{path('add',{'id':c.ref})}}" class="btn btn-warning btn-sm me-2">
+                        <i class="bi bi-pencil"></i>AddUser
+                    </a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5" class="text-muted">Aucun utilisateur trouvé</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

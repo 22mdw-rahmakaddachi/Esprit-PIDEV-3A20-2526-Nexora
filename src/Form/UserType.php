@@ -22,8 +22,6 @@ class UserType extends AbstractType
             ->add('classroom', EntityType::class, [
                 'class' => Classroom::class,
                 'choice_label' => 'name',
-                'expanded' => true,
-                'multiple' => false,
             ])
             ->add('save', SubmitType::class)
         ;
