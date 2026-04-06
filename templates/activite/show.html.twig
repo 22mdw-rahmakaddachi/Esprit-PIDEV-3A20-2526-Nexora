@@ -1,0 +1,132 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ activite ? activite.nom : 'Activité' }} — TripShop{% endblock %}
+
+{% block body %}
+{% if not activite %}
+<div class="container py-5 text-center text-muted">
+    <i class="bi bi-calendar-x" style="font-size:3rem;opacity:0.4"></i>
+    <p class="mt-3">Activité introuvable.</p>
+    <a href="{{ path('app_activites') }}" class="btn rounded-pill px-4 mt-2" style="background:var(--primary);color:#fff">Retour aux activités</a>
+</div>
+{% else %}
+<div class="breadcrumb-section">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('app_activites') }}">Activités</a></li>
+                <li class="breadcrumb-item active">{{ activite.nom }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row g-5 align-items-start">
+        <div class="col-md-5" data-aos="fade-right">
+            <div class="rounded-4 d-flex align-items-center justify-content-center"
+                 style="height:400px;background:linear-gradient(135deg,var(--primary-dark),var(--primary));font-size:10rem">
+                {% if activite.type == 'Sport' %}🏃
+                {% elseif activite.type == 'Culture' %}🎭
+                {% elseif activite.type == 'Gastronomie' %}🍽️
+                {% else %}🌟{% endif %}
+            </div>
+        </div>
+        <div class="col-md-7" data-aos="fade-left">
+            <span class="badge mb-3" style="background:linear-gradient(135deg,var(--primary),var(--accent));font-size:0.85rem;padding:6px 14px;border-radius:50px">
+                {{ activite.type }}
+            </span>
+            <h1 class="mb-3" style="font-family:'Playfair Display',serif">{{ activite.nom }}</h1>
+
+            <div class="row g-3 my-3">
+                {% for info in [
+                    ['bi-geo-alt','Lieu', activite.lieu ?? 'Non précisé'],
+                    ['bi-calendar','Date', activite.avecDate == 1 ? activite.dateActivite|date('d/m/Y') : '📅 Vous choisissez votre date'],
+                    ['bi-people','Places dispo', activite.placesDisponibles ~ ' / ' ~ activite.nombrePlaces],
+                    ['bi-gender-ambiguous','Genre cible', activite.genreCible]
+                ] %}
+                <div class="col-6" data-aos="zoom-in" data-aos-delay="{{ loop.index * 80 }}">
+                    <div class="p-3 rounded-3" style="background:#f9f7ff;border:1px solid #ede5ff">
+                        <i class="bi {{ info[0] }} me-2" style="color:var(--primary-light)"></i>
+                        <strong style="font-size:0.82rem;color:var(--primary)">{{ info[1] }}</strong>
+                        <div class="text-muted small mt-1">{{ info[2] }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <p class="text-muted mt-3">{{ activite.description }}</p>
+
+            <div class="d-flex align-items-center gap-4 mt-4 flex-wrap">
+                <span class="price" style="font-size:2.2rem">{{ activite.prix }} TND</span>
+
+                {% if demandeExistante %}
+                    {% if demandeExistante.statut == 'EN_ATTENTE' %}
+                    <span class="btn btn-lg rounded-pill px-4 btn-warning disabled">
+                        <i class="bi bi-hourglass-split me-2"></i>En attente de réponse...
+                    </span>
+                    {% elseif demandeExistante.statut == 'ACCEPTEE' %}
+                        {% if demandeExistante.paiementEffectue == 0 %}
+                        <button class="btn btn-lg rounded-pill px-4 btn-pulse"
+                                style="background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff">
+                            <i class="bi bi-credit-card me-2"></i>Payer {{ activite.prix }} TND
+                        </button>
+                        {% else %}
+                        <span class="btn btn-lg rounded-pill px-4 btn-success disabled">
+                            <i class="bi bi-check-circle-fill me-2"></i>Payé ✓
+                        </span>
+                        {% endif %}
+                    {% elseif demandeExistante.statut == 'REFUSEE' %}
+                    <span class="btn btn-lg rounded-pill px-4 btn-danger disabled">
+                        <i class="bi bi-x-circle me-2"></i>Demande refusée
+                    </span>
+                    {% endif %}
+                {% elseif activite.placesDisponibles > 0 %}
+
+                {# Activité sans date : le client choisit sa date #}
+                {% if activite.avecDate == 0 %}
+                <form method="POST" action="{{ path('app_activite_inscrire', {id: activite.id}) }}">
+                    <div class="mb-3">
+                        <label class="fw-semibold d-block mb-1" style="color:var(--primary-dark)">
+                            <i class="bi bi-calendar-plus me-1"></i>Choisissez votre date
+                        </label>
+                        <input type="datetime-local" name="date_souhaitee" required
+                               class="form-control rounded-3"
+                               min="{{ 'now'|date('Y-m-d') }}T00:00"
+                               style="border-color:#ede5ff;max-width:260px">
+                        <div class="text-muted small mt-1">La date ne peut pas être dans le passé.</div>
+                    </div>
+                    <button type="submit" class="btn btn-lg rounded-pill px-4 btn-pulse"
+                            style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">
+                        <i class="bi bi-calendar-check me-2"></i>S'inscrire à cette activité
+                    </button>
+                </form>
+                {% else %}
+                <form method="POST" action="{{ path('app_activite_inscrire', {id: activite.id}) }}" class="d-inline">
+                    <button type="submit" class="btn btn-lg rounded-pill px-4 btn-pulse"
+                            style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">
+                        <i class="bi bi-calendar-check me-2"></i>S'inscrire — {{ activite.dateActivite|date('d/m/Y') }}
+                    </button>
+                </form>
+                {% endif %}
+
+                {% else %}
+                <button class="btn btn-lg rounded-pill px-4 btn-secondary" disabled>
+                    <i class="bi bi-x-circle me-2"></i>Complet
+                </button>
+                {% endif %}
+
+                <a href="{{ path('app_mes_activites') }}"
+                   class="btn btn-outline-secondary btn-lg rounded-pill px-4">
+                    <i class="bi bi-clock-history me-2"></i>Mes activités
+                </a>
+                <a href="{{ path('app_activites') }}"
+                   class="btn btn-outline-secondary btn-lg rounded-pill px-4">
+                    <i class="bi bi-arrow-left me-2"></i>Retour
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
