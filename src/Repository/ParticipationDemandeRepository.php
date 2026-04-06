@@ -6,13 +6,38 @@ use App\Entity\ParticipationDemande;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-/**
- * @extends ServiceEntityRepository<ParticipationDemande>
- */
 class ParticipationDemandeRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, ParticipationDemande::class);
+    }
+
+    public function findByClient(int $clientId): array
+    {
+        return $this->createQueryBuilder('d')
+            ->where('d.clientId = :cid')
+            ->setParameter('cid', $clientId)
+            ->orderBy('d.dateDemande', 'DESC')
+            ->getQuery()->getResult();
+    }
+
+    public function findByActivite(int $activiteId): array
+    {
+        return $this->createQueryBuilder('d')
+            ->where('d.activite = :aid')
+            ->setParameter('aid', $activiteId)
+            ->orderBy('d.dateDemande', 'DESC')
+            ->getQuery()->getResult();
+    }
+
+    public function findExisting(int $activiteId, int $clientId): ?ParticipationDemande
+    {
+        return $this->createQueryBuilder('d')
+            ->where('d.activite = :aid')
+            ->andWhere('d.clientId = :cid')
+            ->setParameter('aid', $activiteId)
+            ->setParameter('cid', $clientId)
+            ->getQuery()->getOneOrNullResult();
     }
 }

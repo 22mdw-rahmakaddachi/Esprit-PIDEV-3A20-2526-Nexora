@@ -32,7 +32,7 @@ class Panier
     #[ORM\Column(type: 'integer')]
     private int $quantite = 0;
 
-    #[ORM\Column(type: 'time', nullable: true)]
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $dateAjout = null;
 
     public function getId(): ?int
