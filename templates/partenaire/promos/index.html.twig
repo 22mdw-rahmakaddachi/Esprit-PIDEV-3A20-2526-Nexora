@@ -1,0 +1,80 @@
+{% extends 'partenaire/base_partenaire.html.twig' %}
+{% block title %}Codes promo{% endblock %}
+{% block page_title %}Codes promo{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1><i class="bi bi-tag me-2"></i>Codes promo</h1>
+    <a href="{{ path('partenaire_promo_new') }}" class="btn btn-primary-p">
+        <i class="bi bi-plus-lg me-1"></i>Nouveau code promo
+    </a>
+</div>
+
+<div class="admin-table">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Type</th>
+                <th>Réduction</th>
+                <th>Montant min.</th>
+                <th>Validité</th>
+                <th>Utilisations</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for promo in promos %}
+            <tr>
+                <td>
+                    <span class="fw-bold" style="font-family:monospace;color:var(--primary);background:#f0ebff;padding:3px 10px;border-radius:6px">
+                        {{ promo.code }}
+                    </span>
+                </td>
+                <td>{{ promo.typeReduction == 'pourcentage' ? 'Pourcentage' : 'Montant fixe' }}</td>
+                <td class="fw-bold" style="color:var(--primary)">
+                    {% if promo.typeReduction == 'pourcentage' %}
+                        {{ promo.valeurReduction }}%
+                    {% else %}
+                        {{ promo.valeurReduction }} TND
+                    {% endif %}
+                </td>
+                <td>{{ promo.montantMinimum ? promo.montantMinimum ~ ' TND' : '—' }}</td>
+                <td>
+                    <div class="small">{{ promo.dateDebut|date('d/m/Y') }}</div>
+                    <div class="small text-muted">→ {{ promo.dateFin|date('d/m/Y') }}</div>
+                </td>
+                <td>
+                    {{ promo.nombreUtilisations ?? 0 }}
+                    {% if promo.limiteUtilisation %}/ {{ promo.limiteUtilisation }}{% endif %}
+                </td>
+                <td>
+                    <span class="status-badge {{ promo.actif ? 'badge-actif' : 'badge-inactif' }}">
+                        {{ promo.actif ? 'Actif' : 'Inactif' }}
+                    </span>
+                </td>
+                <td>
+                    <div class="d-flex gap-1">
+                        <a href="{{ path('partenaire_promo_edit', {id: promo.id}) }}" class="btn-edit-p btn">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="post" action="{{ path('partenaire_promo_delete', {id: promo.id}) }}"
+                              onsubmit="return confirm('Supprimer ce code promo ?')">
+                            <button type="submit" class="btn-danger-p btn"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" class="text-center text-muted py-5">
+                    <div style="font-size:3rem">🏷️</div>
+                    <p class="mt-2">Aucun code promo. <a href="{{ path('partenaire_promo_new') }}">Créer le premier</a></p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

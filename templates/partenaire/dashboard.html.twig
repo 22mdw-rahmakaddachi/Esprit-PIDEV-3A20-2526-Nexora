@@ -1,0 +1,84 @@
+{% extends 'partenaire/base_partenaire.html.twig' %}
+{% block title %}Dashboard Partenaire{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block body %}
+<div class="row g-4 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-num">{{ totalProduits }}</div>
+                    <div class="stat-label">Mes produits</div>
+                </div>
+                <div style="width:48px;height:48px;border-radius:12px;background:#f0ebff;color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.3rem">
+                    <i class="bi bi-bag-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-num">{{ totalPromos }}</div>
+                    <div class="stat-label">Codes promo</div>
+                </div>
+                <div style="width:48px;height:48px;border-radius:12px;background:#d1f2eb;color:#1a7a4a;display:flex;align-items:center;justify-content:center;font-size:1.3rem">
+                    <i class="bi bi-tag-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="admin-table">
+            <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color:#ede5ff!important">
+                <h6 class="mb-0 fw-bold" style="color:var(--primary-dark)"><i class="bi bi-bag me-2"></i>Mes produits récents</h6>
+                <a href="{{ path('partenaire_produit_new') }}" class="btn btn-primary-p btn-sm">+ Ajouter</a>
+            </div>
+            <table class="table">
+                <thead><tr><th>Produit</th><th>Variantes</th><th>Statut</th><th></th></tr></thead>
+                <tbody>
+                    {% for p in produits|slice(0, 5) %}
+                    <tr>
+                        <td class="fw-semibold">{{ p.nom }}</td>
+                        <td><span class="badge" style="background:#f0ebff;color:var(--primary)">{{ p.variants|length }}</span></td>
+                        <td><span class="status-badge {{ p.statut == 'actif' ? 'badge-actif' : 'badge-inactif' }}">{{ p.statut }}</span></td>
+                        <td><a href="{{ path('partenaire_produit_edit', {id: p.id}) }}" class="btn-edit-p btn">Modifier</a></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" class="text-center text-muted py-4">Aucun produit</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="admin-table">
+            <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color:#ede5ff!important">
+                <h6 class="mb-0 fw-bold" style="color:var(--primary-dark)"><i class="bi bi-tag me-2"></i>Codes promo actifs</h6>
+                <a href="{{ path('partenaire_promo_new') }}" class="btn btn-primary-p btn-sm">+ Créer</a>
+            </div>
+            <div class="p-3 d-flex flex-column gap-2">
+                {% for promo in promos|slice(0, 5) %}
+                <div class="d-flex justify-content-between align-items-center p-2 rounded-3" style="background:#faf8ff">
+                    <div>
+                        <div class="fw-bold small" style="color:var(--primary);font-family:monospace">{{ promo.code }}</div>
+                        <div class="text-muted" style="font-size:0.76rem">
+                            {% if promo.typeReduction == 'pourcentage' %}-{{ promo.valeurReduction }}%{% else %}-{{ promo.valeurReduction }} TND{% endif %}
+                            · jusqu'au {{ promo.dateFin|date('d/m/Y') }}
+                        </div>
+                    </div>
+                    <span class="status-badge {{ promo.actif ? 'badge-actif' : 'badge-inactif' }}">{{ promo.actif ? 'Actif' : 'Inactif' }}</span>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-3 small">Aucun code promo</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -2,7 +2,11 @@
 
 namespace App\Controller\Admin;
 
+use App\Repository\CodePromoRepository;
+use App\Repository\PartenaireRepository;
+use App\Repository\ProduitParentRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -10,8 +14,17 @@ use Symfony\Component\Routing\Attribute\Route;
 final class AdminActiviteController extends AbstractController
 {
     #[Route('/dashboard', name: 'admin_dashboard')]
-    public function dashboard(): Response
-    {
+    public function dashboard(
+        Request $request,
+        PartenaireRepository $partenaireRepo,
+        ProduitParentRepository $produitRepo,
+        CodePromoRepository $promoRepo
+    ): Response {
+        $userId     = $request->getSession()->get('user_id');
+        $partenaire = $userId ? $partenaireRepo->findOneBy(['user' => $userId]) : null;
+        $produits   = $partenaire ? $produitRepo->findByPartenaire($partenaire->getId()) : [];
+        $promos     = $partenaire ? $promoRepo->findByPartenaire($partenaire->getId()) : [];
+
         return $this->render('admin/dashboard.html.twig', [
             'totalActivites'    => 0,
             'totalReservations' => 0,
@@ -19,6 +32,11 @@ final class AdminActiviteController extends AbstractController
             'demandesEnAttente' => 0,
             'activites'         => [],
             'demandes'          => [],
+            'partenaire'        => $partenaire,
+            'produits'          => $produits,
+            'promos'            => $promos,
+            'totalProduits'     => count($produits),
+            'totalPromos'       => count($promos),
         ]);
     }
 

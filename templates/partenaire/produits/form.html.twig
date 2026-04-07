@@ -1,0 +1,210 @@
+{% extends 'partenaire/base_partenaire.html.twig' %}
+{% block title %}{{ titre }}{% endblock %}
+{% block page_title %}{{ titre }}{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1>{{ titre }}</h1>
+    <a href="{{ path('partenaire_produits') }}" class="btn btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-arrow-left me-1"></i>Retour
+    </a>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+    <div class="row g-4">
+
+        {# ── INFOS GÉNÉRALES ── #}
+        <div class="col-lg-8">
+            <div class="form-card mb-4">
+                <h6 class="fw-bold mb-3" style="color:var(--primary-dark)"><i class="bi bi-info-circle me-2"></i>Informations générales</h6>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Nom du produit *</label>
+                        <input type="text" name="nom" class="form-control" required value="{{ produit ? produit.nom : '' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Marque</label>
+                        <input type="text" name="marque" class="form-control" value="{{ produit ? produit.marque : '' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Catégorie</label>
+                        <select name="sousCategorieId" class="form-select">
+                            <option value="">— Choisir —</option>
+                            {% for sc in sousCategories %}
+                            <option value="{{ sc.id }}" {{ produit and produit.sousCategorieId == sc.id ? 'selected' : '' }}>
+                                {{ sc.nom }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Description courte</label>
+                        <input type="text" name="descriptionCourte" class="form-control" value="{{ produit ? produit.descriptionCourte : '' }}">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Description complète</label>
+                        <textarea name="description" class="form-control" rows="4">{{ produit ? produit.description : '' }}</textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Matériau</label>
+                        <input type="text" name="materiau" class="form-control" value="{{ produit ? produit.materiau : '' }}">
+                    </div>
+                    {% if produit %}
+                    <div class="col-md-6">
+                        <label class="form-label">Statut</label>
+                        <select name="statut" class="form-select">
+                            <option value="actif" {{ produit.statut == 'actif' ? 'selected' : '' }}>Actif</option>
+                            <option value="inactif" {{ produit.statut == 'inactif' ? 'selected' : '' }}>Inactif</option>
+                        </select>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# ── VARIANTES ── #}
+            <div class="form-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0" style="color:var(--primary-dark)"><i class="bi bi-layers me-2"></i>Variantes du produit</h6>
+                    <button type="button" class="btn btn-primary-p btn-sm" id="btn-add-variant">
+                        <i class="bi bi-plus-lg me-1"></i>Ajouter une variante
+                    </button>
+                </div>
+                <div id="variants-container">
+                    {% if produit and produit.variants|length > 0 %}
+                        {% for v in produit.variants %}
+                        <div class="variant-row border rounded-3 p-3 mb-3" style="background:#faf8ff">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="fw-semibold small" style="color:var(--primary)">Variante {{ loop.index }}</span>
+                                <button type="button" class="btn btn-danger-p btn-sm btn-remove-variant">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-md-3">
+                                    <label class="form-label">SKU *</label>
+                                    <input type="text" name="variant_sku[]" class="form-control form-control-sm" required value="{{ v.sku }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Prix vente (TND) *</label>
+                                    <input type="number" step="0.01" name="variant_prix_vente[]" class="form-control form-control-sm" required value="{{ v.prixVente }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Prix promo (TND)</label>
+                                    <input type="number" step="0.01" name="variant_prix_promo[]" class="form-control form-control-sm" value="{{ v.prixPromo }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Stock *</label>
+                                    <input type="number" name="variant_stock[]" class="form-control form-control-sm" required value="{{ v.quantiteStock }}">
+                                </div>
+                                {% for attribut in attributs %}
+                                <div class="col-md-4">
+                                    <label class="form-label">{{ attribut.nom }}</label>
+                                    <select name="variant_attribut[{{ loop.parent.loop.index0 }}][{{ attribut.id }}]" class="form-select form-select-sm attribut-select" data-attribut-id="{{ attribut.id }}">
+                                        <option value="">— Choisir —</option>
+                                        {% for opt in attribut.options %}
+                                        <option value="{{ opt.id }}"
+                                            {% for vo in v.options %}
+                                                {% if vo.optionVariation and vo.optionVariation.id == opt.id %}selected{% endif %}
+                                            {% endfor %}>
+                                            {{ opt.valeur }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <div id="no-variant-msg" class="{{ produit and produit.variants|length > 0 ? 'd-none' : '' }} text-center text-muted py-3 small">
+                    Aucune variante. Cliquez sur "Ajouter une variante".
+                </div>
+            </div>
+        </div>
+
+        {# ── IMAGE ── #}
+        <div class="col-lg-4">
+            <div class="form-card">
+                <h6 class="fw-bold mb-3" style="color:var(--primary-dark)"><i class="bi bi-image me-2"></i>Image principale</h6>
+                {% if produit and produit.imagePrincipale %}
+                <img src="/uploads/produits/{{ produit.imagePrincipale }}" alt="Image" class="img-fluid rounded-3 mb-3" style="max-height:200px;object-fit:cover;width:100%">
+                {% endif %}
+                <input type="file" name="imagePrincipale" class="form-control" accept="image/*">
+                <div class="text-muted small mt-2">JPG, PNG, WebP — max 5 Mo</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="mt-4 d-flex gap-3">
+        <button type="submit" class="btn btn-primary-p px-4">
+            <i class="bi bi-check-lg me-1"></i>{{ produit ? 'Enregistrer les modifications' : 'Créer le produit' }}
+        </button>
+        <a href="{{ path('partenaire_produits') }}" class="btn btn-outline-secondary rounded-pill px-4">Annuler</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+const attributs = {{ attributs|map(a => {id: a.id, nom: a.nom, options: a.options|map(o => {id: o.id, valeur: o.valeur})|list})|json_encode|raw }};
+let variantCount = document.querySelectorAll('.variant-row').length;
+
+function buildVariantRow(idx) {
+    let attribsHtml = attributs.map(a => `
+        <div class="col-md-4">
+            <label class="form-label">${a.nom}</label>
+            <select name="variant_attribut[${idx}][${a.id}]" class="form-select form-select-sm">
+                <option value="">— Choisir —</option>
+                ${a.options.map(o => `<option value="${o.id}">${o.valeur}</option>`).join('')}
+            </select>
+        </div>`).join('');
+
+    return `<div class="variant-row border rounded-3 p-3 mb-3" style="background:#faf8ff">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-semibold small" style="color:var(--primary)">Variante ${idx + 1}</span>
+            <button type="button" class="btn btn-danger-p btn-sm btn-remove-variant"><i class="bi bi-trash"></i></button>
+        </div>
+        <div class="row g-2">
+            <div class="col-md-3">
+                <label class="form-label">SKU *</label>
+                <input type="text" name="variant_sku[]" class="form-control form-control-sm" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Prix vente (TND) *</label>
+                <input type="number" step="0.01" name="variant_prix_vente[]" class="form-control form-control-sm" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Prix promo (TND)</label>
+                <input type="number" step="0.01" name="variant_prix_promo[]" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Stock *</label>
+                <input type="number" name="variant_stock[]" class="form-control form-control-sm" required value="0">
+            </div>
+            ${attribsHtml}
+        </div>
+    </div>`;
+}
+
+document.getElementById('btn-add-variant').addEventListener('click', () => {
+    const container = document.getElementById('variants-container');
+    container.insertAdjacentHTML('beforeend', buildVariantRow(variantCount++));
+    document.getElementById('no-variant-msg').classList.add('d-none');
+    bindRemoveButtons();
+});
+
+function bindRemoveButtons() {
+    document.querySelectorAll('.btn-remove-variant').forEach(btn => {
+        btn.onclick = function() {
+            this.closest('.variant-row').remove();
+            if (!document.querySelector('.variant-row')) {
+                document.getElementById('no-variant-msg').classList.remove('d-none');
+            }
+        };
+    });
+}
+bindRemoveButtons();
+</script>
+{% endblock %}

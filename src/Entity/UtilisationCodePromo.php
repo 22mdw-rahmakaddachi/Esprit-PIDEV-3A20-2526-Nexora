@@ -26,7 +26,7 @@ class UtilisationCodePromo
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private float $montantReduction = 0.0;
 
-    #[ORM\Column(type: 'time', nullable: true)]
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $dateUtilisation = null;
 
     public function getId(): ?int
