@@ -1,0 +1,176 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}{{ titre }}{% endblock %}
+{% block page_title %}{{ titre }}{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .field-error { color: #dc3545; font-size: 0.82rem; margin-top: 4px; display: none; }
+    .form-control.is-invalid, .form-select.is-invalid { border-color: #dc3545 !important; box-shadow: 0 0 0 3px rgba(220,53,69,0.12); }
+    .form-control.is-valid, .form-select.is-valid { border-color: #27ae60 !important; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1><i class="bi bi-{{ activite ? 'pencil' : 'plus-circle' }} me-2"></i>{{ titre }}</h1>
+    <a href="{{ path('admin_activites') }}" class="btn btn-sm rounded-pill px-3"
+       style="border:1.5px solid var(--primary);color:var(--primary)">
+        <i class="bi bi-arrow-left me-1"></i>Retour
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="form-card">
+
+            {% if form %}
+                {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'enctype': 'multipart/form-data', 'id': 'activiteForm'}}) }}
+                <div class="row g-4">
+                    <div class="col-12">
+                        {{ form_label(form.nom) }}
+                        {{ form_widget(form.nom, {'attr': {'class': 'form-control', 'id': 'f_nom'}}) }}
+                        <div class="field-error" id="err_nom">Le nom est obligatoire.</div>
+                        {{ form_errors(form.nom) }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form_label(form.type) }}
+                        {{ form_widget(form.type, {'attr': {'class': 'form-select', 'id': 'f_type'}}) }}
+                        <div class="field-error" id="err_type">Veuillez choisir un type.</div>
+                    </div>
+                    <div class="col-md-6">
+                        {{ form_label(form.genreCible) }}
+                        {{ form_widget(form.genreCible, {'attr': {'class': 'form-select', 'id': 'f_genre'}}) }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form_label(form.lieu) }}
+                        {{ form_widget(form.lieu, {'attr': {'class': 'form-select', 'id': 'f_lieu'}}) }}
+                        <div class="field-error" id="err_lieu">Veuillez choisir un gouvernorat.</div>
+                        {{ form_errors(form.lieu) }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form_label(form.prix) }}
+                        <div class="input-group">
+                            {{ form_widget(form.prix, {'attr': {'class': 'form-control', 'id': 'f_prix', 'placeholder': '0.00', 'min': '0.01', 'step': '0.01'}}) }}
+                            <span class="input-group-text" style="border-color:#ddd;background:#f9f7ff;color:var(--primary)">TND</span>
+                        </div>
+                        <div class="field-error" id="err_prix">Le prix doit être supérieur à 0.</div>
+                        {{ form_errors(form.prix) }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form_label(form.nombrePlaces) }}
+                        {{ form_widget(form.nombrePlaces, {'attr': {'class': 'form-control', 'id': 'f_places', 'placeholder': 'Ex: 20', 'min': '1'}}) }}
+                        <div class="field-error" id="err_places">Le nombre de places doit être ≥ 1.</div>
+                        {{ form_errors(form.nombrePlaces) }}
+                    </div>
+                    <div class="col-12">
+                        <div class="p-3 rounded-3" style="background:#f9f7ff;border:1px solid #ede5ff">
+                            <div class="form-check form-switch">
+                                {{ form_widget(form.avecDate, {'attr': {'class': 'form-check-input', 'id': 'avecDateToggle', 'role': 'switch', 'style': 'width:2.5em;height:1.3em;cursor:pointer'}}) }}
+                                <label class="form-check-label fw-semibold ms-2" for="avecDateToggle" style="color:var(--primary-dark)">
+                                    Fixer une date pour cette activité
+                                </label>
+                                <div class="text-muted small mt-1">Si désactivé, le client choisit sa date lors de la réservation.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6" id="date-field" style="display:none">
+                        {{ form_label(form.dateActivite) }}
+                        {{ form_widget(form.dateActivite, {'attr': {'class': 'form-control', 'id': 'f_date'}}) }}
+                        <div class="field-error" id="err_date">Veuillez choisir une date future.</div>
+                    </div>
+                    <div class="col-12">
+                        <div class="p-3 rounded-3" style="background:#f9f7ff;border:1px solid #ede5ff">
+                            <div class="fw-semibold mb-3" style="color:var(--primary-dark)">
+                                <i class="bi bi-image me-2"></i>Image de l'activité
+                            </div>
+                            <ul class="nav nav-pills mb-3 gap-2">
+                                <li class="nav-item">
+                                    <button class="nav-link active px-3 py-1" id="tab-url" type="button" onclick="switchTab('url')" style="font-size:0.85rem;border-radius:50px">
+                                        <i class="bi bi-link-45deg me-1"></i>URL
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link px-3 py-1" id="tab-upload" type="button" onclick="switchTab('upload')" style="font-size:0.85rem;border-radius:50px">
+                                        <i class="bi bi-upload me-1"></i>Depuis mon PC
+                                    </button>
+                                </li>
+                            </ul>
+                            <div id="panel-url">
+                                {{ form_label(form.imageUrl) }}
+                                {{ form_widget(form.imageUrl, {'attr': {'class': 'form-control', 'id': 'imageUrlInput', 'placeholder': 'https://...'}}) }}
+                            </div>
+                            <div id="panel-upload" style="display:none">
+                                {{ form_label(form.imageFile) }}
+                                {{ form_widget(form.imageFile, {'attr': {'class': 'form-control', 'accept': 'image/*', 'id': 'imageFileInput'}}) }}
+                                {{ form_errors(form.imageFile) }}
+                                <div id="img-preview" class="mt-2" style="display:none">
+                                    <img id="preview-img" src="" alt="aperçu" style="height:120px;border-radius:8px;object-fit:cover;border:2px solid #ede5ff">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        {{ form_label(form.description) }}
+                        {{ form_widget(form.description, {'attr': {'class': 'form-control', 'id': 'f_desc', 'placeholder': 'Décrivez l\'activité...'}}) }}
+                        <div class="field-error" id="err_desc">La description est obligatoire.</div>
+                    </div>
+                </div>
+                <div class="d-flex gap-3 mt-4">
+                    <button type="submit" class="btn btn-primary-admin px-4">
+                        <i class="bi bi-check-lg me-2"></i>{{ activite ? 'Enregistrer' : 'Créer l\'activité' }}
+                    </button>
+                    <a href="{{ path('admin_activites') }}" class="btn btn-sm rounded-pill px-4" style="border:1.5px solid #ddd;color:#666">Annuler</a>
+                </div>
+                {{ form_end(form) }}
+
+            {% else %}
+                {# Squelette vitrine — le form sera branché quand l'entité sera prête #}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-tools" style="font-size:3rem;opacity:0.4"></i>
+                    <p class="mt-3">Le formulaire sera disponible une fois les entités configurées.</p>
+                    <a href="{{ path('admin_activites') }}" class="btn rounded-pill px-4 mt-2"
+                       style="background:var(--primary);color:#fff">Retour à la liste</a>
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+function switchTab(tab) {
+    const isUrl = tab === 'url';
+    const pu = document.getElementById('panel-url');
+    const pp = document.getElementById('panel-upload');
+    if (pu) pu.style.display = isUrl ? 'block' : 'none';
+    if (pp) pp.style.display = isUrl ? 'none' : 'block';
+    document.getElementById('tab-url').classList.toggle('active', isUrl);
+    document.getElementById('tab-upload').classList.toggle('active', !isUrl);
+}
+
+const avecDateCb = document.getElementById('avecDateToggle');
+const dateField  = document.getElementById('date-field');
+function toggleDate() {
+    if (!avecDateCb || !dateField) return;
+    dateField.style.display = avecDateCb.checked ? 'block' : 'none';
+}
+if (avecDateCb) { avecDateCb.addEventListener('change', toggleDate); toggleDate(); }
+
+const imgFileInput = document.getElementById('imageFileInput');
+if (imgFileInput) {
+    imgFileInput.addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            document.getElementById('preview-img').src = e.target.result;
+            document.getElementById('img-preview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    });
+}
+</script>
+{% endblock %}

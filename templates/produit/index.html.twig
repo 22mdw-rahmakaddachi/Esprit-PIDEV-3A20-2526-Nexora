@@ -1,0 +1,99 @@
+{% extends 'base.html.twig' %}
+{% block title %}Boutique — Nexora{% endblock %}
+
+{% block body %}
+
+<div class="breadcrumb-section">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                <li class="breadcrumb-item active">Boutique</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row g-4">
+
+        {# SIDEBAR #}
+        <div class="col-lg-3" data-aos="fade-right">
+            <div class="filter-sidebar">
+                <h6><i class="bi bi-grid me-2"></i>Catégories</h6>
+                <div class="d-flex flex-column gap-2">
+                    <a href="{{ path('app_produits') }}"
+                       class="cat-pill {{ categorieId is null ? 'active' : '' }}">
+                        <i class="bi bi-collection me-1"></i>Tous
+                    </a>
+                    {% for cat in categories %}
+                    <a href="{{ path('app_produits', {categorie: cat.id}) }}"
+                       class="cat-pill {{ categorieId == cat.id ? 'active' : '' }}">
+                        {{ cat.nom }}
+                    </a>
+                    {% endfor %}
+                </div>
+                <hr style="border-color:#ede5ff">
+                <h6><i class="bi bi-currency-dollar me-2"></i>Prix (TND)</h6>
+                <div class="d-flex gap-2">
+                    <input type="number" class="form-control form-control-sm" placeholder="Min">
+                    <input type="number" class="form-control form-control-sm" placeholder="Max">
+                </div>
+                <button class="btn btn-sm w-100 mt-2 rounded-pill"
+                        style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">
+                    Filtrer
+                </button>
+            </div>
+        </div>
+
+        {# PRODUITS #}
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-left">
+                <h2 class="section-title mb-0">Boutique</h2>
+                <span class="badge rounded-pill px-3 py-2"
+                      style="background:#f0ebff;color:var(--primary)">
+                    {{ produits|length }} produit(s)
+                </span>
+            </div>
+
+            <div class="row g-4">
+                {% for produit in produits %}
+                <div class="col-6 col-md-4" data-aos="fade-up" data-aos-delay="{{ (loop.index0 % 3) * 100 }}">
+                    <div class="product-card card h-100">
+                        <div class="img-wrap img-zoom" style="height:200px">
+                            <span class="emoji-img" style="font-size:4.5rem">🛍️</span>
+                            {% if produit.variants|length > 0 and produit.variants.first.prixPromo %}
+                            <span class="position-absolute top-0 end-0 m-2 badge-new">Promo</span>
+                            {% endif %}
+                        </div>
+                        <div class="card-body p-3">
+                            <span class="badge-cat mb-2 d-inline-block">
+                                {{ produit.sousCategorie ? produit.sousCategorie.nom : 'Produit' }}
+                            </span>
+                            <h6 class="card-title">{{ produit.nom }}</h6>
+                            <p class="text-muted small mb-2" style="font-size:0.8rem">{{ produit.descriptionCourte }}</p>
+                            <span class="price">{{ produit.prixMin ? produit.prixMin ~ ' TND' : 'N/A' }}</span>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 p-3 pt-0">
+                            <a href="{{ path('app_produit_show', {id: produit.id}) }}" class="btn-add btn">
+                                <i class="bi bi-eye me-1"></i>Voir le produit
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="col-12" data-aos="fade-up">
+                    <div class="text-center py-5 rounded-4" style="background:var(--white)">
+                        <div style="font-size:4rem">🛒</div>
+                        <p class="mt-3 text-muted">Aucun produit dans cette catégorie.</p>
+                        <a href="{{ path('app_produits') }}" class="btn rounded-pill px-4"
+                           style="background:var(--primary);color:#fff">Voir tous les produits</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

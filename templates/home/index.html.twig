@@ -1,0 +1,269 @@
+{% extends 'base.html.twig' %}
+{% block title %}Nexora — Accueil{% endblock %}
+
+{% block body %}
+
+{# ══════════════════════════════════════════
+   HERO + AVION ANIMÉ
+══════════════════════════════════════════ #}
+<section class="hero" style="overflow:hidden;position:relative">
+
+    {# Scène avion (canvas + SVG) #}
+    <div id="plane-scene" style="position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden">
+        <canvas id="trail-canvas" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
+
+        {# Avion SVG #}
+        <div id="plane" style="position:absolute;top:30%;left:-120px;transform:translateY(-50%)">
+            <svg width="110" height="40" viewBox="0 0 110 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="55" cy="20" rx="50" ry="9" fill="white" opacity="0.95"/>
+                <path d="M105 20 Q115 20 108 16 L95 20 Z" fill="#d8c5f5"/>
+                <path d="M50 20 L70 4 L80 4 L65 20 Z" fill="white" opacity="0.85"/>
+                <path d="M50 20 L70 36 L80 36 L65 20 Z" fill="white" opacity="0.75"/>
+                <path d="M15 20 L22 10 L28 10 L22 20 Z" fill="white" opacity="0.8"/>
+                <path d="M15 20 L22 30 L28 30 L22 20 Z" fill="white" opacity="0.7"/>
+                <circle cx="75" cy="18" r="3" fill="#a78bda" opacity="0.7"/>
+                <circle cx="63" cy="17" r="3" fill="#a78bda" opacity="0.7"/>
+                <circle cx="51" cy="17" r="3" fill="#a78bda" opacity="0.7"/>
+                <ellipse cx="60" cy="28" rx="8" ry="4" fill="#c39bd3" opacity="0.8"/>
+                <ellipse cx="60" cy="28" rx="5" ry="2.5" fill="#6c3fc5" opacity="0.6"/>
+            </svg>
+        </div>
+
+        {# Nuages #}
+        <div style="position:absolute;top:12%;left:-80px;opacity:0.15;font-size:3rem;animation:cloudDrift 18s linear infinite">☁️</div>
+        <div style="position:absolute;top:58%;left:-80px;opacity:0.10;font-size:2rem;animation:cloudDrift 26s linear infinite 5s">☁️</div>
+        <div style="position:absolute;top:75%;left:-80px;opacity:0.08;font-size:1.5rem;animation:cloudDrift 22s linear infinite 10s">☁️</div>
+    </div>
+
+    {# Contenu hero #}
+    <div class="container position-relative" style="z-index:1">
+        <div class="row align-items-center">
+            <div class="col-lg-6 animate-fadeup">
+                <span class="badge rounded-pill mb-3 px-3 py-2"
+                      style="background:rgba(255,255,255,0.2);color:#fff;font-size:0.85rem">
+                    <i class="bi bi-star-fill me-1 text-warning"></i>Plateforme N°1 en Tunisie
+                </span>
+                <h1 class="mb-3">Découvrez nos produits<br>& <span style="color:#d8c5f5">activités</span> outdoor</h1>
+                <p class="mb-4 opacity-75">Équipements de qualité et expériences uniques pour tous les aventuriers.</p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="{{ path('app_produits') }}" class="btn btn-hero">
+                        <i class="bi bi-bag me-2"></i>Voir la boutique
+                    </a>
+                    <a href="{{ path('app_activites') }}" class="btn btn-hero-outline">
+                        <i class="bi bi-calendar-event me-2"></i>Nos activités
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 d-none d-lg-flex justify-content-end gap-3 mt-4 mt-lg-0">
+                {% for item in [['🏕️','Camping'],['🏃','Sport'],['🎭','Culture'],['🍽️','Gastro']] %}
+                <div class="text-center p-4 rounded-3 animate-fadeup"
+                     style="background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);animation-delay:{{ loop.index * 0.15 }}s">
+                    <div style="font-size:2.4rem">{{ item[0] }}</div>
+                    <div class="mt-2 fw-semibold small">{{ item[1] }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+{# STATS #}
+<section class="stats-bar py-4">
+    <div class="container">
+        <div class="row text-center g-3">
+            {% for stat in [['500+','Produits','bi-bag'],['50+','Activités','bi-calendar-event'],['1000+','Clients','bi-people'],['20+','Partenaires','bi-handshake']] %}
+            <div class="col-6 col-md-3 stat-item" data-aos="zoom-in" data-aos-delay="{{ loop.index * 80 }}">
+                <i class="bi {{ stat[2] }} fs-4 mb-1" style="color:var(--primary-light)"></i>
+                <div class="stat-num">{{ stat[0] }}</div>
+                <div class="text-muted small">{{ stat[1] }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{# PRODUITS VEDETTES #}
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4" data-aos="fade-right">
+            <h2 class="section-title mb-0">Produits vedettes</h2>
+            <a href="{{ path('app_produits') }}" class="text-decoration-none fw-semibold" style="color:var(--primary)">
+                Voir tout <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        <div class="row g-4">
+            {% for produit in produits %}
+            <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="{{ loop.index * 80 }}">
+                <div class="product-card card h-100">
+                    <div class="img-wrap img-zoom">
+                        <span class="emoji-img" style="font-size:3.5rem">🛍️</span>
+                    </div>
+                    <div class="card-body p-3">
+                        <span class="badge-cat mb-2 d-inline-block">
+                            {{ produit.sousCategorie ? produit.sousCategorie.nom : 'Produit' }}
+                        </span>
+                        <h6 class="card-title mb-1" style="font-size:0.88rem">{{ produit.nom }}</h6>
+                        <div class="price">{{ produit.prixMin ? produit.prixMin ~ ' TND' : 'N/A' }}</div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 p-3 pt-0">
+                        <a href="{{ path('app_produit_show', {id: produit.id}) }}" class="btn-add btn">
+                            <i class="bi bi-eye me-1"></i>Voir
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center text-muted py-4">Aucun produit disponible.</div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<hr class="divider">
+
+{# ACTIVITES #}
+<section class="py-5" style="background:var(--white)">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4" data-aos="fade-right">
+            <h2 class="section-title mb-0">Activités à venir</h2>
+            <a href="{{ path('app_activites') }}" class="text-decoration-none fw-semibold" style="color:var(--primary)">
+                Voir tout <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        <div class="row g-4">
+            {% for activite in activites %}
+            <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="{{ loop.index * 100 }}">
+                <div class="activity-card card h-100">
+                    <div class="img-wrap">
+                        <span style="font-size:4rem">
+                            {% if activite.type == 'Sport' %}🏃
+                            {% elseif activite.type == 'Culture' %}🎭
+                            {% elseif activite.type == 'Gastronomie' %}🍽️
+                            {% else %}🌟{% endif %}
+                        </span>
+                        <span class="position-absolute top-0 start-0 m-2 badge bg-white"
+                              style="color:var(--primary);font-size:0.72rem">{{ activite.type }}</span>
+                    </div>
+                    <div class="card-body p-3">
+                        <h6 class="card-title">{{ activite.nom }}</h6>
+                        <div class="text-muted small mb-1"><i class="bi bi-geo-alt me-1"></i>{{ activite.lieu }}</div>
+                        <div class="text-muted small mb-2"><i class="bi bi-calendar me-1"></i>{{ activite.dateActivite|date('d/m/Y') }}</div>
+                        <div class="price">{{ activite.prix }} TND</div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 p-3 pt-0">
+                        <a href="{{ path('app_activite_show', {id: activite.id}) }}" class="btn-activity btn">
+                            <i class="bi bi-arrow-right me-1"></i>Détails
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center text-muted py-4">Aucune activité disponible.</div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{# CTA BANNER #}
+<section class="py-5" data-aos="zoom-in">
+    <div class="container">
+        <div class="rounded-4 p-5 text-center text-white"
+             style="background:linear-gradient(135deg,var(--primary-dark),var(--accent))">
+            <h2 class="mb-3">Prêt à vivre l'aventure ?</h2>
+            <p class="mb-4 opacity-75">Rejoignez des milliers d'aventuriers qui nous font confiance.</p>
+            <a href="{{ path('app_activites') }}" class="btn btn-hero me-3">
+                <i class="bi bi-calendar-check me-2"></i>Réserver une activité
+            </a>
+            <a href="{{ path('app_produits') }}" class="btn btn-hero-outline">
+                <i class="bi bi-bag me-2"></i>Explorer la boutique
+            </a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<style>
+    @keyframes cloudDrift {
+        from { transform: translateX(0); }
+        to   { transform: translateX(120vw); }
+    }
+</style>
+<script>
+(function () {
+    const plane  = document.getElementById('plane');
+    const canvas = document.getElementById('trail-canvas');
+    const scene  = document.getElementById('plane-scene');
+    if (!plane || !canvas || !scene) return;
+
+    const ctx = canvas.getContext('2d');
+    let W, H, x, y, trail = [], tick = 0;
+
+    const SPEED     = 1.8;
+    const TRAIL_LEN = 130;
+    const AMPLITUDE = 30;
+    const FREQUENCY = 0.011;
+
+    function resize() {
+        W = canvas.width  = scene.offsetWidth;
+        H = canvas.height = scene.offsetHeight;
+        reset();
+    }
+
+    function reset() {
+        x = -130; y = H * 0.35; trail = []; tick = 0;
+    }
+
+    function drawTrail() {
+        ctx.clearRect(0, 0, W, H);
+        if (trail.length < 2) return;
+
+        [-7, 7].forEach(offset => {
+            ctx.beginPath();
+            ctx.moveTo(trail[0].x, trail[0].y + offset);
+            for (let i = 1; i < trail.length; i++) {
+                ctx.lineTo(trail[i].x, trail[i].y + offset);
+            }
+            const g = ctx.createLinearGradient(trail[0].x, 0, trail[trail.length - 1].x, 0);
+            g.addColorStop(0,   'rgba(255,255,255,0)');
+            g.addColorStop(0.3, 'rgba(195,155,211,0.2)');
+            g.addColorStop(1,   'rgba(255,255,255,0.6)');
+            ctx.strokeStyle = g;
+            ctx.lineWidth   = 3.5;
+            ctx.lineCap     = 'round';
+            ctx.lineJoin    = 'round';
+            ctx.stroke();
+        });
+    }
+
+    function animate() {
+        tick++;
+        x += SPEED;
+
+        const targetY = H * 0.35 + Math.sin(tick * FREQUENCY) * AMPLITUDE;
+        y += (targetY - y) * 0.05;
+
+        const dy    = trail.length > 1 ? y - trail[trail.length - 1].y : 0;
+        const angle = Math.atan2(dy, SPEED) * (180 / Math.PI);
+
+        plane.style.left      = x + 'px';
+        plane.style.top       = y + 'px';
+        plane.style.transform = `translateY(-50%) rotate(${angle * 0.55}deg)`;
+
+        trail.push({ x: x + 8, y });
+        if (trail.length > TRAIL_LEN) trail.shift();
+
+        drawTrail();
+
+        if (x > W + 160) reset();
+        requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+    animate();
+})();
+</script>
+{% endblock %}

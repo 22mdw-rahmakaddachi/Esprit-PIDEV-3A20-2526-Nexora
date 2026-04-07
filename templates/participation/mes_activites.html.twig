@@ -1,0 +1,153 @@
+{% extends 'base.html.twig' %}
+{% block title %}Mes activités — Nexora{% endblock %}
+
+{% block body %}
+<div class="breadcrumb-section">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                <li class="breadcrumb-item active">Mes activités</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row g-4">
+
+        {# ── COLONNE GAUCHE : NOTIFICATIONS ── #}
+        <div class="col-lg-4" data-aos="fade-right">
+            <div class="filter-sidebar">
+                <h5 class="mb-4" style="color:var(--primary);font-family:'Playfair Display',serif">
+                    <i class="bi bi-bell-fill me-2"></i>Notifications
+                    {% set unread = notifications|filter(n => n.lue == 0)|length %}
+                    {% if unread > 0 %}
+                    <span class="badge rounded-pill ms-2" style="background:var(--accent);font-size:0.75rem">{{ unread }}</span>
+                    {% endif %}
+                </h5>
+
+                {% if notifications is empty %}
+                <div class="text-center text-muted py-3">
+                    <i class="bi bi-bell-slash" style="font-size:2rem;opacity:0.4"></i>
+                    <p class="mt-2 small">Aucune notification</p>
+                </div>
+                {% else %}
+                <div class="d-flex flex-column gap-2">
+                    {% for notif in notifications %}
+                    <div class="p-3 rounded-3 {{ notif.lue == 0 ? 'border border-2' : 'opacity-75' }}"
+                         style="{{ notif.lue == 0 ? 'border-color:var(--primary-light)!important;background:#f9f7ff' : 'background:#f5f5f5' }}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="fw-semibold small" style="color:var(--primary)">{{ notif.titre }}</div>
+                                <div class="text-muted" style="font-size:0.82rem;margin-top:4px">{{ notif.message }}</div>
+                                <div class="text-muted mt-1" style="font-size:0.75rem">
+                                    <i class="bi bi-clock me-1"></i>{{ notif.dateCreation ? notif.dateCreation|date('d/m/Y H:i') : '' }}
+                                </div>
+                            </div>
+                            {% if notif.lue == 0 %}
+                            <a href="{{ path('app_notif_lire', {id: notif.id}) }}"
+                               class="btn btn-sm rounded-pill ms-2 flex-shrink-0"
+                               style="background:var(--primary);color:#fff;font-size:0.72rem;padding:3px 10px">
+                               Lu
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {# ── COLONNE DROITE : HISTORIQUE DEMANDES ── #}
+        <div class="col-lg-8" data-aos="fade-left">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="section-title mb-0">Historique de mes participations</h2>
+                <a href="{{ path('app_activites') }}" class="btn rounded-pill px-3"
+                   style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;font-size:0.85rem">
+                    <i class="bi bi-plus me-1"></i>Voir les activités
+                </a>
+            </div>
+
+            {% if demandes is empty %}
+            <div class="text-center py-5 rounded-4" style="background:#fff;border:2px dashed #ede5ff">
+                <div style="font-size:4rem">📅</div>
+                <h5 class="mt-3" style="color:var(--primary)">Aucune participation</h5>
+                <p class="text-muted">Vous n'avez pas encore demandé à participer à une activité.</p>
+                <a href="{{ path('app_activites') }}" class="btn rounded-pill px-4 mt-2"
+                   style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">
+                    Découvrir les activités
+                </a>
+            </div>
+            {% else %}
+            <div class="d-flex flex-column gap-3">
+                {% for demande in demandes %}
+                <div class="p-4 rounded-4 bg-white shadow-sm" data-aos="fade-up" data-aos-delay="{{ loop.index * 60 }}"
+                     style="border-left:4px solid
+                        {% if demande.statut == 'ACCEPTEE' %}#27ae60
+                        {% elseif demande.statut == 'REFUSEE' %}#e74c3c
+                        {% else %}var(--primary-light){% endif %}">
+
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                        <div>
+                            <h6 class="mb-1 fw-bold" style="color:var(--primary-dark)">
+                                {{ demande.activite.nom }}
+                            </h6>
+                            <div class="text-muted small d-flex flex-wrap gap-3">
+                                <span><i class="bi bi-geo-alt me-1"></i>{{ demande.activite.lieu }}</span>
+                                <span><i class="bi bi-calendar me-1"></i>{{ demande.activite.dateActivite|date('d/m/Y') }}</span>
+                                <span><i class="bi bi-clock me-1"></i>Demande le {{ demande.dateDemande|date('d/m/Y') }}</span>
+                                <span><i class="bi bi-currency-dollar me-1"></i>{{ demande.activite.prix }} TND</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-column align-items-end gap-2">
+                            {# Badge statut #}
+                            {% if demande.statut == 'EN_ATTENTE' %}
+                            <span class="badge rounded-pill px-3 py-2"
+                                  style="background:#fff3cd;color:#856404;font-size:0.82rem">
+                                <i class="bi bi-hourglass-split me-1"></i>En attente
+                            </span>
+                            {% elseif demande.statut == 'ACCEPTEE' %}
+                            <span class="badge rounded-pill px-3 py-2"
+                                  style="background:#d1f2eb;color:#1a7a4a;font-size:0.82rem">
+                                <i class="bi bi-check-circle-fill me-1"></i>Acceptée
+                            </span>
+                            {% elseif demande.statut == 'REFUSEE' %}
+                            <span class="badge rounded-pill px-3 py-2"
+                                  style="background:#fde8e8;color:#c0392b;font-size:0.82rem">
+                                <i class="bi bi-x-circle-fill me-1"></i>Refusée
+                            </span>
+                            {% endif %}
+
+                            {# Bouton payer si acceptée et non payée #}
+                            {% if demande.statut == 'ACCEPTEE' and demande.paiementEffectue == 0 %}
+                            <button class="btn btn-sm rounded-pill px-3 btn-pulse"
+                                    style="background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;font-size:0.82rem">
+                                <i class="bi bi-credit-card me-1"></i>Payer {{ demande.activite.prix }} TND
+                            </button>
+                            {% elseif demande.statut == 'ACCEPTEE' and demande.paiementEffectue == 1 %}
+                            <span class="badge rounded-pill px-3 py-2"
+                                  style="background:#d1f2eb;color:#1a7a4a;font-size:0.82rem">
+                                <i class="bi bi-check-all me-1"></i>Payé ✓
+                            </span>
+                            {% endif %}
+
+                            {# Message refus #}
+                            {% if demande.statut == 'REFUSEE' %}
+                            <small class="text-muted fst-italic" style="font-size:0.78rem;max-width:200px;text-align:right">
+                                Nous nous excusons pour la gêne occasionnée.
+                            </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}
