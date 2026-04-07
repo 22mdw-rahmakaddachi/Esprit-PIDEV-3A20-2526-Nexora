@@ -38,10 +38,10 @@ class Produits
     #[ORM\Column(nullable: true)]
     private ?string $statut = null;
 
-    #[ORM\Column(type: 'time', nullable: true)]
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $createdAt = null;
 
-    #[ORM\Column(type: 'time', nullable: true)]
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $updatedAt = null;
 
     public function getId(): ?int

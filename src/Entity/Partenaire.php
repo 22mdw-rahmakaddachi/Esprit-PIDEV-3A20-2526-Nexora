@@ -49,7 +49,7 @@ class Partenaire
     #[ORM\Column(type: 'decimal', nullable: true, precision: 5, scale: 2)]
     private ?float $commission = null;
 
-    #[ORM\Column(type: 'time', nullable: true)]
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $dateInscription = null;
 
     public function getId(): ?int

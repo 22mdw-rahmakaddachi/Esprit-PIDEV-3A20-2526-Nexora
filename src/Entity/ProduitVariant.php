@@ -41,7 +41,7 @@ class ProduitVariant
     #[ORM\Column(nullable: true, length: 50)]
     private ?string $codeBarres = null;
 
-    #[ORM\Column(type: 'time', nullable: true)]
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $dateCreation = null;
 
     public function getId(): ?int

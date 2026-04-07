@@ -15,4 +15,14 @@ class ProduitParentRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, ProduitParent::class);
     }
+
+    public function findActifs(int $limit = 6): array
+    {
+        return $this->createQueryBuilder('p')
+            ->where('p.statut = :statut')
+            ->setParameter('statut', 'ACTIF')
+            ->orderBy('p.dateAjout', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()->getResult();
+    }
 }

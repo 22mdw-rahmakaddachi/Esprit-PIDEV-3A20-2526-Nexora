@@ -44,7 +44,7 @@ class ProduitParent
     #[ORM\Column(nullable: true, length: 255)]
     private ?string $imagePrincipale = null;
 
-    #[ORM\Column(type: 'time', nullable: true)]
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $dateAjout = null;
 
     #[ORM\Column(nullable: true)]
