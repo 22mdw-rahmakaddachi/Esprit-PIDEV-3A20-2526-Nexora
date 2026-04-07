@@ -16,6 +16,7 @@ class ProduitParentRepository extends ServiceEntityRepository
         parent::__construct($registry, ProduitParent::class);
     }
 
+
     /** Produits actifs, filtrés par sous-catégorie si fournie */
     public function findActifs(?int $sousCategorieId = null): array
     {
@@ -41,5 +42,6 @@ class ProduitParentRepository extends ServiceEntityRepository
             ->orderBy('p.dateAjout', 'DESC')
             ->getQuery()
             ->getResult();
-    }
+
+    
 }

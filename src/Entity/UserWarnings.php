@@ -23,10 +23,10 @@ class UserWarnings
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?int $isBlocked = null;
 
-    #[ORM\Column(type: 'time', nullable: true)]
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $lastWarningAt = null;
 
-    #[ORM\Column(type: 'time', nullable: true)]
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $blockedAt = null;
 
     public function getId(): ?int

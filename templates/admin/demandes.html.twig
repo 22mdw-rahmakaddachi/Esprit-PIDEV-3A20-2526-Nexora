@@ -61,13 +61,13 @@
                 <td>
                     {% if d.statut == 'EN_ATTENTE' %}
                     <div class="d-flex gap-1">
-                        <form method="POST" action="{{ path('app_demande_accepter', {id: d.id}) }}" class="d-inline">
+                        <form method="POST" action="{{ path('admin_demande_accepter', {id: d.id}) }}" class="d-inline">
                             <button type="submit" class="btn btn-sm rounded-pill px-3"
                                     style="background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;font-size:0.8rem">
                                 <i class="bi bi-check-lg me-1"></i>Accepter
                             </button>
                         </form>
-                        <form method="POST" action="{{ path('app_demande_refuser', {id: d.id}) }}" class="d-inline">
+                        <form method="POST" action="{{ path('admin_demande_refuser', {id: d.id}) }}" class="d-inline">
                             <button type="submit" class="btn btn-sm rounded-pill px-3"
                                     style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;font-size:0.8rem"
                                     onclick="return confirm('Confirmer le refus ?')">

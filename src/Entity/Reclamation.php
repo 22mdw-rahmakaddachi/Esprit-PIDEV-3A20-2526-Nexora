@@ -30,7 +30,7 @@ class Reclamation
     #[ORM\Column(nullable: true, length: 50)]
     private ?string $statut = null;
 
-    #[ORM\Column(type: 'time', nullable: true)]
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $dateCreation = null;
 
     public function getId(): ?int
