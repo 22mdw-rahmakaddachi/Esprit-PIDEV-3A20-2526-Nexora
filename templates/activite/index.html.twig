@@ -29,69 +29,58 @@
 
 <div class="container py-5">
 
-    {# FILTRES #}
+    {# FILTRES LIEU + TYPE #}
     <div class="mb-4" data-aos="fade-down">
-        <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
-            <span class="fw-semibold me-1" style="color:var(--primary)">
-                <i class="bi bi-funnel me-1"></i>Type :
-            </span>
-            <a href="{{ path('app_activites', lieuActif is not null ? {lieu: lieuActif} : {}) }}"
-               class="cat-pill {{ typeActif is null ? 'active' : '' }}">🌟 Tous</a>
-            {% for type in types %}
-            <a href="{{ path('app_activites', {type: type}|merge(lieuActif ? {lieu: lieuActif} : {})) }}"
-               class="cat-pill {{ typeActif == type ? 'active' : '' }}">
-                {% if type == 'Sport' %}🏃
-                {% elseif type == 'Culture' %}🎭
-                {% elseif type == 'Gastronomie' %}🍽️
-                {% elseif type == 'Aventure' %}🧗
-                {% elseif type == 'Bien-être' %}🧘
-                {% else %}🌟{% endif %}
-                {{ type }}
-            </a>
-            {% endfor %}
-        </div>
+        <form method="GET" action="{{ path('app_activites') }}" class="d-flex flex-wrap align-items-center gap-3">
 
-        {# SELECT LIEU #}
-        <div class="d-flex align-items-center gap-3 flex-wrap">
-            <span class="fw-semibold" style="color:var(--primary)">
-                <i class="bi bi-geo-alt me-1"></i>Gouvernorat :
-            </span>
-            <form method="GET" action="{{ path('app_activites') }}" class="d-flex align-items-center gap-2">
-                {% if typeActif %}
-                <input type="hidden" name="type" value="{{ typeActif }}">
-                {% endif %}
+            {# Filtre Type #}
+            <div class="d-flex align-items-center gap-2">
+                <span class="fw-semibold small" style="color:var(--primary)">
+                    <i class="bi bi-funnel me-1"></i>Type :
+                </span>
+                <select name="type" onchange="this.form.submit()"
+                        class="form-select form-select-sm rounded-pill"
+                        style="min-width:180px;border-color:#ede5ff;color:var(--primary);font-size:0.88rem">
+                    <option value="">🌟 Tous les types</option>
+                    {% for t in ['Sport','Culture','Gastronomie','Aventure','Bien-être','Autre'] %}
+                    <option value="{{ t }}" {{ typeActif == t ? 'selected' : '' }}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {# Filtre Lieu #}
+            <div class="d-flex align-items-center gap-2">
+                <span class="fw-semibold small" style="color:var(--primary)">
+                    <i class="bi bi-geo-alt me-1"></i>Lieu :
+                </span>
                 <select name="lieu" onchange="this.form.submit()"
                         class="form-select form-select-sm rounded-pill"
                         style="min-width:200px;border-color:#ede5ff;color:var(--primary);font-size:0.88rem">
                     <option value="">🌍 Tous les gouvernorats</option>
                     {% for l in lieux %}
-                    <option value="{{ l }}" {{ lieuActif == l ? 'selected' : '' }}>
-                        📍 {{ l }}
-                    </option>
+                    <option value="{{ l }}" {{ lieuActif == l ? 'selected' : '' }}>📍 {{ l }}</option>
                     {% endfor %}
                 </select>
-                {% if lieuActif %}
-                <a href="{{ path('app_activites', typeActif ? {type: typeActif} : {}) }}"
-                   class="btn btn-sm rounded-pill px-3"
-                   style="border:1.5px solid #ddd;color:#888;font-size:0.82rem">
-                    <i class="bi bi-x me-1"></i>Effacer
-                </a>
-                {% endif %}
-            </form>
-        </div>
+            </div>
+
+            {# Bouton effacer si filtre actif #}
+            {% if typeActif or lieuActif %}
+            <a href="{{ path('app_activites') }}"
+               class="btn btn-sm rounded-pill px-3"
+               style="border:1.5px solid #ddd;color:#888;font-size:0.82rem">
+                <i class="bi bi-x me-1"></i>Effacer les filtres
+            </a>
+            {% endif %}
+
+        </form>
     </div>
 
     <div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-right">
         <h2 class="section-title mb-0">
-            {% if typeActif and lieuActif %}
-                {{ typeActif }} — {{ lieuActif }}
-            {% elseif typeActif %}
-                Activités : {{ typeActif }}
-            {% elseif lieuActif %}
-                Activités à {{ lieuActif }}
-            {% else %}
-                Toutes les activités
-            {% endif %}
+            {% if typeActif and lieuActif %}{{ typeActif }} à {{ lieuActif }}
+            {% elseif typeActif %}Activités : {{ typeActif }}
+            {% elseif lieuActif %}Activités à {{ lieuActif }}
+            {% else %}Toutes les activités{% endif %}
         </h2>
         <span class="badge rounded-pill px-3 py-2" style="background:#f0ebff;color:var(--primary)">
             {{ activites|length }} activité(s)
@@ -102,13 +91,20 @@
         {% for activite in activites %}
         <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="{{ (loop.index0 % 3) * 100 }}">
             <div class="activity-card card h-100">
-                <div class="img-wrap" style="height:200px;position:relative">
-                    <span style="font-size:5rem">
-                        {% if activite.type == 'Sport' %}🏃
-                        {% elseif activite.type == 'Culture' %}🎭
-                        {% elseif activite.type == 'Gastronomie' %}🍽️
-                        {% else %}🌟{% endif %}
-                    </span>
+                <div class="img-wrap" style="height:200px;position:relative;overflow:hidden">
+                    {% if activite.images %}
+                        <img src="{{ activite.imageUrl }}"
+                             alt="{{ activite.nom }}"
+                             style="width:100%;height:100%;object-fit:cover"
+                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:5rem;background:linear-gradient(135deg,var(--primary-dark),var(--primary))">
+                            {% if activite.type == 'Sport' %}🏃{% elseif activite.type == 'Culture' %}🎭{% elseif activite.type == 'Gastronomie' %}🍽️{% else %}🌟{% endif %}
+                        </div>
+                    {% else %}
+                        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:5rem;background:linear-gradient(135deg,var(--primary-dark),var(--primary))">
+                            {% if activite.type == 'Sport' %}🏃{% elseif activite.type == 'Culture' %}🎭{% elseif activite.type == 'Gastronomie' %}🍽️{% else %}🌟{% endif %}
+                        </div>
+                    {% endif %}
                     <span class="position-absolute top-0 start-0 m-2 badge"
                           style="background:rgba(255,255,255,0.9);color:var(--primary);font-size:0.72rem">
                         {{ activite.type }}

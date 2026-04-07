@@ -20,7 +20,7 @@ class Conversation
     #[ORM\Column(type: 'integer')]
     private int $user2Id = 0;
 
-    #[ORM\Column(type: 'time', nullable: true)]
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $createdAt = null;
 
     public function getId(): ?int
