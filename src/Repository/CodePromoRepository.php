@@ -15,4 +15,28 @@ class CodePromoRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, CodePromo::class);
     }
+
+    public function findByPartenaire(int $partenaireId): array
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.partenaireId = :pid')
+            ->setParameter('pid', $partenaireId)
+            ->orderBy('c.dateCreation', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findValidCode(string $code): ?CodePromo
+    {
+        $today = new \DateTime();
+        return $this->createQueryBuilder('c')
+            ->where('c.code = :code')
+            ->andWhere('c.actif = 1')
+            ->andWhere('c.dateDebut <= :today')
+            ->andWhere('c.dateFin >= :today')
+            ->setParameter('code', $code)
+            ->setParameter('today', $today)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

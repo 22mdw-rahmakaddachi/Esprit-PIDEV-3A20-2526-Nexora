@@ -2,6 +2,11 @@
 
 namespace App\Controller\Admin;
 
+
+use App\Repository\CodePromoRepository;
+use App\Repository\PartenaireRepository;
+use App\Repository\ProduitParentRepository;
+=======
 use App\Entity\Activite;
 use App\Entity\Partenaire;
 use App\Repository\ActiviteRepository;
@@ -9,6 +14,7 @@ use App\Repository\ParticipationDemandeRepository;
 use App\Repository\NotificationRepository;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,7 +28,31 @@ final class AdminActiviteController extends AbstractController
     private function getPartenaireId(): int { return 8; }
     private function getPartenaireUserId(): int { return 44; }
 
-    #[Route('/dashboard', name: 'admin_dashboard')]
+
+    public function dashboard(
+        Request $request,
+        PartenaireRepository $partenaireRepo,
+        ProduitParentRepository $produitRepo,
+        CodePromoRepository $promoRepo
+    ): Response {
+        $userId     = $request->getSession()->get('user_id');
+        $partenaire = $userId ? $partenaireRepo->findOneBy(['user' => $userId]) : null;
+        $produits   = $partenaire ? $produitRepo->findByPartenaire($partenaire->getId()) : [];
+        $promos     = $partenaire ? $promoRepo->findByPartenaire($partenaire->getId()) : [];
+
+        return $this->render('admin/dashboard.html.twig', [
+            'totalActivites'    => 0,
+            'totalReservations' => 0,
+            'placesDisponibles' => 0,
+            'demandesEnAttente' => 0,
+            'activites'         => [],
+            'demandes'          => [],
+            'partenaire'        => $partenaire,
+            'produits'          => $produits,
+            'promos'            => $promos,
+            'totalProduits'     => count($produits),
+            'totalPromos'       => count($promos),
+
     public function dashboard(ActiviteRepository $activiteRepo, ParticipationDemandeRepository $demandeRepo): Response
     {
         $activites = $activiteRepo->findByPartenaire($this->getPartenaireId());
@@ -44,6 +74,7 @@ final class AdminActiviteController extends AbstractController
             'demandesEnAttente' => $demandesEnAttente,
             'activites'         => array_slice($activites, 0, 5),
             'demandes'          => array_slice($demandes, 0, 5),
+
         ]);
     }
 

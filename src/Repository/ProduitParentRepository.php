@@ -16,13 +16,32 @@ class ProduitParentRepository extends ServiceEntityRepository
         parent::__construct($registry, ProduitParent::class);
     }
 
-    public function findActifs(int $limit = 6): array
+
+    /** Produits actifs, filtrés par sous-catégorie si fournie */
+    public function findActifs(?int $sousCategorieId = null): array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->where('p.statut = :statut')
+            ->setParameter('statut', 'actif')
+            ->orderBy('p.dateAjout', 'DESC');
+
+        if ($sousCategorieId) {
+            $qb->andWhere('p.sousCategorieId = :sc')
+               ->setParameter('sc', $sousCategorieId);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /** Produits d'un partenaire */
+    public function findByPartenaire(int $partenaireId): array
     {
         return $this->createQueryBuilder('p')
-            ->where('p.statut = :statut')
-            ->setParameter('statut', 'ACTIF')
+            ->where('p.partenaireId = :pid')
+            ->setParameter('pid', $partenaireId)
             ->orderBy('p.dateAjout', 'DESC')
-            ->setMaxResults($limit)
-            ->getQuery()->getResult();
-    }
+            ->getQuery()
+            ->getResult();
+
+    
 }

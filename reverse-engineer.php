@@ -7,7 +7,7 @@
 $dbName   = 'java';
 $host     = '127.0.0.1';
 $user     = 'root';
-$password = '';
+$password = ''; 
 
 $entityDir    = __DIR__ . '/src/Entity';
 $repositoryDir = __DIR__ . '/src/Repository';

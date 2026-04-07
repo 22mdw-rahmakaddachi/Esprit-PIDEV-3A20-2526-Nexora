@@ -17,7 +17,7 @@ class CommandeItem
     #[ORM\Column(type: 'integer')]
     private int $commandeId = 0;
 
-    #[ORM\Column(length: 100)]
+    #[ORM\Column(length: 255)]
     private string $produitNom = '';
 
     #[ORM\Column(type: 'integer')]
