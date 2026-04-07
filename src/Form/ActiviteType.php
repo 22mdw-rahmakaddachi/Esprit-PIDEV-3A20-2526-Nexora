@@ -16,15 +16,22 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
 
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Positive;
+use Symfony\Component\Validator\Constraints\PositiveOrZero;
+
+
 class ActiviteType extends AbstractType
 {
     const GOUVERNORATS = [
+
         'Ariana'=>'Ariana','Béja'=>'Béja','Ben Arous'=>'Ben Arous','Bizerte'=>'Bizerte',
         'Gabès'=>'Gabès','Gafsa'=>'Gafsa','Jendouba'=>'Jendouba','Kairouan'=>'Kairouan',
         'Kasserine'=>'Kasserine','Kébili'=>'Kébili','Le Kef'=>'Le Kef','Mahdia'=>'Mahdia',
         'La Manouba'=>'La Manouba','Médenine'=>'Médenine','Monastir'=>'Monastir',
         'Nabeul'=>'Nabeul','Sfax'=>'Sfax','Sidi Bouzid'=>'Sidi Bouzid','Siliana'=>'Siliana',
         'Sousse'=>'Sousse','Tataouine'=>'Tataouine','Tozeur'=>'Tozeur','Tunis'=>'Tunis','Zaghouan'=>'Zaghouan',
+
     ];
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -48,16 +55,20 @@ class ActiviteType extends AbstractType
                 'label'       => 'Gouvernorat',
                 'placeholder' => '-- Choisir un gouvernorat --',
                 'choices'     => self::GOUVERNORATS,
+
             ])
             ->add('avecDate', CheckboxType::class, [
                 'label'    => 'Fixer une date pour cette activité',
                 'required' => false,
+
                 'mapped'   => false,
+ 
             ])
             ->add('dateActivite', DateTimeType::class, [
                 'label'    => 'Date de l\'activité',
                 'required' => false,
                 'widget'   => 'single_text',
+
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'Description',
@@ -74,13 +85,14 @@ class ActiviteType extends AbstractType
             ])
             ->add('imageFile', FileType::class, [
                 'label'       => 'Image de l\'activité',
-                'required'    => false,
+    'required'    => false,
                 'mapped'      => false,
                 'constraints' => [
                     new File([
                         'maxSize'          => '10M',
                         'mimeTypes'        => ['image/jpeg','image/png','image/webp','image/gif','image/bmp','image/svg+xml','image/tiff'],
                         'mimeTypesMessage' => 'Format accepté : JPG, PNG, WEBP, GIF, BMP, SVG, TIFF.',
+
                     ]),
                 ],
             ])

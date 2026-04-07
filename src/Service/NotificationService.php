@@ -12,10 +12,12 @@ class NotificationService
 
     public function create(int $userId, string $userType, string $type, string $titre, string $message, ?int $activiteId = null, ?int $demandeId = null): void
     {
+
         // Vérifier que le user existe avant d'insérer
         $conn = $this->em->getConnection();
         $exists = $conn->fetchOne('SELECT COUNT(*) FROM users WHERE id = ?', [$userId]);
         if (!$exists) return;
+
 
         $n = new Notification();
         $n->setUserId($userId)
@@ -26,6 +28,8 @@ class NotificationService
           ->setDateCreation(new \DateTime())
           ->setActiviteId($activiteId)
           ->setDemandeId($demandeId);
+
+
         $this->em->persist($n);
         $this->em->flush();
     }
@@ -34,10 +38,12 @@ class NotificationService
     {
         $activite = $demande->getActivite();
         $this->create(
+
             $demande->getClientId(), 'CLIENT', 'ACCEPTATION',
             '✅ Demande acceptée !',
             'Votre demande pour "' . $activite->getNom() . '" a été acceptée. Vous pouvez maintenant procéder au paiement.',
             $activite->getId(), $demande->getId()
+
         );
     }
 
@@ -45,10 +51,12 @@ class NotificationService
     {
         $activite = $demande->getActivite();
         $this->create(
+
             $demande->getClientId(), 'CLIENT', 'REFUS',
             '❌ Demande refusée',
             'Votre demande pour "' . $activite->getNom() . '" a été refusée.',
             $activite->getId(), $demande->getId()
+
         );
     }
 
@@ -56,10 +64,12 @@ class NotificationService
     {
         $activite = $demande->getActivite();
         $this->create(
+
             $partenaireUserId, 'PARTENAIRE', 'NOUVELLE_DEMANDE',
             '📩 Nouvelle demande de participation',
             $demande->getClientNom() . ' souhaite participer à "' . $activite->getNom() . '".',
             $activite->getId(), $demande->getId()
+
         );
     }
 }
