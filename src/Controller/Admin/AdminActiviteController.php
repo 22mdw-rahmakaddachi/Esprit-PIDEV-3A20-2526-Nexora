@@ -35,7 +35,8 @@ final class AdminActiviteController extends AbstractController
         ProduitParentRepository $produitRepo,
         CodePromoRepository $promoRepo,
         ActiviteRepository $activiteRepo,
-        ParticipationDemandeRepository $demandeRepo
+        ParticipationDemandeRepository $demandeRepo,
+        EntityManagerInterface $em
     ): Response {
         $userId = $request->getSession()->get('user_id');
         $partenaire = $userId ? $partenaireRepo->findOneBy(['user' => $userId]) : null;
@@ -59,6 +60,9 @@ final class AdminActiviteController extends AbstractController
             }
         }
 
+        // Stats Destinations
+        $destinations = $em->getRepository(\App\Entity\Destination::class)->findAllOrdered();
+
         return $this->render('admin/dashboard.html.twig', [
             'totalActivites'    => count($activites),
             'totalReservations' => $totalPlaces - $placesDisponibles,
@@ -71,6 +75,8 @@ final class AdminActiviteController extends AbstractController
             'promos'            => $promos,
             'totalProduits'     => count($produits),
             'totalPromos'       => count($promos),
+            'totalDestinations' => count($destinations),
+            'destinations'      => array_slice($destinations, 0, 5),
         ]);
     }
 
