@@ -42,6 +42,5 @@ class ProduitParentRepository extends ServiceEntityRepository
             ->orderBy('p.dateAjout', 'DESC')
             ->getQuery()
             ->getResult();
-
-    
+    }
 }
