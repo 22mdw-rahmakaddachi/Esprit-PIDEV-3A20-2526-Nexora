@@ -6,6 +6,14 @@ namespace App\Controller\Admin;
 use App\Repository\CodePromoRepository;
 use App\Repository\PartenaireRepository;
 use App\Repository\ProduitParentRepository;
+use App\Entity\Activite;
+use App\Entity\Partenaire;
+use App\Repository\ActiviteRepository;
+use App\Repository\ParticipationDemandeRepository;
+use App\Repository\NotificationRepository;
+use App\Service\NotificationService;
+use Doctrine\ORM\EntityManagerInterface;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,6 +26,7 @@ final class AdminActiviteController extends AbstractController
 {
     private function getPartenaireId(): int { return 8; }
     private function getPartenaireUserId(): int { return 44; }
+
 
     #[Route('/dashboard', name: 'admin_dashboard')]
     public function dashboard(
