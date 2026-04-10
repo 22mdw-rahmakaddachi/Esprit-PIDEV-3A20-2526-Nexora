@@ -3,8 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Destination;
+use App\Entity\DestinationImage;
 use App\Form\DestinationType;
 use App\Repository\DestinationRepository;
+use App\Service\GoogleDriveService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,6 +22,7 @@ class DestinationController extends AbstractController
         private EntityManagerInterface $em,
         private DestinationRepository  $repo,
         private SluggerInterface       $slugger,
+        private GoogleDriveService     $driveService,
     ) {}
 
     // ========================= LIST =========================
@@ -43,14 +46,12 @@ class DestinationController extends AbstractController
     public function new(Request $request): Response
     {
         $destination = new Destination();
+        $destination->setStatut('Disponible'); // Par défaut, la destination est disponible
         $form = $this->createForm(DestinationType::class, $destination);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $imageUrl = $this->handleImageUpload($form, $request);
-            if ($imageUrl) {
-                $destination->setImages($imageUrl);
-            }
+            $this->handleMultipleImageUploads($form, $destination);
 
             $this->em->persist($destination);
             $this->em->flush();
@@ -74,10 +75,7 @@ class DestinationController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $imageUrl = $this->handleImageUpload($form, $request);
-            if ($imageUrl) {
-                $destination->setImages($imageUrl);
-            }
+            $this->handleMultipleImageUploads($form, $destination);
 
             $this->em->flush();
 
@@ -97,15 +95,13 @@ class DestinationController extends AbstractController
     public function delete(Request $request, Destination $destination): Response
     {
         if ($this->isCsrfTokenValid('delete' . $destination->getId(), $request->request->get('_token'))) {
-            // Supprimer le fichier image local si existant
-            $images = $destination->getImagesList();
-            foreach ($images as $img) {
-                if (!str_starts_with($img, 'http')) {
-                    $path = $this->getParameter('kernel.project_dir') . '/public/uploads/destinations/' . $img;
-                    if (file_exists($path)) {
-                        unlink($path);
-                    }
-                }
+            // Supprimer les images de Google Drive
+            foreach ($destination->getDestinationImages() as $destImage) {
+                $this->deleteImageFile($destImage->getChemin());
+            }
+            // Fallback ancien champ texte
+            foreach ($destination->getImagesList() as $img) {
+                $this->deleteImageFile($img);
             }
 
             $this->em->remove($destination);
@@ -116,8 +112,30 @@ class DestinationController extends AbstractController
         return $this->redirectToRoute('admin_destination_index');
     }
 
-    // ========================= SHOW (AJAX) =========================
-    #[Route('/{id}', name: 'admin_destination_show', methods: ['GET'])]
+    // ========================= DELETE IMAGE (AJAX) =========================
+    #[Route('/image/{id}/delete', name: 'admin_destination_image_delete', methods: ['POST'])]
+    public function deleteImage(Request $request, DestinationImage $image): JsonResponse
+    {
+        if (!$this->isCsrfTokenValid('delete-image-' . $image->getId(), $request->request->get('_token'))) {
+            return $this->json(['error' => 'Token CSRF invalide'], 403);
+        }
+
+        $destination = $image->getDestination();
+
+        // Supprimer de Google Drive (ou local selon le chemin)
+        $this->deleteImageFile($image->getChemin());
+
+        $this->em->remove($image);
+        $this->em->flush();
+
+        return $this->json([
+            'success'   => true,
+            'remaining' => $destination ? $destination->getImagesCount() : 0,
+        ]);
+    }
+
+    // ========================= SHOW =========================
+    #[Route('/{id}', name: 'admin_destination_show', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function show(Destination $destination): Response
     {
         return $this->render('destination/admin/show.html.twig', [
@@ -127,50 +145,93 @@ class DestinationController extends AbstractController
 
     // ========================= AUTOCOMPLETE LOCALISATION =========================
     #[Route('/api/autocomplete-location', name: 'destination_autocomplete_location', methods: ['GET'])]
-    public function autocompleteLocation(Request $request): JsonResponse
+    public function autocompleteLocation(Request $request, \Symfony\Contracts\HttpClient\HttpClientInterface $httpClient): JsonResponse
     {
         $query = $request->query->get('q', '');
         if (strlen($query) < 3) {
             return $this->json([]);
         }
 
-        $url = 'https://nominatim.openstreetmap.org/search?q=' . urlencode($query) . '&format=json&limit=5';
+        try {
+            $response = $httpClient->request('GET', 'https://nominatim.openstreetmap.org/search', [
+                'query' => [
+                    'q'      => $query,
+                    'format' => 'json',
+                    'limit'  => 5,
+                ],
+                'headers' => [
+                    'User-Agent' => 'EspritPidevNexoraApp/1.0 (contact@nexora.tn)',
+                    'Accept'     => 'application/json',
+                ],
+                'timeout' => 5,
+            ]);
 
-        $context = stream_context_create([
-            'http' => [
-                'header' => "User-Agent: SymfonyApp/1.0\r\n",
-                'timeout' => 3,
-            ],
-        ]);
-
-        $response = @file_get_contents($url, false, $context);
-        if (!$response) {
+            $data = $response->toArray();
+            $results = array_map(fn($item) => $item['display_name'] ?? '', $data);
+            
+            return $this->json(array_values(array_filter($results)));
+        } catch (\Throwable $e) {
+            // Silently ignore or log error if needed
             return $this->json([]);
         }
-
-        $data = json_decode($response, true);
-        $results = array_map(fn($item) => $item['display_name'], $data ?? []);
-
-        return $this->json($results);
     }
 
-    // ========================= HELPER IMAGE =========================
-    private function handleImageUpload($form, Request $request): ?string
+    // ========================= HELPER : MULTIPLE UPLOAD → GOOGLE DRIVE =========================
+    private function handleMultipleImageUploads($form, Destination $destination): void
     {
-        $imageFile = $form->get('imageFile')->getData();
-        if (!$imageFile) return null;
+        /** @var \Symfony\Component\HttpFoundation\File\UploadedFile[]|null $imageFiles */
+        $imageFiles = $form->get('imageFiles')->getData();
+        if (empty($imageFiles)) return;
 
-        $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-        $safeFilename = $this->slugger->slug($originalFilename);
-        $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
+        $ordre = $destination->getImagesCount();
 
-        $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/destinations/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0775, true);
+        foreach ($imageFiles as $imageFile) {
+            try {
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename     = $this->slugger->slug($originalFilename);
+                $fileName         = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
+                $mimeType         = $imageFile->getMimeType() ?? 'image/jpeg';
+
+                // Upload vers Google Drive — retourne l'URL publique
+                $driveUrl = $this->driveService->uploadImage(
+                    $imageFile->getPathname(),
+                    $fileName,
+                    $mimeType
+                );
+
+                $destImage = new DestinationImage();
+                $destImage->setChemin($driveUrl);      // ex: https://drive.google.com/uc?id=XXX
+                $destImage->setOrdre($ordre++);
+                $destination->addDestinationImage($destImage);
+
+            } catch (\Throwable $e) {
+                // Log l'erreur sans bloquer les autres images
+                $this->addFlash('warning', "Erreur upload image '{$imageFile->getClientOriginalName()}': " . $e->getMessage());
+            }
+        }
+    }
+
+    // ========================= HELPER : DELETE FILE (local ou Drive) =========================
+    private function deleteImageFile(?string $path): void
+    {
+        if (!$path) return;
+
+        // Chemin Google Drive → supprimer via l'API
+        if (str_starts_with($path, 'https://drive.google.com')) {
+            try {
+                $this->driveService->deleteFile($path);
+            } catch (\Throwable $e) {
+                // On ignore si l'image n'est plus sur Drive
+            }
+            return;
         }
 
-        $imageFile->move($uploadDir, $newFilename);
-
-        return '/uploads/destinations/' . $newFilename;
+        // Ancien chemin local → supprimer le fichier physique
+        if (!str_starts_with($path, 'http')) {
+            $fullPath = $this->getParameter('kernel.project_dir') . '/public' . $path;
+            if (file_exists($fullPath)) {
+                unlink($fullPath);
+            }
+        }
     }
 }
