@@ -192,31 +192,38 @@
     .pagination a:hover { background: var(--primary); color: white; border-color: var(--primary); }
     .pagination .current { background: var(--primary); color: white; border-color: var(--primary); }
 
-    /* Modal de confirmation suppression */
-    .modal-overlay {
+    /* Modal confirmation suppression — nommé .confirm-* pour éviter conflit Bootstrap */
+    .confirm-overlay {
         display: none;
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,.5);
-        z-index: 1000;
+        background: rgba(0,0,0,.55);
+        z-index: 99999;
         align-items: center;
         justify-content: center;
     }
+    .confirm-overlay.active { display: flex !important; }
 
-    .modal-overlay.active { display: flex; }
-
-    .modal {
+    .confirm-modal {
         background: white;
-        border-radius: 12px;
+        border-radius: 14px;
         padding: 32px;
         max-width: 420px;
         width: 90%;
-        box-shadow: 0 20px 60px rgba(0,0,0,.2);
+        box-shadow: 0 24px 64px rgba(0,0,0,.28);
+        animation: modalIn .22s cubic-bezier(.34,1.56,.64,1);
     }
+    @keyframes modalIn {
+        from { transform: scale(.88); opacity: 0; }
+        to   { transform: scale(1);   opacity: 1; }
+    }
+    .confirm-modal h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; }
+    .confirm-modal p  { color: var(--gray-600); margin-bottom: 24px; }
+    .confirm-actions  { display: flex; gap: 12px; justify-content: flex-end; }
 
-    .modal h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; }
-    .modal p { color: var(--gray-600); margin-bottom: 24px; }
-    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+    /* Live search — lignes masquées */
+    tr.dest-row.hidden { display: none; }
+    .no-results-row { text-align: center; color: var(--gray-600); padding: 40px; }
 </style>
 {% endblock %}
 
@@ -238,17 +245,17 @@
         <div class="flash flash-error">❌ {{ message }}</div>
     {% endfor %}
 
-    {# SEARCH #}
-    <form method="GET" class="search-bar">
-        <input type="text" name="search" value="{{ search }}" placeholder="🔍 Rechercher par nom ou localisation...">
-        <button type="submit" class="btn btn-primary">Rechercher</button>
-        {% if search %}
-            <a href="{{ path('admin_destination_index') }}" class="btn" style="background:var(--gray-100);color:var(--gray-800);">✕ Effacer</a>
-        {% endif %}
-        <span style="color:var(--gray-600); font-size:.9rem; margin-left:auto;">
+    {# SEARCH LIVE #}
+    <div class="search-bar">
+        <input type="text"
+               id="liveSearch"
+               value="{{ search }}"
+               placeholder="🔍 Rechercher par nom ou localisation..."
+               autocomplete="off">
+        <span id="resultCount" style="color:var(--gray-600); font-size:.9rem; margin-left:auto;">
             {{ destinations|length }} destination{{ destinations|length != 1 ? 's' : '' }} trouvée{{ destinations|length != 1 ? 's' : '' }}
         </span>
-    </form>
+    </div>
 
     {# TABLE #}
     <div class="table-card">
@@ -270,16 +277,25 @@
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="destTableBody">
                 {% for dest in destinations %}
-                <tr>
+                <tr class="dest-row"
+                    data-nom="{{ dest.nom|lower|e('html_attr') }}"
+                    data-loc="{{ (dest.localisation ?? '')|lower|e('html_attr') }}">
                     <td><strong>#{{ dest.id }}</strong></td>
                     <td>
-                        {% if dest.firstImage %}
-                            <img src="{{ dest.firstImage }}" alt="{{ dest.nom }}" class="dest-image">
-                        {% else %}
-                            <div class="dest-image-placeholder">🏔️</div>
-                        {% endif %}
+                        <div style="position:relative;display:inline-block;">
+                            {% if dest.firstImage %}
+                                <img src="{{ dest.firstImage }}" alt="{{ dest.nom }}" class="dest-image">
+                            {% else %}
+                                <div class="dest-image-placeholder">🏔️</div>
+                            {% endif %}
+                            {% if dest.imagesCount > 1 %}
+                                <span style="position:absolute;bottom:4px;right:4px;background:rgba(37,99,235,.9);color:white;font-size:.65rem;font-weight:700;padding:2px 5px;border-radius:4px;">
+                                    +{{ dest.imagesCount - 1 }}
+                                </span>
+                            {% endif %}
+                        </div>
                     </td>
                     <td><strong>{{ dest.nom }}</strong></td>
                     <td>{{ dest.description|u.truncate(60, '...')|default('—') }}</td>
@@ -307,7 +323,7 @@
                             <a href="{{ path('admin_destination_edit', {id: dest.id}) }}"
                                class="btn btn-warning btn-sm">✏️ Modifier</a>
                             <button type="button" class="btn btn-danger btn-sm"
-                                    onclick="openDeleteModal({{ dest.id }}, '{{ dest.nom|e('html_attr') }}')">
+                                    onclick="openDeleteModal({{ dest.id }}, '{{ dest.nom|e('html_attr') }}', '{{ csrf_token('delete' ~ dest.id) }}')">
                                 🗑️ Supprimer
                             </button>
                         </div>
@@ -321,37 +337,76 @@
 
 </div>
 
-{# MODAL SUPPRESSION #}
-<div class="modal-overlay" id="deleteModal">
-    <div class="modal">
+{# MODAL SUPPRESSION — classes custom pour éviter conflit Bootstrap #}
+<div class="confirm-overlay" id="deleteModal">
+    <div class="confirm-modal">
         <h3>⚠️ Confirmer la suppression</h3>
         <p>Voulez-vous vraiment supprimer la destination <strong id="modalDestName"></strong> ?<br>Cette action est irréversible.</p>
-        <div class="modal-actions">
+        <div class="confirm-actions">
             <button class="btn" onclick="closeDeleteModal()"
                     style="background:var(--gray-100);color:var(--gray-800);">Annuler</button>
             <form id="deleteForm" method="POST">
                 <input type="hidden" name="_token" id="deleteToken">
-                <button type="submit" class="btn btn-danger">Supprimer</button>
+                <button type="submit" class="btn btn-danger">🗑️ Supprimer</button>
             </form>
         </div>
     </div>
 </div>
 
 <script>
-function openDeleteModal(id, name) {
+// ── SUPPRESSION MODAL ──
+function openDeleteModal(id, name, token) {
     document.getElementById('modalDestName').textContent = name;
     document.getElementById('deleteForm').action = '/admin/destinations/' + id + '/delete';
-    document.getElementById('deleteToken').value = '{{ csrf_token("delete") }}' .replace('delete', 'delete' + id);
+    document.getElementById('deleteToken').value = token;   // token généré côté Twig
     document.getElementById('deleteModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
 }
-
 function closeDeleteModal() {
     document.getElementById('deleteModal').classList.remove('active');
+    document.body.style.overflow = '';
 }
-
-// Fermer en cliquant en dehors
 document.getElementById('deleteModal').addEventListener('click', function(e) {
     if (e.target === this) closeDeleteModal();
 });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDeleteModal(); });
+
+// ── LIVE SEARCH ──
+(function() {
+    const input   = document.getElementById('liveSearch');
+    const rows    = document.querySelectorAll('.dest-row');
+    const counter = document.getElementById('resultCount');
+    const tbody   = document.getElementById('destTableBody');
+    let noResRow  = null;
+
+    function updateCounter(n) {
+        counter.textContent = n + ' destination' + (n !== 1 ? 's' : '') + ' trouvée' + (n !== 1 ? 's' : '');
+    }
+
+    input.addEventListener('input', function() {
+        const q = this.value.trim().toLowerCase();
+        let visible = 0;
+
+        rows.forEach(row => {
+            const nom = row.dataset.nom || '';
+            const loc = row.dataset.loc || '';
+            const match = !q || nom.startsWith(q) || loc.startsWith(q);
+            row.classList.toggle('hidden', !match);
+            if (match) visible++;
+        });
+
+        // Message aucun résultat
+        if (noResRow) { noResRow.remove(); noResRow = null; }
+        if (visible === 0) {
+            noResRow = document.createElement('tr');
+            noResRow.innerHTML = '<td colspan="7" class="no-results-row">🔍 Aucune destination ne commence par "' + this.value + '"</td>';
+            tbody.appendChild(noResRow);
+        }
+        updateCounter(visible);
+    });
+
+    // Initialiser le compteur
+    updateCounter(rows.length);
+})();
 </script>
 {% endblock %}

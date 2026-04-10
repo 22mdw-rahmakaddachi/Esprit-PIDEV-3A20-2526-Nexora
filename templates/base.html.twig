@@ -477,6 +477,12 @@
                             <i class="bi bi-calendar-event-fill me-1"></i>Activités
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'destination' in app.request.get('_route') %}active{% endif %}"
+                           href="{{ path('client_destination_index') }}">
+                            <i class="bi bi-geo-alt-fill me-1"></i>Destinations
+                        </a>
+                    </li>
                 </ul>
                 <div class="d-flex align-items-center gap-2">
                     <a href="{{ path('app_panier') }}" class="btn btn-cart btn-pulse position-relative">

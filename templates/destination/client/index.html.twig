@@ -1,357 +1,611 @@
-{# templates/destination/admin/index.html.twig #}
+{# templates/destination/client/index.html.twig #}
 {% extends 'base.html.twig' %}
 
-{% block title %}Gestion des Destinations{% endblock %}
+{% block title %}Destinations{% endblock %}
 
 {% block stylesheets %}
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
     :root {
         --primary: #2563EB;
         --primary-light: #DBEAFE;
-        --danger: #DC2626;
-        --success: #16A34A;
-        --warning: #D97706;
         --gray-50: #F9FAFB;
         --gray-100: #F3F4F6;
         --gray-200: #E5E7EB;
         --gray-600: #4B5563;
         --gray-800: #1F2937;
+        --radius: 14px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: var(--gray-50); color: var(--gray-800); }
 
-    body {
-        font-family: 'Segoe UI', system-ui, sans-serif;
-        background: var(--gray-50);
-        color: var(--gray-800);
-    }
-
+    /* ─── HEADER ─── */
     .page-header {
         background: white;
         border-bottom: 1px solid var(--gray-200);
-        padding: 24px 32px;
+        padding: 22px 40px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        box-shadow: 0 1px 3px rgba(0,0,0,.06);
+        box-shadow: 0 1px 4px rgba(0,0,0,.06);
     }
+    .page-header h1 { font-size: 1.7rem; font-weight: 800; }
+    .header-sub { font-size: .9rem; color: var(--gray-600); margin-top: 2px; }
 
-    .page-header h1 {
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: var(--gray-800);
+    /* ─── SEARCH ─── */
+    .search-wrap { max-width: 1200px; margin: 32px auto 0; padding: 0 32px; }
+    .search-bar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
     }
-
+    .search-bar input {
+        flex: 1;
+        min-width: 220px;
+        max-width: 420px;
+        padding: 11px 18px;
+        border: 2px solid var(--gray-200);
+        border-radius: 10px;
+        font-size: .9rem;
+        font-family: inherit;
+        outline: none;
+        transition: border .2s;
+    }
+    .search-bar input:focus { border-color: var(--primary); }
     .btn {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         padding: 10px 20px;
-        border-radius: 8px;
+        border-radius: 10px;
         font-size: .9rem;
         font-weight: 600;
         text-decoration: none;
         border: none;
         cursor: pointer;
         transition: all .2s;
+        font-family: inherit;
     }
-
     .btn-primary { background: var(--primary); color: white; }
     .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
-    .btn-danger { background: var(--danger); color: white; }
-    .btn-warning { background: var(--warning); color: white; }
-    .btn-sm { padding: 6px 12px; font-size: .8rem; }
+    .btn-ghost { background: var(--gray-100); color: var(--gray-800); }
+    .btn-ghost:hover { background: var(--gray-200); }
+    .count-label { color: var(--gray-600); font-size: .88rem; margin-left: auto; }
 
-    .container { max-width: 1400px; margin: 0 auto; padding: 32px; }
-
-    /* FLASH */
-    .flash { padding: 14px 20px; border-radius: 8px; margin-bottom: 24px; font-weight: 500; }
-    .flash-success { background: #DCFCE7; color: #15803D; border-left: 4px solid #16A34A; }
-    .flash-error { background: #FEE2E2; color: #DC2626; border-left: 4px solid #DC2626; }
-
-    /* SEARCH BAR */
-    .search-bar {
-        display: flex;
-        gap: 12px;
-        margin-bottom: 24px;
-        align-items: center;
+    /* ─── GRILLE DE CARTES ─── */
+    .destinations-grid {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 32px 60px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 24px;
     }
 
-    .search-bar input {
-        flex: 1;
-        max-width: 400px;
-        padding: 10px 16px;
-        border: 2px solid var(--gray-200);
-        border-radius: 8px;
-        font-size: .9rem;
-        outline: none;
-        transition: border .2s;
-    }
-
-    .search-bar input:focus { border-color: var(--primary); }
-
-    /* TABLE */
-    .table-card {
+    /* ─── CARTE ─── */
+    .dest-card {
         background: white;
-        border-radius: 12px;
-        box-shadow: 0 1px 3px rgba(0,0,0,.08);
+        border-radius: var(--radius);
+        box-shadow: 0 2px 8px rgba(0,0,0,.07);
         overflow: hidden;
+        cursor: pointer;
+        transition: transform .25s, box-shadow .25s;
+        position: relative;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+    .dest-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(37,99,235,.15);
     }
 
-    table { width: 100%; border-collapse: collapse; }
-
-    thead th {
-        background: var(--gray-50);
-        padding: 14px 16px;
-        font-size: .8rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: .05em;
-        color: var(--gray-600);
-        text-align: left;
-        border-bottom: 2px solid var(--gray-200);
+    /* Highlight quand la popup est visible */
+    .dest-card.popup-active {
+        outline: 2.5px solid var(--primary);
+        outline-offset: 2px;
     }
 
-    tbody tr { border-bottom: 1px solid var(--gray-100); transition: background .15s; }
-    tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: var(--gray-50); }
-
-    td { padding: 16px; vertical-align: middle; }
-
-    .dest-image {
-        width: 80px;
-        height: 55px;
-        object-fit: cover;
-        border-radius: 6px;
-        border: 1px solid var(--gray-200);
-    }
-
-    .dest-image-placeholder {
-        width: 80px;
-        height: 55px;
+    .card-img-wrap {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
         background: var(--gray-100);
-        border-radius: 6px;
+    }
+    .card-img-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform .4s;
+    }
+    .dest-card:hover .card-img-wrap img { transform: scale(1.05); }
+    .card-placeholder {
+        width: 100%;
+        height: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.4rem;
+        background: linear-gradient(135deg, #DBEAFE, #EDE9FE);
+        font-size: 3.5rem;
     }
 
-    .badge {
-        display: inline-block;
-        padding: 4px 10px;
+    /* Badge statut sur l'image */
+    .card-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        padding: 4px 12px;
         border-radius: 999px;
-        font-size: .75rem;
-        font-weight: 600;
+        font-size: .72rem;
+        font-weight: 700;
+        backdrop-filter: blur(4px);
     }
+    .badge-disponible { background: rgba(22,163,74,.85); color: white; }
+    .badge-complet    { background: rgba(220,38,38,.85);  color: white; }
 
-    .badge-disponible { background: #DCFCE7; color: #15803D; }
-    .badge-complet { background: #FEE2E2; color: #DC2626; }
-    .badge-default { background: var(--gray-100); color: var(--gray-600); }
-
-    .maps-link {
-        color: var(--primary);
-        text-decoration: none;
-        display: inline-flex;
+    /* Badge nb images */
+    .card-imgs-badge {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        background: rgba(0,0,0,.55);
+        color: white;
+        font-size: .72rem;
+        font-weight: 600;
+        padding: 3px 9px;
+        border-radius: 999px;
+        display: flex;
         align-items: center;
         gap: 4px;
-        font-size: .85rem;
     }
 
-    .maps-link:hover { text-decoration: underline; }
+    /* Loader hover ring */
+    .hover-ring {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity .2s;
+    }
+    .dest-card:hover .hover-ring { opacity: 1; }
+    .ring-svg { animation: spin 3s linear forwards; width: 32px; height: 32px; }
+    @keyframes spin { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
 
-    .actions { display: flex; gap: 8px; align-items: center; }
+    .card-body { padding: 18px 20px; }
+    .card-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
+    .card-loc { font-size: .82rem; color: var(--gray-600); display: flex; align-items: center; gap: 4px; }
 
-    .empty-state {
+    /* Live search — cartes cachées */
+    .dest-card.hidden { display: none !important; }
+    .no-results-msg {
+        grid-column: 1 / -1;
         text-align: center;
         padding: 60px 20px;
         color: var(--gray-600);
+        font-size: 1rem;
     }
+    .no-results-msg .icon { font-size: 2.5rem; margin-bottom: 12px; }
 
-    .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
-
-    /* PAGINATION */
-    .pagination {
-        display: flex;
-        justify-content: center;
-        gap: 8px;
-        padding: 24px;
+    /* ─── ÉTAT VIDE ─── */
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: var(--gray-600);
+        grid-column: 1 / -1;
     }
+    .empty-state .icon { font-size: 3.5rem; margin-bottom: 14px; }
+    .empty-state p { font-size: 1rem; }
 
-    .pagination a, .pagination span {
-        padding: 8px 14px;
-        border-radius: 6px;
-        font-size: .85rem;
-        font-weight: 500;
-        text-decoration: none;
-        border: 1px solid var(--gray-200);
-        color: var(--gray-800);
-        transition: all .2s;
-    }
-
-    .pagination a:hover { background: var(--primary); color: white; border-color: var(--primary); }
-    .pagination .current { background: var(--primary); color: white; border-color: var(--primary); }
-
-    /* Modal de confirmation suppression */
-    .modal-overlay {
-        display: none;
+    /* ═══════════════════════════════════════════
+       POPUP PREVIEW (hover 3s)
+    ═══════════════════════════════════════════ */
+    #hoverPopup {
         position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,.5);
-        z-index: 1000;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .modal-overlay.active { display: flex; }
-
-    .modal {
+        z-index: 9999;
+        width: 340px;
         background: white;
-        border-radius: 12px;
-        padding: 32px;
-        max-width: 420px;
-        width: 90%;
-        box-shadow: 0 20px 60px rgba(0,0,0,.2);
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0,0,0,.22);
+        overflow: hidden;
+        pointer-events: none;         /* ne bloque pas la souris */
+        opacity: 0;
+        transform: scale(.94) translateY(6px);
+        transition: opacity .25s, transform .25s;
+    }
+    #hoverPopup.visible {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        pointer-events: auto;
     }
 
-    .modal h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; }
-    .modal p { color: var(--gray-600); margin-bottom: 24px; }
-    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+    /* Galerie popup */
+    .popup-gallery {
+        position: relative;
+        height: 200px;
+        background: var(--gray-100);
+        overflow: hidden;
+    }
+    .popup-gallery img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0;
+        transition: opacity .45s;
+    }
+    .popup-gallery img.active { opacity: 1; }
+    .popup-gallery .ph { width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:4rem; background: linear-gradient(135deg,#DBEAFE,#EDE9FE); }
+
+    /* Indicateurs dots */
+    .popup-dots {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 6px;
+    }
+    .popup-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.55);
+        transition: background .3s, transform .3s;
+    }
+    .popup-dot.active { background: white; transform: scale(1.3); }
+
+    /* Infos popup */
+    .popup-info {
+        padding: 18px 20px 20px;
+    }
+    .popup-name {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--gray-800);
+        margin-bottom: 8px;
+    }
+    .popup-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: .78rem;
+        font-weight: 700;
+    }
+    .popup-hint {
+        margin-top: 12px;
+        font-size: .78rem;
+        color: var(--gray-600);
+        text-align: center;
+        border-top: 1px solid var(--gray-100);
+        padding-top: 10px;
+    }
 </style>
 {% endblock %}
 
 {% block body %}
+
 <div class="page-header">
-    <h1>🗺️ Gestion des Destinations</h1>
-    <a href="{{ path('admin_destination_new') }}" class="btn btn-primary">
-        ➕ Ajouter une destination
-    </a>
+    <div>
+        <h1>🌍 Nos Destinations</h1>
+        <div class="header-sub">Découvrez nos destinations de voyage</div>
+    </div>
 </div>
 
-<div class="container">
-
-    {# FLASH MESSAGES #}
-    {% for message in app.flashes('success') %}
-        <div class="flash flash-success">✅ {{ message }}</div>
-    {% endfor %}
-    {% for message in app.flashes('error') %}
-        <div class="flash flash-error">❌ {{ message }}</div>
-    {% endfor %}
-
-    {# SEARCH #}
-    <form method="GET" class="search-bar">
-        <input type="text" name="search" value="{{ search }}" placeholder="🔍 Rechercher par nom ou localisation...">
-        <button type="submit" class="btn btn-primary">Rechercher</button>
-        {% if search %}
-            <a href="{{ path('admin_destination_index') }}" class="btn" style="background:var(--gray-100);color:var(--gray-800);">✕ Effacer</a>
-        {% endif %}
-        <span style="color:var(--gray-600); font-size:.9rem; margin-left:auto;">
+<div class="search-wrap">
+    <div class="search-bar">
+        <input type="text"
+               id="liveSearch"
+               value="{{ search }}"
+               placeholder="🔍 Rechercher une destination..."
+               autocomplete="off">
+        <span class="count-label" id="resultCount">
             {{ destinations|length }} destination{{ destinations|length != 1 ? 's' : '' }} trouvée{{ destinations|length != 1 ? 's' : '' }}
         </span>
-    </form>
-
-    {# TABLE #}
-    <div class="table-card">
-        {% if destinations is empty %}
-            <div class="empty-state">
-                <div class="icon">🌍</div>
-                <p>Aucune destination trouvée{% if search %} pour "{{ search }}"{% endif %}.</p>
-            </div>
-        {% else %}
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Image</th>
-                    <th>Nom</th>
-                    <th>Description</th>
-                    <th>Localisation</th>
-                    <th>Statut</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for dest in destinations %}
-                <tr>
-                    <td><strong>#{{ dest.id }}</strong></td>
-                    <td>
-                        {% if dest.firstImage %}
-                            <img src="{{ dest.firstImage }}" alt="{{ dest.nom }}" class="dest-image">
-                        {% else %}
-                            <div class="dest-image-placeholder">🏔️</div>
-                        {% endif %}
-                    </td>
-                    <td><strong>{{ dest.nom }}</strong></td>
-                    <td>{{ dest.description|u.truncate(60, '...')|default('—') }}</td>
-                    <td>
-                        {% if dest.localisation %}
-                            <a href="https://www.google.com/maps/search/?api=1&query={{ dest.localisation|url_encode }}"
-                               target="_blank" class="maps-link">
-                                📍 {{ dest.localisation }}
-                            </a>
-                        {% else %}
-                            —
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if dest.statut == 'Disponible' %}
-                            <span class="badge badge-disponible">✅ Disponible</span>
-                        {% elseif dest.statut == 'Complet' %}
-                            <span class="badge badge-complet">🔴 Complet</span>
-                        {% else %}
-                            <span class="badge badge-default">{{ dest.statut ?? '—' }}</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <div class="actions">
-                            <a href="{{ path('admin_destination_edit', {id: dest.id}) }}"
-                               class="btn btn-warning btn-sm">✏️ Modifier</a>
-                            <button type="button" class="btn btn-danger btn-sm"
-                                    onclick="openDeleteModal({{ dest.id }}, '{{ dest.nom|e('html_attr') }}')">
-                                🗑️ Supprimer
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% endif %}
     </div>
-
 </div>
 
-{# MODAL SUPPRESSION #}
-<div class="modal-overlay" id="deleteModal">
-    <div class="modal">
-        <h3>⚠️ Confirmer la suppression</h3>
-        <p>Voulez-vous vraiment supprimer la destination <strong id="modalDestName"></strong> ?<br>Cette action est irréversible.</p>
-        <div class="modal-actions">
-            <button class="btn" onclick="closeDeleteModal()"
-                    style="background:var(--gray-100);color:var(--gray-800);">Annuler</button>
-            <form id="deleteForm" method="POST">
-                <input type="hidden" name="_token" id="deleteToken">
-                <button type="submit" class="btn btn-danger">Supprimer</button>
-            </form>
+{# ─── GRILLE ─── #}
+<div class="destinations-grid">
+    {% if destinations is empty %}
+        <div class="empty-state">
+            <div class="icon">🌍</div>
+            <p>Aucune destination trouvée{% if search %} pour "{{ search }}"{% endif %}.</p>
         </div>
+    {% else %}
+        {% for dest in destinations %}
+        {# ─── DATA images (max 5) encodées en JSON ─── #}
+        {% set imgs = dest.imagesList|slice(0, 5) %}
+        <a href="{{ path('client_destination_show', {id: dest.id}) }}"
+           class="dest-card"
+           data-id="{{ dest.id }}"
+           data-name="{{ dest.nom|e('html_attr') }}"
+           data-statut="{{ dest.statut|e('html_attr') }}"
+           data-images="{{ imgs|json_encode|e('html_attr') }}"
+           data-count="{{ dest.imagesCount }}">
+
+            <div class="card-img-wrap">
+                {% if dest.firstImage %}
+                    <img src="{{ dest.firstImage }}" alt="{{ dest.nom }}" loading="lazy">
+                {% else %}
+                    <div class="card-placeholder">🏔️</div>
+                {% endif %}
+
+                {% if dest.statut %}
+                    <span class="card-badge {{ dest.statut == 'Disponible' ? 'badge-disponible' : 'badge-complet' }}">
+                        {{ dest.statut == 'Disponible' ? '✅ Disponible' : '🔴 Complet' }}
+                    </span>
+                {% endif %}
+
+                {% if dest.imagesCount > 1 %}
+                    <span class="card-imgs-badge">🖼️ {{ dest.imagesCount }}</span>
+                {% endif %}
+
+                {# Anneau de chargement visuel 3s #}
+                <div class="hover-ring">
+                    <svg class="ring-svg" viewBox="0 0 32 32" fill="none">
+                        <circle cx="16" cy="16" r="13" stroke="rgba(255,255,255,0.3)" stroke-width="3"/>
+                        <circle cx="16" cy="16" r="13" stroke="white" stroke-width="3"
+                                stroke-dasharray="82" stroke-dashoffset="82"
+                                stroke-linecap="round"
+                                style="transform-origin:center;transform:rotate(-90deg);
+                                       transition:stroke-dashoffset 3s linear;" id="ring-{{ dest.id }}"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="card-title">{{ dest.nom }}</div>
+                {% if dest.localisation %}
+                    <div class="card-loc">📍 {{ dest.localisation }}</div>
+                {% endif %}
+            </div>
+        </a>
+        {% endfor %}
+    {% endif %}
+</div>
+
+{# ═══════════ POPUP UNIQUE (déplacée par JS) ═══════════ #}
+<div id="hoverPopup">
+    <div class="popup-gallery" id="popupGallery">
+        <div class="ph" id="popupPlaceholder">🏔️</div>
+        <div class="popup-dots" id="popupDots"></div>
+    </div>
+    <div class="popup-info">
+        <div class="popup-name" id="popupName">—</div>
+        <span class="popup-status" id="popupStatus"></span>
+        <div class="popup-hint">👆 Cliquez pour voir les détails</div>
     </div>
 </div>
 
 <script>
-function openDeleteModal(id, name) {
-    document.getElementById('modalDestName').textContent = name;
-    document.getElementById('deleteForm').action = '/admin/destinations/' + id + '/delete';
-    document.getElementById('deleteToken').value = '{{ csrf_token("delete") }}' .replace('delete', 'delete' + id);
-    document.getElementById('deleteModal').classList.add('active');
-}
+(function() {
+    const popup       = document.getElementById('hoverPopup');
+    const gallery     = document.getElementById('popupGallery');
+    const placeholder = document.getElementById('popupPlaceholder');
+    const dotsWrap    = document.getElementById('popupDots');
+    const popupName   = document.getElementById('popupName');
+    const popupStatus = document.getElementById('popupStatus');
 
-function closeDeleteModal() {
-    document.getElementById('deleteModal').classList.remove('active');
-}
+    let hoverTimer   = null;
+    let slideTimer   = null;
+    let currentCard  = null;
+    let currentSlide = 0;
+    let popupImages  = [];
 
-// Fermer en cliquant en dehors
-document.getElementById('deleteModal').addEventListener('click', function(e) {
-    if (e.target === this) closeDeleteModal();
-});
+    // ── Créer les <img> dans la galerie popup ──
+    function buildGallery(images) {
+        // Supprimer anciens
+        gallery.querySelectorAll('img').forEach(el => el.remove());
+        dotsWrap.innerHTML = '';
+        currentSlide = 0;
+        popupImages = images;
+
+        if (!images.length) {
+            placeholder.style.display = 'flex';
+            return;
+        }
+        placeholder.style.display = 'none';
+
+        images.forEach((src, i) => {
+            const img = document.createElement('img');
+            img.src = src;
+            img.alt = 'Photo ' + (i + 1);
+            if (i === 0) img.classList.add('active');
+            gallery.insertBefore(img, dotsWrap);
+
+            const dot = document.createElement('div');
+            dot.className = 'popup-dot' + (i === 0 ? ' active' : '');
+            dotsWrap.appendChild(dot);
+        });
+    }
+
+    function goSlide(idx) {
+        const imgs = gallery.querySelectorAll('img');
+        const dots = dotsWrap.querySelectorAll('.popup-dot');
+        if (!imgs.length) return;
+        imgs.forEach((el, i) => el.classList.toggle('active', i === idx));
+        dots.forEach((el, i) => el.classList.toggle('active', i === idx));
+        currentSlide = idx;
+    }
+
+    function startSlideshow() {
+        clearInterval(slideTimer);
+        if (popupImages.length <= 1) return;
+        slideTimer = setInterval(() => {
+            const next = (currentSlide + 1) % popupImages.length;
+            goSlide(next);
+        }, 1800);
+    }
+
+    function stopSlideshow() {
+        clearInterval(slideTimer);
+    }
+
+    // ── Positionner la popup près du curseur ──
+    function positionPopup(e) {
+        const W = window.innerWidth;
+        const H = window.innerHeight;
+        const PW = 340;
+        const PH = popup.offsetHeight || 330;
+        const margin = 18;
+
+        let x = e.clientX + margin;
+        let y = e.clientY + margin;
+
+        if (x + PW > W - margin) x = e.clientX - PW - margin;
+        if (y + PH > H - margin) y = e.clientY - PH - margin;
+
+        popup.style.left = Math.max(8, x) + 'px';
+        popup.style.top  = Math.max(8, y) + 'px';
+    }
+
+    // ── Afficher popup ──
+    function showPopup(card, e) {
+        // images (max 5) depuis data attribute
+        let images = [];
+        try { images = JSON.parse(card.dataset.images || '[]'); } catch(ex) {}
+
+        const nom    = card.dataset.name   || '';
+        const statut = card.dataset.statut || '';
+
+        buildGallery(images);
+        popupName.textContent = nom;
+
+        // Statut badge
+        if (statut === 'Disponible') {
+            popupStatus.textContent    = '✅ Disponible';
+            popupStatus.style.cssText  = 'background:#DCFCE7;color:#15803D;';
+        } else if (statut === 'Complet') {
+            popupStatus.textContent    = '🔴 Complet';
+            popupStatus.style.cssText  = 'background:#FEE2E2;color:#DC2626;';
+        } else {
+            popupStatus.textContent    = statut || '—';
+            popupStatus.style.cssText  = 'background:#F3F4F6;color:#4B5563;';
+        }
+
+        positionPopup(e);
+        popup.classList.add('visible');
+        card.classList.add('popup-active');
+        startSlideshow();
+    }
+
+    function hidePopup() {
+        popup.classList.remove('visible');
+        stopSlideshow();
+        if (currentCard) {
+            currentCard.classList.remove('popup-active');
+            currentCard = null;
+        }
+        clearTimeout(hoverTimer);
+        hoverTimer = null;
+    }
+
+    // ── Attacher les événements à chaque carte ──
+    document.querySelectorAll('.dest-card').forEach(card => {
+
+        card.addEventListener('mouseenter', function(e) {
+            if (currentCard && currentCard !== card) hidePopup();
+            currentCard = card;
+
+            // Animer l'anneau SVG
+            const ring = document.getElementById('ring-' + card.dataset.id);
+            if (ring) {
+                ring.style.transition = 'none';
+                ring.style.strokeDashoffset = '82';
+                // Force reflow
+                ring.getBoundingClientRect();
+                ring.style.transition = 'stroke-dashoffset 3s linear';
+                ring.style.strokeDashoffset = '0';
+            }
+
+            hoverTimer = setTimeout(() => {
+                showPopup(card, e);
+            }, 3000);
+        });
+
+        card.addEventListener('mousemove', function(e) {
+            if (popup.classList.contains('visible')) {
+                positionPopup(e);
+            }
+        });
+
+        card.addEventListener('mouseleave', function() {
+            clearTimeout(hoverTimer);
+            hoverTimer = null;
+            // Réinitialiser l'anneau
+            const ring = document.getElementById('ring-' + card.dataset.id);
+            if (ring) {
+                ring.style.transition = 'none';
+                ring.style.strokeDashoffset = '82';
+            }
+            // Cacher popup avec un petit délai pour éviter le flicker
+            setTimeout(() => {
+                if (currentCard === card) hidePopup();
+            }, 120);
+        });
+    });
+
+    // Cacher popup si on clique en dehors
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.dest-card') && !e.target.closest('#hoverPopup')) {
+            hidePopup();
+        }
+    });
+})();
+
+// ── LIVE SEARCH CLIENT ──
+(function() {
+    const input   = document.getElementById('liveSearch');
+    const cards   = document.querySelectorAll('.dest-card');
+    const counter = document.getElementById('resultCount');
+    const grid    = document.querySelector('.destinations-grid');
+    let noResEl   = null;
+
+    if (!input) return;
+
+    function updateCounter(n) {
+        if (!counter) return;
+        counter.textContent = n + ' destination' + (n !== 1 ? 's' : '') + ' trouvée' + (n !== 1 ? 's' : '');
+    }
+
+    input.addEventListener('input', function() {
+        const q = this.value.trim().toLowerCase();
+        let visible = 0;
+
+        cards.forEach(card => {
+            const nom = (card.dataset.name || '').toLowerCase();
+            const match = !q || nom.startsWith(q);
+            card.classList.toggle('hidden', !match);
+            if (match) visible++;
+        });
+
+        // Message aucun résultat
+        if (noResEl) { noResEl.remove(); noResEl = null; }
+        if (visible === 0 && q) {
+            noResEl = document.createElement('div');
+            noResEl.className = 'no-results-msg';
+            noResEl.innerHTML = '<div class="icon">🔍</div><p>Aucune destination ne commence par "<strong>' + this.value + '</strong>"</p>';
+            grid.appendChild(noResEl);
+        }
+        updateCounter(visible);
+    });
+
+    updateCounter(cards.length);
+})();
 </script>
 {% endblock %}
+
