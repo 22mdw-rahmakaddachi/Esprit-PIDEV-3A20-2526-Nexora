@@ -15,4 +15,13 @@ class ProduitVariantRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, ProduitVariant::class);
     }
+
+    public function findByProduitParent(int $produitParentId): array
+    {
+        return $this->createQueryBuilder('v')
+            ->where('v.produitParentId = :pid')
+            ->setParameter('pid', $produitParentId)
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -1,0 +1,128 @@
+{% extends 'base.html.twig' %}
+{% block title %}Mon panier — TripShop{% endblock %}
+
+{% block body %}
+<div class="breadcrumb-section">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('app_produits') }}">Boutique</a></li>
+                <li class="breadcrumb-item active">Panier</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container py-5">
+    {% if panier is empty %}
+    <div class="text-center py-5" data-aos="fade-up">
+        <div style="font-size:5rem">🛒</div>
+        <h3 class="mt-3" style="color:var(--primary)">Votre panier est vide</h3>
+        <p class="text-muted">Découvrez nos produits et ajoutez-en au panier.</p>
+        <a href="{{ path('app_produits') }}" class="btn rounded-pill px-4 mt-2"
+           style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">
+            <i class="bi bi-bag me-2"></i>Voir la boutique
+        </a>
+    </div>
+    {% else %}
+    <div class="row g-4">
+
+        {# ── ARTICLES ── #}
+        <div class="col-lg-8" data-aos="fade-right">
+            <h2 class="section-title mb-4">Mon panier</h2>
+
+            {% for key, item in panier %}
+            <div class="bg-white rounded-4 p-3 mb-3 shadow-sm d-flex align-items-center gap-3" data-aos="fade-up">
+                <div style="width:70px;height:70px;border-radius:12px;background:linear-gradient(135deg,#f0ebff,#e8d5ff);display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0">
+                    {% if item.image is defined and item.image %}
+                    <img src="/uploads/produits/{{ item.image }}" alt="{{ item.nom }}" style="width:100%;height:100%;object-fit:cover;border-radius:12px">
+                    {% else %}🛍️{% endif %}
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold">{{ item.nom }}</div>
+                    <div class="text-muted small">{{ item.variantLabel is defined ? item.variantLabel : (item.sku is defined ? item.sku : '') }}</div>
+                    <div class="fw-bold mt-1" style="color:var(--primary)">{{ item.prix }} TND</div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <form method="post" action="{{ path('app_panier_modifier', {key: key}) }}" class="d-flex align-items-center gap-1">
+                        <button type="submit" name="quantite" value="{{ item.quantite - 1 }}" class="btn btn-sm rounded-circle" style="background:#f0ebff;color:var(--primary);width:30px;height:30px;padding:0">−</button>
+                        <span class="fw-bold px-2">{{ item.quantite }}</span>
+                        <button type="submit" name="quantite" value="{{ item.quantite + 1 }}" class="btn btn-sm rounded-circle" style="background:#f0ebff;color:var(--primary);width:30px;height:30px;padding:0">+</button>
+                    </form>
+                    <div class="fw-bold" style="min-width:80px;text-align:right;color:var(--primary-dark)">
+                        {{ (item.prix * item.quantite)|number_format(2) }} TND
+                    </div>
+                    <form method="post" action="{{ path('app_panier_supprimer', {key: key}) }}">
+                        <button type="submit" class="btn btn-sm" style="background:#fde8e8;color:#c0392b;border-radius:8px;padding:5px 10px">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+
+            <div class="d-flex justify-content-between mt-3">
+                <a href="{{ path('app_produits') }}" class="btn btn-outline-secondary rounded-pill px-3">
+                    <i class="bi bi-arrow-left me-1"></i>Continuer les achats
+                </a>
+                <form method="post" action="{{ path('app_panier_vider') }}">
+                    <button type="submit" class="btn rounded-pill px-3" style="background:#fde8e8;color:#c0392b;border:none">
+                        <i class="bi bi-trash me-1"></i>Vider le panier
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {# ── RÉCAPITULATIF ── #}
+        <div class="col-lg-4" data-aos="fade-left">
+            <div class="bg-white rounded-4 p-4 shadow-sm" style="border:1px solid #ede5ff">
+                <h5 class="fw-bold mb-4" style="color:var(--primary-dark)">Récapitulatif</h5>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Sous-total</span>
+                    <span class="fw-semibold">{{ total|number_format(2) }} TND</span>
+                </div>
+
+                {% if codePromo %}
+                <div class="d-flex justify-content-between mb-2 text-success">
+                    <span><i class="bi bi-tag-fill me-1"></i>{{ codePromo.code }}</span>
+                    <span>−{{ reduction|number_format(2) }} TND</span>
+                </div>
+                <form method="post" action="{{ path('app_panier_promo_retirer') }}" class="mb-3">
+                    <button type="submit" class="btn btn-sm w-100 rounded-pill" style="background:#fde8e8;color:#c0392b;border:none;font-size:0.8rem">
+                        <i class="bi bi-x me-1"></i>Retirer le code promo
+                    </button>
+                </form>
+                {% endif %}
+
+                <hr style="border-color:#ede5ff">
+                <div class="d-flex justify-content-between mb-4">
+                    <span class="fw-bold">Total</span>
+                    <span class="fw-bold fs-5" style="color:var(--primary)">{{ (total - reduction)|number_format(2) }} TND</span>
+                </div>
+
+                {# Code promo #}
+                {% if not codePromo %}
+                <form method="post" action="{{ path('app_panier_promo') }}" class="mb-3">
+                    <label class="form-label fw-semibold small" style="color:var(--primary-dark)">Code promo</label>
+                    <div class="input-group">
+                        <input type="text" name="code" class="form-control rounded-start-pill" placeholder="Entrez votre code" style="font-family:monospace;text-transform:uppercase">
+                        <button type="submit" class="btn rounded-end-pill px-3" style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border:none">
+                            Appliquer
+                        </button>
+                    </div>
+                </form>
+                {% endif %}
+
+                <a href="{{ path('app_commander') }}" class="btn w-100 rounded-pill btn-pulse"
+                   style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:12px;font-weight:600">
+                    <i class="bi bi-credit-card me-2"></i>Passer la commande
+                </a>
+            </div>
+        </div>
+
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

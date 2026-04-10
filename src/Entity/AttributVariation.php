@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\AttributVariationRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AttributVariationRepository::class)]
@@ -20,31 +22,30 @@ class AttributVariation
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $typeAffichage = null;
 
-    public function getId(): ?int
+    #[ORM\OneToMany(targetEntity: OptionVariation::class, mappedBy: 'attribut', cascade: ['persist', 'remove'])]
+    private Collection $options;
+
+    public function __construct()
     {
-        return $this->id;
+        $this->options = new ArrayCollection();
     }
 
-    public function getNom(): string
-    {
-        return $this->nom;
-    }
+    public function getId(): ?int { return $this->id; }
 
-    public function setNom(string $nom): static
+    public function getNom(): string { return $this->nom; }
+    public function setNom(string $nom): static { $this->nom = $nom; return $this; }
+
+    public function getTypeAffichage(): ?string { return $this->typeAffichage; }
+    public function setTypeAffichage(?string $typeAffichage): static { $this->typeAffichage = $typeAffichage; return $this; }
+
+    public function getOptions(): Collection { return $this->options; }
+    public function addOption(OptionVariation $option): static
     {
-        $this->nom = $nom;
+        if (!$this->options->contains($option)) {
+            $this->options->add($option);
+            $option->setAttribut($this);
+        }
         return $this;
     }
-
-    public function getTypeAffichage(): ?string
-    {
-        return $this->typeAffichage;
-    }
-
-    public function setTypeAffichage(?string $typeAffichage): static
-    {
-        $this->typeAffichage = $typeAffichage;
-        return $this;
-    }
-
+    public function removeOption(OptionVariation $option): static { $this->options->removeElement($option); return $this; }
 }

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Espace Partenaire{% endblock %} — TripShop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary:#6c3fc5; --primary-dark:#4e2d9a; --accent:#9b59b6; --sidebar-w:250px; --topbar-h:60px; --bg:#f4f1fb; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        body { font-family:'Inter',sans-serif; background:var(--bg); color:#333; }
+        .sidebar { position:fixed; top:0; left:0; width:var(--sidebar-w); height:100vh; background:linear-gradient(180deg,var(--primary-dark),var(--primary)); display:flex; flex-direction:column; z-index:1000; overflow-y:auto; }
+        .sidebar-brand { padding:20px 22px 16px; font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:700; color:#fff; border-bottom:1px solid rgba(255,255,255,0.12); text-decoration:none; display:block; }
+        .sidebar-brand span { color:#c39bd3; }
+        .sidebar-section { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:rgba(255,255,255,0.4); padding:18px 22px 6px; }
+        .sidebar-link { display:flex; align-items:center; gap:10px; padding:10px 22px; color:rgba(255,255,255,0.75); text-decoration:none; font-size:0.88rem; font-weight:500; border-left:3px solid transparent; transition:all 0.2s; }
+        .sidebar-link i { font-size:1rem; width:18px; text-align:center; }
+        .sidebar-link:hover { color:#fff; background:rgba(255,255,255,0.08); border-left-color:rgba(255,255,255,0.4); }
+        .sidebar-link.active { color:#fff; background:rgba(255,255,255,0.15); border-left-color:#fff; font-weight:600; }
+        .sidebar-footer { margin-top:auto; padding:14px 22px; border-top:1px solid rgba(255,255,255,0.12); font-size:0.8rem; color:rgba(255,255,255,0.5); }
+        .topbar { position:fixed; top:0; left:var(--sidebar-w); right:0; height:var(--topbar-h); background:#fff; border-bottom:1px solid #ede5ff; display:flex; align-items:center; padding:0 24px; gap:14px; z-index:999; box-shadow:0 2px 10px rgba(108,63,197,0.07); }
+        .topbar-title { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; color:var(--primary-dark); }
+        .topbar-right { margin-left:auto; display:flex; align-items:center; gap:10px; }
+        .topbar-icon { width:36px; height:36px; border-radius:50%; background:#f0ebff; color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:0.95rem; cursor:pointer; text-decoration:none; transition:background 0.2s; }
+        .topbar-icon:hover { background:var(--primary); color:#fff; }
+        .main-content { margin-left:var(--sidebar-w); margin-top:var(--topbar-h); padding:24px; min-height:calc(100vh - var(--topbar-h)); }
+        .stat-card { background:#fff; border-radius:14px; padding:20px 22px; box-shadow:0 4px 18px rgba(108,63,197,0.08); border:1px solid #ede5ff; transition:transform 0.2s; }
+        .stat-card:hover { transform:translateY(-3px); }
+        .stat-num { font-size:1.8rem; font-weight:700; color:var(--primary-dark); }
+        .stat-label { font-size:0.8rem; color:#888; margin-top:3px; }
+        .admin-table { background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 4px 18px rgba(108,63,197,0.07); border:1px solid #ede5ff; }
+        .admin-table .table { margin:0; }
+        .admin-table .table thead th { background:#f9f7ff; color:var(--primary-dark); font-size:0.76rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; border-bottom:2px solid #ede5ff; padding:12px 14px; }
+        .admin-table .table tbody td { padding:11px 14px; vertical-align:middle; border-color:#f5f0ff; font-size:0.86rem; }
+        .admin-table .table tbody tr:hover { background:#faf8ff; }
+        .form-card { background:#fff; border-radius:14px; padding:26px; box-shadow:0 4px 18px rgba(108,63,197,0.08); border:1px solid #ede5ff; }
+        .form-label { font-weight:600; font-size:0.83rem; color:var(--primary-dark); }
+        .form-control, .form-select { border-color:#ddd; border-radius:9px; font-size:0.86rem; padding:9px 13px; transition:border-color 0.2s, box-shadow 0.2s; }
+        .form-control:focus, .form-select:focus { border-color:#a78bda; box-shadow:0 0 0 3px rgba(108,63,197,0.1); }
+        .btn-primary-p { background:linear-gradient(135deg,var(--primary),var(--accent)); color:#fff; border:none; border-radius:9px; padding:9px 20px; font-weight:600; font-size:0.86rem; transition:opacity 0.2s, transform 0.2s; }
+        .btn-primary-p:hover { opacity:0.9; transform:translateY(-1px); color:#fff; }
+        .btn-danger-p { background:#fde8e8; color:#c0392b; border:none; border-radius:7px; padding:5px 12px; font-size:0.8rem; transition:background 0.2s; }
+        .btn-danger-p:hover { background:#e74c3c; color:#fff; }
+        .btn-edit-p { background:#f0ebff; color:var(--primary); border:none; border-radius:7px; padding:5px 12px; font-size:0.8rem; transition:background 0.2s; }
+        .btn-edit-p:hover { background:var(--primary); color:#fff; }
+        .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
+        .page-header h1 { font-family:'Playfair Display',serif; font-size:1.4rem; color:var(--primary-dark); }
+        .flash-p { position:fixed; top:72px; right:18px; z-index:9999; min-width:280px; }
+        .status-badge { padding:3px 10px; border-radius:50px; font-size:0.73rem; font-weight:600; }
+        .badge-actif { background:#d1f2eb; color:#1a7a4a; }
+        .badge-inactif { background:#fde8e8; color:#c0392b; }
+    </style>
+    {% block stylesheets %}{% endblock %}
+</head>
+<body>
+
+<aside class="sidebar">
+    <a href="{{ path('partenaire_dashboard') }}" class="sidebar-brand">Trip<span>Shop</span> <small style="font-size:0.6rem;opacity:0.6">Partenaire</small></a>
+
+    <div class="sidebar-section">Principal</div>
+    <a href="{{ path('partenaire_dashboard') }}" class="sidebar-link {{ app.request.get('_route') == 'partenaire_dashboard' ? 'active' : '' }}">
+        <i class="bi bi-grid-fill"></i> Dashboard
+    </a>
+
+    <div class="sidebar-section">Produits</div>
+    <a href="{{ path('partenaire_produits') }}" class="sidebar-link {{ 'partenaire_produit' in app.request.get('_route') ? 'active' : '' }}">
+        <i class="bi bi-bag-fill"></i> Mes produits
+    </a>
+    <a href="{{ path('partenaire_produit_new') }}" class="sidebar-link {{ app.request.get('_route') == 'partenaire_produit_new' ? 'active' : '' }}">
+        <i class="bi bi-plus-circle-fill"></i> Ajouter un produit
+    </a>
+
+    <div class="sidebar-section">Promotions</div>
+    <a href="{{ path('partenaire_promos') }}" class="sidebar-link {{ 'partenaire_promo' in app.request.get('_route') ? 'active' : '' }}">
+        <i class="bi bi-tag-fill"></i> Codes promo
+    </a>
+    <a href="{{ path('partenaire_promo_new') }}" class="sidebar-link {{ app.request.get('_route') == 'partenaire_promo_new' ? 'active' : '' }}">
+        <i class="bi bi-plus-circle"></i> Nouveau code promo
+    </a>
+
+    <div class="sidebar-section">Aperçu</div>
+    <a href="{{ path('app_home') }}" class="sidebar-link" target="_blank">
+        <i class="bi bi-box-arrow-up-right"></i> Voir le site
+    </a>
+
+    <div class="sidebar-footer">
+        <i class="bi bi-person-circle me-2"></i>
+        {{ partenaire ? partenaire.nomEntreprise : 'Partenaire' }}
+    </div>
+</aside>
+
+<header class="topbar">
+    <div class="topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+    <div class="topbar-right">
+        <a href="{{ path('app_home') }}" class="topbar-icon" title="Voir le site" target="_blank">
+            <i class="bi bi-eye-fill"></i>
+        </a>
+        <div class="topbar-icon" style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;font-weight:700">
+            {{ partenaire ? partenaire.nomEntreprise|first|upper : 'P' }}
+        </div>
+    </div>
+</header>
+
+<div class="flash-p">
+    {% for type, messages in app.flashes %}
+        {% for message in messages %}
+        <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show shadow-sm rounded-3">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    {% endfor %}
+</div>
+
+<main class="main-content">
+    {% block body %}{% endblock %}
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    setTimeout(() => {
+        document.querySelectorAll('.flash-p .alert').forEach(el => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); });
+    }, 4000);
+</script>
+{% block javascripts %}{% endblock %}
+</body>
+</html>

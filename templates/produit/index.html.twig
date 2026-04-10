@@ -61,7 +61,13 @@
                 <div class="col-6 col-md-4" data-aos="fade-up" data-aos-delay="{{ (loop.index0 % 3) * 100 }}">
                     <div class="product-card card h-100">
                         <div class="img-wrap img-zoom" style="height:200px">
+                            {% if produit.imagePrincipale %}
+                            <img src="/uploads/produits/{{ produit.imagePrincipale }}"
+                                 alt="{{ produit.nom }}"
+                                 style="width:100%;height:100%;object-fit:cover">
+                            {% else %}
                             <span class="emoji-img" style="font-size:4.5rem">🛍️</span>
+                            {% endif %}
                             {% if produit.variants|length > 0 and produit.variants.first.prixPromo %}
                             <span class="position-absolute top-0 end-0 m-2 badge-new">Promo</span>
                             {% endif %}

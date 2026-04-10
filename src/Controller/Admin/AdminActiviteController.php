@@ -2,6 +2,10 @@
 
 namespace App\Controller\Admin;
 
+
+use App\Repository\CodePromoRepository;
+use App\Repository\PartenaireRepository;
+use App\Repository\ProduitParentRepository;
 use App\Entity\Activite;
 use App\Entity\Partenaire;
 use App\Repository\ActiviteRepository;
@@ -9,6 +13,7 @@ use App\Repository\ParticipationDemandeRepository;
 use App\Repository\NotificationRepository;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,12 +27,29 @@ final class AdminActiviteController extends AbstractController
     private function getPartenaireId(): int { return 8; }
     private function getPartenaireUserId(): int { return 44; }
 
+
     #[Route('/dashboard', name: 'admin_dashboard')]
-    public function dashboard(ActiviteRepository $activiteRepo, ParticipationDemandeRepository $demandeRepo): Response
-    {
+    public function dashboard(
+        Request $request,
+        PartenaireRepository $partenaireRepo,
+        ProduitParentRepository $produitRepo,
+        CodePromoRepository $promoRepo,
+        ActiviteRepository $activiteRepo,
+        ParticipationDemandeRepository $demandeRepo,
+        EntityManagerInterface $em
+    ): Response {
+        $userId = $request->getSession()->get('user_id');
+        $partenaire = $userId ? $partenaireRepo->findOneBy(['user' => $userId]) : null;
+        
+        // Stats Produits & Promos
+        $produits = $partenaire ? $produitRepo->findByPartenaire($partenaire->getId()) : [];
+        $promos = $partenaire ? $promoRepo->findByPartenaire($partenaire->getId()) : [];
+        
+        // Stats Activités
         $activites = $activiteRepo->findByPartenaire($this->getPartenaireId());
         $totalPlaces = array_sum(array_map(fn($a) => $a->getNombrePlaces(), $activites));
         $placesDisponibles = array_sum(array_map(fn($a) => $a->getPlacesDisponibles(), $activites));
+        
         $demandes = [];
         $demandesEnAttente = 0;
         foreach ($activites as $a) {
@@ -37,6 +59,10 @@ final class AdminActiviteController extends AbstractController
                 if ($dem->getStatut() === 'EN_ATTENTE') $demandesEnAttente++;
             }
         }
+
+        // Stats Destinations
+        $destinations = $em->getRepository(\App\Entity\Destination::class)->findAllOrdered();
+
         return $this->render('admin/dashboard.html.twig', [
             'totalActivites'    => count($activites),
             'totalReservations' => $totalPlaces - $placesDisponibles,
@@ -44,6 +70,13 @@ final class AdminActiviteController extends AbstractController
             'demandesEnAttente' => $demandesEnAttente,
             'activites'         => array_slice($activites, 0, 5),
             'demandes'          => array_slice($demandes, 0, 5),
+            'partenaire'        => $partenaire,
+            'produits'          => $produits,
+            'promos'            => $promos,
+            'totalProduits'     => count($produits),
+            'totalPromos'       => count($promos),
+            'totalDestinations' => count($destinations),
+            'destinations'      => array_slice($destinations, 0, 5),
         ]);
     }
 

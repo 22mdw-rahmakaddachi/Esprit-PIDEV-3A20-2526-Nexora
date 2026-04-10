@@ -7,6 +7,10 @@
 <style>
     :root {
         --primary: #2563EB;
+        --primary-dark: #1d4ed8;
+        --success: #16A34A;
+        --danger: #DC2626;
+        --warning: #D97706;
         --gray-50: #F9FAFB;
         --gray-100: #F3F4F6;
         --gray-200: #E5E7EB;
@@ -21,7 +25,6 @@
         border-bottom: 1px solid var(--gray-200);
         padding: 14px 32px;
     }
-
     .back-btn {
         display: inline-flex;
         align-items: center;
@@ -34,7 +37,6 @@
         transition: background .2s;
         font-weight: 500;
     }
-
     .back-btn:hover { background: var(--gray-100); color: var(--gray-800); }
 
     .container { max-width: 1100px; margin: 40px auto; padding: 0 24px; }
@@ -48,23 +50,30 @@
         box-shadow: 0 2px 12px rgba(0,0,0,.08);
         overflow: hidden;
     }
-
     @media (max-width: 768px) {
         .detail-grid { grid-template-columns: 1fr; }
     }
 
-    .detail-image-side { position: relative; }
+    /* ─── Galerie ─── */
+    .detail-image-side { position: relative; display: flex; flex-direction: column; }
 
+    .main-image-wrapper {
+        position: relative;
+        overflow: hidden;
+        flex: 1;
+        min-height: 340px;
+    }
     .main-image {
         width: 100%;
-        height: 400px;
+        height: 100%;
+        min-height: 340px;
         object-fit: cover;
         display: block;
+        transition: opacity .3s;
     }
-
     .image-placeholder {
         width: 100%;
-        height: 400px;
+        min-height: 340px;
         background: linear-gradient(135deg, #DBEAFE, #EDE9FE);
         display: flex;
         align-items: center;
@@ -72,28 +81,87 @@
         font-size: 5rem;
     }
 
+    /* Nav arrows */
+    .gallery-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0,0,0,.45);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 38px;
+        height: 38px;
+        font-size: 1.1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background .2s;
+        z-index: 10;
+    }
+    .gallery-nav:hover { background: rgba(0,0,0,.7); }
+    .gallery-nav.prev { left: 12px; }
+    .gallery-nav.next { right: 12px; }
+
+    /* Counter */
+    .gallery-counter {
+        position: absolute;
+        bottom: 12px;
+        right: 14px;
+        background: rgba(0,0,0,.5);
+        color: white;
+        font-size: .75rem;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 999px;
+    }
+
+    /* Thumbnails strip */
+    .thumbnails-strip {
+        display: flex;
+        gap: 8px;
+        padding: 10px 12px;
+        background: var(--gray-50);
+        border-top: 1px solid var(--gray-100);
+        overflow-x: auto;
+        scrollbar-width: thin;
+    }
+    .thumb-item {
+        width: 64px;
+        height: 48px;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 2px solid transparent;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: border-color .2s, transform .2s;
+    }
+    .thumb-item:hover { transform: scale(1.05); }
+    .thumb-item.active { border-color: var(--primary); }
+
+    /* Badge overlay */
     .badge-overlay {
         position: absolute;
-        top: 20px;
-        left: 20px;
+        top: 16px;
+        left: 16px;
         padding: 6px 16px;
         border-radius: 999px;
         font-size: .8rem;
         font-weight: 700;
     }
-
     .badge-disponible { background: #16A34A; color: white; }
-    .badge-complet { background: #DC2626; color: white; }
+    .badge-complet    { background: #DC2626; color: white; }
+    .badge-attente    { background: #D97706; color: white; }
 
+    /* ─── Info side ─── */
     .detail-info-side { padding: 40px; }
-
     .detail-info-side h1 {
         font-size: 2rem;
         font-weight: 800;
         color: var(--gray-800);
-        margin-bottom: 16px;
+        margin-bottom: 20px;
     }
-
     .info-row {
         display: flex;
         align-items: flex-start;
@@ -101,11 +169,8 @@
         padding: 16px 0;
         border-bottom: 1px solid var(--gray-100);
     }
-
     .info-row:last-child { border-bottom: none; }
-
     .info-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
-
     .info-label {
         font-size: .75rem;
         font-weight: 700;
@@ -114,13 +179,7 @@
         color: var(--gray-600);
         margin-bottom: 4px;
     }
-
-    .info-value {
-        font-size: 1rem;
-        color: var(--gray-800);
-        line-height: 1.6;
-    }
-
+    .info-value { font-size: 1rem; color: var(--gray-800); line-height: 1.6; }
     .maps-btn {
         display: inline-flex;
         align-items: center;
@@ -135,28 +194,364 @@
         font-weight: 600;
         transition: background .2s, transform .2s;
     }
-
     .maps-btn:hover { background: #1d4ed8; transform: translateY(-1px); }
 
-    /* Extra images */
-    .extra-images {
+    /* ─── Rejoindre ─── */
+    .join-section {
+        margin-top: 28px;
+        padding: 24px;
+        background: linear-gradient(135deg, #EFF6FF, #F0FDF4);
+        border-radius: 14px;
+        border: 1px solid #BFDBFE;
+    }
+    .join-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--gray-800);
+        margin-bottom: 12px;
         display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin-top: 4px;
+        align-items: center;
+        gap: 8px;
     }
-
-    .extra-image {
-        width: 90px;
-        height: 60px;
-        object-fit: cover;
-        border-radius: 6px;
-        border: 2px solid var(--gray-200);
+    .progress-bar-wrap {
+        background: var(--gray-200);
+        border-radius: 999px;
+        height: 10px;
+        overflow: hidden;
+        margin-bottom: 8px;
+    }
+    .progress-bar-fill {
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #2563EB, #16A34A);
+        transition: width .6s ease;
+    }
+    .progress-label {
+        font-size: .8rem;
+        color: var(--gray-600);
+        margin-bottom: 16px;
+    }
+    .btn-rejoindre {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 700;
         cursor: pointer;
-        transition: border .2s;
+        transition: all .25s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    .btn-rejoindre.primary {
+        background: linear-gradient(135deg, #2563EB, #1d4ed8);
+        color: white;
+        box-shadow: 0 4px 14px rgba(37,99,235,.35);
+    }
+    .btn-rejoindre.primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37,99,235,.45);
+    }
+    .btn-rejoindre.joined {
+        background: #f0fdf4;
+        color: #16A34A;
+        border: 2px solid #BBF7D0;
+        cursor: default;
+    }
+    .btn-rejoindre.loading { opacity: .7; pointer-events: none; }
+
+    .status-badge-join {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: .78rem;
+        font-weight: 700;
+        margin-left: 8px;
+    }
+    .status-dispo { background: #dcfce7; color: #15803d; }
+    .status-attente { background: #fef3c7; color: #92400e; }
+    .status-complet { background: #fee2e2; color: #991b1b; }
+
+    /* ─── Chat widget ─── */
+    .chat-toggle-btn {
+        position: fixed;
+        bottom: 28px;
+        left: 28px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2563EB, #7C3AED);
+        color: white;
+        font-size: 1.5rem;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 4px 20px rgba(37,99,235,.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        transition: transform .25s, box-shadow .25s;
+    }
+    .chat-toggle-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 28px rgba(37,99,235,.6);
+    }
+    .chat-unread-dot {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 12px;
+        height: 12px;
+        background: #EF4444;
+        border-radius: 50%;
+        border: 2px solid white;
+        display: none;
     }
 
-    .extra-image:hover { border-color: var(--primary); }
+    .chat-window {
+        position: fixed;
+        bottom: 96px;
+        left: 28px;
+        width: 340px;
+        height: 460px;
+        background: white;
+        border-radius: 18px;
+        box-shadow: 0 8px 40px rgba(0,0,0,.18);
+        display: flex;
+        flex-direction: column;
+        z-index: 999;
+        transform: translateY(20px) scale(.96);
+        opacity: 0;
+        pointer-events: none;
+        transition: all .3s cubic-bezier(.34,1.56,.64,1);
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+    }
+    .chat-window.open {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .chat-header {
+        background: linear-gradient(135deg, #2563EB, #7C3AED);
+        padding: 16px 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+    .chat-header-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+    .chat-header-info { flex: 1; }
+    .chat-header-title { color: white; font-weight: 700; font-size: .95rem; }
+    .chat-header-sub   { color: rgba(255,255,255,.75); font-size: .75rem; }
+    .chat-close-btn {
+        background: rgba(255,255,255,.2);
+        border: none;
+        color: white;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: .9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background .2s;
+    }
+    .chat-close-btn:hover { background: rgba(255,255,255,.35); }
+
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        scrollbar-width: thin;
+        scrollbar-color: #e2e8f0 transparent;
+    }
+    .chat-empty {
+        text-align: center;
+        color: var(--gray-600);
+        font-size: .85rem;
+        margin-top: 40px;
+    }
+    .chat-bubble-wrap {
+        display: flex;
+        flex-direction: column;
+    }
+    .chat-bubble-wrap.mine { align-items: flex-end; }
+    .chat-author {
+        font-size: .7rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        margin-bottom: 3px;
+        padding: 0 4px;
+    }
+    .chat-bubble {
+        max-width: 78%;
+        padding: 10px 14px;
+        border-radius: 16px;
+        font-size: .875rem;
+        line-height: 1.45;
+        word-break: break-word;
+    }
+    .chat-bubble-wrap:not(.mine) .chat-bubble {
+        background: var(--gray-100);
+        color: var(--gray-800);
+        border-bottom-left-radius: 4px;
+    }
+    .chat-bubble-wrap.mine .chat-bubble {
+        background: linear-gradient(135deg, #2563EB, #7C3AED);
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+    .chat-time {
+        font-size: .65rem;
+        color: var(--gray-600);
+        margin-top: 3px;
+        padding: 0 4px;
+    }
+
+    .chat-input-area {
+        padding: 12px;
+        border-top: 1px solid var(--gray-100);
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+        background: white;
+    }
+    .chat-input {
+        flex: 1;
+        padding: 10px 14px;
+        border: 1.5px solid var(--gray-200);
+        border-radius: 999px;
+        font-size: .875rem;
+        outline: none;
+        transition: border-color .2s;
+        font-family: inherit;
+    }
+    .chat-input:focus { border-color: var(--primary); }
+    .chat-send-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2563EB, #7C3AED);
+        color: white;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        transition: transform .2s, box-shadow .2s;
+        flex-shrink: 0;
+    }
+    .chat-send-btn:hover { transform: scale(1.1); box-shadow: 0 2px 10px rgba(37,99,235,.4); }
+    .chat-login-notice {
+        padding: 14px;
+        background: #FEF3C7;
+        text-align: center;
+        font-size: .8rem;
+        color: #92400E;
+        border-top: 1px solid #FDE68A;
+    }
+
+    /* Animation d'entrée des messages */
+    @keyframes msgIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .chat-bubble-wrap { animation: msgIn .25s ease; }
+    /* ─── Weather Widget ─── */
+    .weather-widget {
+        margin-top: 16px;
+        background: #f8fafc;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    .weather-main {
+        padding: 16px;
+        background: linear-gradient(135deg, #3b82f6, #60a5fa);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .weather-temp {
+        font-size: 2.2rem;
+        font-weight: 800;
+        display: flex;
+        align-items: flex-start;
+    }
+    .weather-temp span { font-size: 1.1rem; margin-top: 6px; margin-left: 2px; }
+    .weather-icon-lg {
+        width: 64px;
+        height: 64px;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    }
+    .weather-details {
+        padding: 12px 16px;
+        display: flex;
+        gap: 16px;
+        font-size: 0.8rem;
+        color: #64748b;
+        background: white;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .weather-detail-item { display: flex; align-items: center; gap: 4px; }
+
+    .forecast-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        background: white;
+    }
+    .forecast-item {
+        padding: 12px 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        border-right: 1px solid #f1f5f9;
+    }
+    .forecast-item:last-child { border-right: none; }
+    .forecast-day { font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase; }
+    .forecast-icon { width: 32px; height: 32px; }
+    .forecast-temp { font-size: 0.9rem; font-weight: 700; color: #1e293b; }
+
+    .weather-loading {
+        padding: 30px;
+        text-align: center;
+        color: #94a3b8;
+        font-size: 0.9rem;
+    }
+    .weather-loading .spinner {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(59, 130, 246, 0.2);
+        border-top-color: #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 {% endblock %}
 
@@ -168,22 +563,46 @@
 <div class="container">
     <div class="detail-grid">
 
-        {# IMAGE SIDE #}
+        {# ─── IMAGE / GALERIE ─── #}
         <div class="detail-image-side">
-            {% if destination.firstImage %}
-                <img src="{{ destination.firstImage }}" alt="{{ destination.nom }}" class="main-image" id="mainImage">
-            {% else %}
-                <div class="image-placeholder">🏔️</div>
-            {% endif %}
+            {% set images = destination.imagesList %}
 
-            {% if destination.statut %}
-                <span class="badge-overlay {{ destination.statut == 'Disponible' ? 'badge-disponible' : 'badge-complet' }}">
-                    {{ destination.statut == 'Disponible' ? '✅ Disponible' : '🔴 Complet' }}
-                </span>
+            <div class="main-image-wrapper">
+                {% if images|length > 0 %}
+                    <img src="{{ images[0] }}" alt="{{ destination.nom }}" class="main-image" id="mainImage">
+
+                    {# Navigation flèches (si + d'une image) #}
+                    {% if images|length > 1 %}
+                        <button class="gallery-nav prev" onclick="prevImage()" title="Précédente">&#8249;</button>
+                        <button class="gallery-nav next" onclick="nextImage()" title="Suivante">&#8250;</button>
+                        <span class="gallery-counter" id="galleryCounter">1 / {{ images|length }}</span>
+                    {% endif %}
+                {% else %}
+                    <div class="image-placeholder">🏔️</div>
+                {% endif %}
+
+                {% if destination.statut %}
+                    <span class="badge-overlay {{ destination.statut == 'Disponible' ? 'badge-disponible' : 'badge-complet' }}" id="statusBadgeImg">
+                        {{ destination.statut == 'Disponible' ? '✅ Disponible' : '🔴 Complet' }}
+                    </span>
+                {% endif %}
+            </div>
+
+            {# Bande de miniatures #}
+            {% if images|length > 1 %}
+            <div class="thumbnails-strip" id="thumbStrip">
+                {% for img in images %}
+                    <img src="{{ img }}"
+                         alt="Vue {{ loop.index }}"
+                         class="thumb-item {% if loop.first %}active{% endif %}"
+                         onclick="goToImage({{ loop.index0 }})"
+                         id="thumb-{{ loop.index0 }}">
+                {% endfor %}
+            </div>
             {% endif %}
         </div>
 
-        {# INFO SIDE #}
+        {# ─── INFO ─── #}
         <div class="detail-info-side">
             <h1>{{ destination.nom }}</h1>
 
@@ -198,6 +617,30 @@
                        target="_blank" class="maps-btn">
                         🗺️ Voir sur Google Maps
                     </a>
+
+                    {# WEATHER WIDGET #}
+                    <div id="weather-root" class="weather-widget" style="display:none">
+                        <div class="weather-loading" id="weather-loader">
+                            <div class="spinner"></div>
+                            <div>Chargement météo...</div>
+                        </div>
+                        <div id="weather-content" style="display:none">
+                            <div class="weather-main">
+                                <div>
+                                    <div class="weather-temp" id="curr-temp">--<span>°C</span></div>
+                                    <div style="font-size:0.85rem; font-weight:500; opacity:0.9" id="curr-desc">--</div>
+                                </div>
+                                <img id="curr-icon" src="" class="weather-icon-lg" alt="Weather">
+                            </div>
+                            <div class="weather-details">
+                                <div class="weather-detail-item">💧 <span id="curr-hum">--</span>%</div>
+                                <div class="weather-detail-item">💨 <span id="curr-wind">--</span> km/h</div>
+                            </div>
+                            <div class="forecast-grid" id="forecast-body">
+                                {# Forecast items here #}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             {% endif %}
@@ -213,23 +656,414 @@
             </div>
             {% endif %}
 
-            {# IMAGES SUPPLÉMENTAIRES #}
-            {% if destination.imagesList|length > 1 %}
+            {# GALERIE (compteur) #}
+            {% if images|length > 0 %}
             <div class="info-row">
                 <span class="info-icon">🖼️</span>
                 <div>
-                    <div class="info-label">Galerie</div>
-                    <div class="extra-images">
-                        {% for img in destination.imagesList %}
-                            <img src="{{ img }}" alt="Image" class="extra-image"
-                                 onclick="document.getElementById('mainImage').src='{{ img }}'">
-                        {% endfor %}
-                    </div>
+                    <div class="info-label">Photos disponibles</div>
+                    <div class="info-value">{{ images|length }} photo{{ images|length > 1 ? 's' : '' }}</div>
                 </div>
             </div>
             {% endif %}
 
+            {# ─── REJOINDRE ─── #}
+            <div class="join-section">
+                <div class="join-title">
+                    👥 Participants
+                    <span class="status-badge-join {{ destination.statut == 'Disponible' ? 'status-dispo' : 'status-attente' }}" id="statusBadgeJoin">
+                        {{ destination.statut ?? 'En attente' }}
+                    </span>
+                </div>
+
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" id="progressFill"
+                         style="width: {{ min((destination.nbParticipants / destination.capaciteMax) * 100, 100) }}%"></div>
+                </div>
+                <div class="progress-label">
+                    <span id="nbParticipants">{{ destination.nbParticipants }}</span> / {{ destination.capaciteMax }} participants
+                </div>
+
+                {% if app.user %}
+                    <button class="btn-rejoindre {{ hasJoined ? 'joined' : 'primary' }}"
+                            id="btnRejoindre"
+                            onclick="rejoindreDestination()"
+                            {% if hasJoined %}disabled{% endif %}>
+                        {% if hasJoined %}
+                            ✅ Vous avez déjà rejoint cette destination
+                        {% else %}
+                            ✈️ Rejoindre cette destination
+                        {% endif %}
+                    </button>
+                {% else %}
+                    <a href="#" class="btn-rejoindre primary" style="text-decoration:none;">
+                        🔐 Se connecter pour rejoindre
+                    </a>
+                {% endif %}
+            </div>
+
         </div>
     </div>
 </div>
+
+{# ─── CHAT FLOTTANT ─── #}
+<button class="chat-toggle-btn" id="chatToggleBtn" onclick="toggleChat()" title="Discuter avec les voyageurs">
+    💬
+    <span class="chat-unread-dot" id="chatUnreadDot"></span>
+</button>
+
+<div class="chat-window" id="chatWindow">
+    <div class="chat-header">
+        <div class="chat-header-avatar">🏔️</div>
+        <div class="chat-header-info">
+            <div class="chat-header-title">{{ destination.nom }}</div>
+            <div class="chat-header-sub">Discussion des voyageurs</div>
+        </div>
+        <button class="chat-close-btn" onclick="toggleChat()">✕</button>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+        <div class="chat-empty" id="chatEmpty">Soyez le premier à écrire un message ! ✨</div>
+    </div>
+
+    {% if app.user %}
+    <div class="chat-input-area">
+        <input type="text" class="chat-input" id="chatInput"
+               placeholder="Votre message…"
+               maxlength="500"
+               onkeydown="if(event.key==='Enter') sendMessage()">
+        <button class="chat-send-btn" onclick="sendMessage()" title="Envoyer">➤</button>
+    </div>
+    {% else %}
+    <div class="chat-login-notice">
+        🔐 <a href="#" style="color:#92400E;font-weight:700;">Connectez-vous</a> pour participer au chat
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// ─── Données globales ─────────────────────────────────────────────
+const DEST_ID         = {{ destination.id }};
+const CURRENT_USER_ID = {{ app.user ? app.user.id : 'null' }};
+const CAPACITE_MAX    = {{ destination.capaciteMax }};
+const URL_REJOINDRE   = "{{ path('client_destination_rejoindre', {id: destination.id}) }}";
+const URL_MESSAGES    = "{{ path('client_destination_messages', {id: destination.id}) }}";
+const URL_MSG_SEND    = "{{ path('client_destination_messages_send', {id: destination.id}) }}";
+const URL_WEATHER     = "{{ path('client_destination_weather', {id: destination.id}) }}";
+
+// ─── Weather Logic ───────────────────────────────────────────────
+async function loadWeather() {
+    const root = document.getElementById('weather-root');
+    if (!root) return;
+    
+    root.style.display = 'block';
+    
+    try {
+        const response = await fetch(URL_WEATHER);
+        const data = await response.json();
+        
+        if (data.error) {
+            console.error('Weather error:', data.error);
+            document.getElementById('weather-loader').innerHTML = `
+                <div style="color:#ef4444; font-size:0.8rem; padding:10px">
+                    ⚠️ ${data.error}
+                </div>`;
+            return;
+        }
+
+        // Current
+        document.getElementById('curr-temp').innerHTML = `${data.current.temp}<span>°C</span>`;
+        document.getElementById('curr-desc').textContent = data.current.description;
+        document.getElementById('curr-icon').src = `https://openweathermap.org/img/wn/${data.current.icon}@2x.png`;
+        document.getElementById('curr-hum').textContent = data.current.humidity;
+        document.getElementById('curr-wind').textContent = data.current.wind;
+
+        // Forecast
+        const forecastBody = document.getElementById('forecast-body');
+        forecastBody.innerHTML = '';
+        data.forecast.forEach(day => {
+            const item = document.createElement('div');
+            item.className = 'forecast-item';
+            item.innerHTML = `
+                <div class="forecast-day">${day.dayName}</div>
+                <img src="https://openweathermap.org/img/wn/${day.icon}.png" class="forecast-icon" alt="${day.description}">
+                <div class="forecast-temp">${day.temp}°</div>
+            `;
+            forecastBody.appendChild(item);
+        });
+
+        document.getElementById('weather-loader').style.display = 'none';
+        document.getElementById('weather-content').style.display = 'block';
+    } catch (e) {
+        console.error('Failed to load weather', e);
+        document.getElementById('weather-loader').innerHTML = `
+            <div style="color:#ef4444; font-size:0.8rem; padding:10px">
+                ❌ Erreur de connexion météo.
+            </div>`;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadWeather);
+
+// ─── Galerie ─────────────────────────────────────────────────────
+const images = {{ destination.imagesList|json_encode|raw }};
+let currentIndex = 0;
+
+function goToImage(idx) {
+    if (idx < 0) idx = images.length - 1;
+    if (idx >= images.length) idx = 0;
+    currentIndex = idx;
+
+    const mainImg = document.getElementById('mainImage');
+    if (mainImg) {
+        mainImg.style.opacity = '0';
+        setTimeout(() => {
+            mainImg.src = images[idx];
+            mainImg.style.opacity = '1';
+        }, 150);
+    }
+
+    const counter = document.getElementById('galleryCounter');
+    if (counter) counter.textContent = (idx + 1) + ' / ' + images.length;
+
+    document.querySelectorAll('.thumb-item').forEach((el, i) => {
+        el.classList.toggle('active', i === idx);
+    });
+
+    const activeThumb = document.getElementById('thumb-' + idx);
+    if (activeThumb) activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+}
+
+function prevImage() { goToImage(currentIndex - 1); }
+function nextImage() { goToImage(currentIndex + 1); }
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft')  prevImage();
+    if (e.key === 'ArrowRight') nextImage();
+});
+
+// ─── Rejoindre ───────────────────────────────────────────────────
+async function rejoindreDestination() {
+    const btn = document.getElementById('btnRejoindre');
+    btn.classList.add('loading');
+    btn.textContent = '⏳ En cours…';
+
+    try {
+        const res = await fetch(URL_REJOINDRE, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            // Mise à jour compteur + barre
+            updateParticipantsUI(data.nbParticipants, data.capaciteMax, data.statut);
+
+            btn.classList.remove('loading', 'primary');
+            btn.classList.add('joined');
+            btn.textContent = '✅ Vous avez rejoint cette destination !';
+            btn.disabled = true;
+
+            showToast('🎉 ' + data.message, 'success');
+        } else {
+            btn.classList.remove('loading');
+            btn.classList.add('joined');
+            btn.textContent = '✅ Vous avez déjà rejoint cette destination';
+            btn.disabled = true;
+            showToast(data.message, 'info');
+        }
+    } catch (e) {
+        btn.classList.remove('loading');
+        btn.textContent = '✈️ Rejoindre cette destination';
+        showToast('Erreur de connexion. Réessayez.', 'error');
+    }
+}
+
+function updateParticipantsUI(nb, max, statut) {
+    const pct = Math.min((nb / max) * 100, 100);
+    document.getElementById('nbParticipants').textContent = nb;
+    document.getElementById('progressFill').style.width = pct + '%';
+
+    // Badge statut
+    const badgeJoin = document.getElementById('statusBadgeJoin');
+    const badgeImg  = document.getElementById('statusBadgeImg');
+
+    if (statut === 'Disponible') {
+        if (badgeJoin) {
+            badgeJoin.className = 'status-badge-join status-dispo';
+            badgeJoin.textContent = '✅ Disponible';
+        }
+        if (badgeImg) {
+            badgeImg.className = 'badge-overlay badge-disponible';
+            badgeImg.textContent = '✅ Disponible';
+        }
+    }
+}
+
+// ─── Toast notification ──────────────────────────────────────────
+function showToast(msg, type = 'success') {
+    const colors = {
+        success: { bg: '#dcfce7', color: '#15803d', border: '#bbf7d0' },
+        error:   { bg: '#fee2e2', color: '#991b1b', border: '#fecaca' },
+        info:    { bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
+    };
+    const c = colors[type] || colors.success;
+
+    const t = document.createElement('div');
+    t.style.cssText = `
+        position:fixed; bottom:100px; right:24px; z-index:9999;
+        background:${c.bg}; color:${c.color}; border:1.5px solid ${c.border};
+        padding:14px 20px; border-radius:12px; font-size:.9rem; font-weight:600;
+        box-shadow:0 4px 16px rgba(0,0,0,.12); max-width:300px;
+        animation: slideInToast .3s ease;
+    `;
+    t.textContent = msg;
+
+    const style = document.createElement('style');
+    style.textContent = `@keyframes slideInToast { from { opacity:0; transform:translateX(30px); } to { opacity:1; transform:translateX(0); } }`;
+    document.head.appendChild(style);
+
+    document.body.appendChild(t);
+    setTimeout(() => {
+        t.style.transition = 'opacity .4s';
+        t.style.opacity = '0';
+        setTimeout(() => t.remove(), 400);
+    }, 3500);
+}
+
+// ─── Chat ────────────────────────────────────────────────────────
+let chatOpen       = false;
+let lastMsgCount   = 0;
+let pollInterval   = null;
+let firstLoad      = true;
+
+function toggleChat() {
+    chatOpen = !chatOpen;
+    const win = document.getElementById('chatWindow');
+    const btn = document.getElementById('chatToggleBtn');
+    win.classList.toggle('open', chatOpen);
+    btn.textContent = chatOpen ? '✕' : '💬';
+
+    const dot = document.getElementById('chatUnreadDot');
+    if (dot) dot.style.display = 'none';
+
+    if (chatOpen) {
+        loadMessages();
+        if (!pollInterval) {
+            pollInterval = setInterval(loadMessages, 3000);
+        }
+    } else {
+        clearInterval(pollInterval);
+        pollInterval = null;
+        firstLoad = true;
+    }
+}
+
+async function loadMessages() {
+    try {
+        const res = await fetch(URL_MESSAGES, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        const messages = await res.json();
+
+        const container = document.getElementById('chatMessages');
+        const empty     = document.getElementById('chatEmpty');
+
+        if (messages.length === 0) {
+            if (empty) empty.style.display = 'block';
+            return;
+        }
+        if (empty) empty.style.display = 'none';
+
+        // Ne re-rendre que si le nombre de messages a changé
+        if (messages.length === lastMsgCount && !firstLoad) return;
+        firstLoad = false;
+
+        // Indique non-lu si chat est fermé
+        if (!chatOpen && messages.length > lastMsgCount) {
+            const dot = document.getElementById('chatUnreadDot');
+            if (dot) dot.style.display = 'block';
+        }
+
+        lastMsgCount = messages.length;
+
+        // Reconstruit les bulles
+        container.innerHTML = '';
+        messages.forEach(m => {
+            const wrap = document.createElement('div');
+            wrap.className = 'chat-bubble-wrap' + (m.userId === CURRENT_USER_ID ? ' mine' : '');
+
+            const author = m.userId !== CURRENT_USER_ID
+                ? `<div class="chat-author">${escapeHtml(m.userNom)}</div>`
+                : '';
+
+            wrap.innerHTML = `
+                ${author}
+                <div class="chat-bubble">${escapeHtml(m.contenu)}</div>
+                <div class="chat-time">${m.time}</div>
+            `;
+            container.appendChild(wrap);
+        });
+
+        // Scroll bas
+        container.scrollTop = container.scrollHeight;
+    } catch (e) {
+        console.warn('Chat polling error:', e);
+    }
+}
+
+async function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const contenu = input.value.trim();
+    if (!contenu) return;
+
+    input.value = '';
+    input.disabled = true;
+
+    try {
+        const res = await fetch(URL_MSG_SEND, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ contenu })
+        });
+
+        if (res.ok) {
+            await loadMessages();
+        } else {
+            const err = await res.json();
+            showToast(err.error || 'Erreur envoi', 'error');
+        }
+    } catch (e) {
+        showToast('Erreur de connexion', 'error');
+    } finally {
+        input.disabled = false;
+        input.focus();
+    }
+}
+
+function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+}
+
+// Polling en arrière-plan même si chat fermé (pour le badge non-lu)
+setTimeout(() => {
+    setInterval(async () => {
+        if (!chatOpen) {
+            try {
+                const res = await fetch(URL_MESSAGES, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const messages = await res.json();
+                if (messages.length > lastMsgCount && lastMsgCount > 0) {
+                    const dot = document.getElementById('chatUnreadDot');
+                    if (dot) dot.style.display = 'block';
+                }
+            } catch {}
+        }
+    }, 10000); // check non-lu toutes les 10s
+}, 5000);
+</script>
 {% endblock %}
