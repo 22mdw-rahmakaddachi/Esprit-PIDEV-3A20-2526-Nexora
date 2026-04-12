@@ -91,12 +91,17 @@
             {{ form_errors(form.localisation) }}
         </div>
 
-        {% if form.statut is defined %}
         <div class="col-md-6">
-            <label class="form-label">{{ form_label(form.statut) }}</label>
-            {{ form_widget(form.statut, {attr: {class: 'form-select'}}) }}
+            <label class="form-label">{{ form_label(form.capaciteMax) }}</label>
+            {{ form_widget(form.capaciteMax, {attr: {class: 'form-control', min: 1}}) }}
+            {{ form_errors(form.capaciteMax) }}
         </div>
-        {% endif %}
+
+        <div class="col-md-6">
+            <label class="form-label">{{ form_label(form.dateLancement) }}</label>
+            {{ form_widget(form.dateLancement, {attr: {class: 'form-control'}}) }}
+            {{ form_errors(form.dateLancement) }}
+        </div>
 
         <div class="col-12 mt-4">
             <label class="form-label d-block mb-2">🖼️ Galerie d'images</label>

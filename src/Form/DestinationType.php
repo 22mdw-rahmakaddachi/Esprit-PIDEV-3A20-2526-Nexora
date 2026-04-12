@@ -5,7 +5,9 @@ namespace App\Form;
 use App\Entity\Destination;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -37,20 +39,19 @@ class DestinationType extends AbstractType
                     'autocomplete' => 'off',
                     'id'           => 'localisation-field',
                 ],
+            ])
+            ->add('capaciteMax', IntegerType::class, [
+                'label' => 'Nombre maximal de participants',
+                'attr'  => ['min' => 1, 'class' => 'form-control'],
+                'constraints' => [new NotBlank(['message' => 'La capacité maximale est obligatoire'])],
+            ])
+            ->add('dateLancement', DateTimeType::class, [
+                'label'    => 'Date de lancement / départ',
+                'widget'   => 'single_text',
+                'required' => false,
+                'attr'     => ['class' => 'form-control'],
             ]);
 
-        // N'afficher le champ statut que lors de l'édition (si la destination a déjà un ID)
-        if ($builder->getData() && $builder->getData()->getId() !== null) {
-            $builder->add('statut', ChoiceType::class, [
-                'label'       => 'Statut',
-                'choices'     => [
-                    'Disponible' => 'Disponible',
-                    'Complet'    => 'Complet',
-                ],
-                'placeholder' => 'Sélectionner le statut',
-                'constraints' => [new NotBlank(['message' => 'Le statut est obligatoire'])],
-            ]);
-        }
 
         $builder
             // ── Champ multi-fichiers (non mappé, géré manuellement dans le contrôleur) ──

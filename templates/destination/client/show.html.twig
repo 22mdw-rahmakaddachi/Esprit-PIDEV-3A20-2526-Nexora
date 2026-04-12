@@ -600,6 +600,23 @@
                 {% endfor %}
             </div>
             {% endif %}
+
+            {# COUNTDOWN WIDGET #}
+            {% if destination.dateLancement and not destination.isExpired %}
+            <div style="margin-top:20px; padding:20px; background:white; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.05); text-align:center;">
+                <div style="font-size:0.75rem; font-weight:700; color:var(--gray-600); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px;">🛫 Départ dans</div>
+                <div id="countdown" style="display:flex; justify-content:center; gap:15px;">
+                    <div class="cd-item"><div id="days" style="font-size:1.5rem; font-weight:800; color:var(--primary);">00</div><div style="font-size:0.65rem; color:var(--gray-600);">JOURS</div></div>
+                    <div class="cd-item"><div id="hours" style="font-size:1.5rem; font-weight:800; color:var(--primary);">00</div><div style="font-size:0.65rem; color:var(--gray-600);">HEURES</div></div>
+                    <div class="cd-item"><div id="minutes" style="font-size:1.5rem; font-weight:800; color:var(--primary);">00</div><div style="font-size:0.65rem; color:var(--gray-600);">MINS</div></div>
+                    <div class="cd-item"><div id="seconds" style="font-size:1.5rem; font-weight:800; color:var(--primary);">00</div><div style="font-size:0.65rem; color:var(--gray-600);">SECS</div></div>
+                </div>
+            </div>
+            {% elseif destination.isExpired %}
+            <div style="margin-top:20px; padding:15px; background:#F3F4F6; border-radius:12px; text-align:center; color:#4B5563; font-weight:600;">
+                ⌛ Cette destination est déjà partie (Vécu)
+            </div>
+            {% endif %}
         </div>
 
         {# ─── INFO ─── #}
@@ -750,6 +767,41 @@ const URL_REJOINDRE   = "{{ path('client_destination_rejoindre', {id: destinatio
 const URL_MESSAGES    = "{{ path('client_destination_messages', {id: destination.id}) }}";
 const URL_MSG_SEND    = "{{ path('client_destination_messages_send', {id: destination.id}) }}";
 const URL_WEATHER     = "{{ path('client_destination_weather', {id: destination.id}) }}";
+const DATE_LANCEMENT = "{{ destination.dateLancement ? destination.dateLancement|date('c') : '' }}";
+
+// ─── Countdown Logic ─────────────────────────────────────────────
+function initCountdown() {
+    if (!DATE_LANCEMENT) return;
+    const targetDate = new Date(DATE_LANCEMENT).getTime();
+    
+    const timer = setInterval(() => {
+        const now = new Date().getTime();
+        const diff = targetDate - now;
+        
+        if (diff <= 0) {
+            clearInterval(timer);
+            const cd = document.getElementById('countdown');
+            if (cd) cd.innerHTML = '<div style="font-weight:700; color:var(--success);">C\'est le moment ! 🛫</div>';
+            return;
+        }
+        
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        const dEl = document.getElementById('days');
+        const hEl = document.getElementById('hours');
+        const mEl = document.getElementById('minutes');
+        const sEl = document.getElementById('seconds');
+        
+        if (dEl) dEl.innerText = d.toString().padStart(2, '0');
+        if (hEl) hEl.innerText = h.toString().padStart(2, '0');
+        if (mEl) mEl.innerText = m.toString().padStart(2, '0');
+        if (sEl) sEl.innerText = s.toString().padStart(2, '0');
+    }, 1000);
+}
+initCountdown();
 
 // ─── Weather Logic ───────────────────────────────────────────────
 async function loadWeather() {
