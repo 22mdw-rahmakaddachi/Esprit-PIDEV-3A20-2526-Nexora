@@ -18,6 +18,12 @@
     @keyframes acDrop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
     .autocomplete-item { display: flex; align-items: center; gap: 10px; padding: 11px 16px; cursor: pointer; font-size: .85rem; color: #333; border-bottom: 1px solid #f0ebff; transition: background .1s; }
     .autocomplete-item:hover, .autocomplete-item.ac-active { background: #f0ebff; }
+    .autocomplete-item .ac-text mark {
+        background: transparent;
+        color: var(--primary);
+        font-weight: 700;
+        text-decoration: underline;
+    }
     .ac-loading, .ac-empty { padding: 14px 16px; font-size: .85rem; color: #666; display: flex; align-items: center; gap: 10px; }
     .ac-spinner { width: 16px; height: 16px; border: 2px solid #ddd; border-top-color: var(--primary); border-radius: 50%; animation: spin .6s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -85,12 +91,17 @@
             {{ form_errors(form.localisation) }}
         </div>
 
-        {% if form.statut is defined %}
         <div class="col-md-6">
-            <label class="form-label">{{ form_label(form.statut) }}</label>
-            {{ form_widget(form.statut, {attr: {class: 'form-select'}}) }}
+            <label class="form-label">{{ form_label(form.capaciteMax) }}</label>
+            {{ form_widget(form.capaciteMax, {attr: {class: 'form-control', min: 1}}) }}
+            {{ form_errors(form.capaciteMax) }}
         </div>
-        {% endif %}
+
+        <div class="col-md-6">
+            <label class="form-label">{{ form_label(form.dateLancement) }}</label>
+            {{ form_widget(form.dateLancement, {attr: {class: 'form-control'}}) }}
+            {{ form_errors(form.dateLancement) }}
+        </div>
 
         <div class="col-12 mt-4">
             <label class="form-label d-block mb-2">🖼️ Galerie d'images</label>
@@ -111,7 +122,7 @@
             {% endif %}
 
             <div class="image-upload-zone" id="uploadZone">
-                {{ form_widget(form.imageFiles, {attr: {id: 'imageFilesInput', accept: 'image/*', multiple: 'multiple'}}) }}
+                {{ form_widget(form.imageFiles, {attr: {accept: 'image/*', multiple: 'multiple'}}) }}
                 <div class="upload-hint" id="uploadHint">
                     <div class="icon">📷</div>
                     <p>Déposez vos nouvelles images ici</p>
@@ -145,14 +156,17 @@
 // ============ UPLOAD LOGIC ============
 (function() {
     const zone = document.getElementById('uploadZone');
-    const input = document.getElementById('imageFilesInput');
+    const input = zone ? zone.querySelector('input[type="file"]') : null;
     const hint = document.getElementById('uploadHint');
     const previewInner = document.getElementById('previewInner');
     const grid = document.getElementById('previewGrid');
     const countLabel = document.getElementById('fileCountLabel');
+    
+    if (!zone || !input) return;
+
     let allFiles = new DataTransfer();
 
-    function sync() { input.files = allFiles.files; }
+    function sync() { try { input.files = allFiles.files; } catch(e) {} }
     function render() {
         grid.innerHTML = '';
         const files = Array.from(allFiles.files);
@@ -191,8 +205,16 @@ function deleteExistingImage(id, token) {
 
 // ============ AUTOCOMPLETE ============
 (function() {
-    const input = document.getElementById(_locFieldId);
-    if (!input) return;
+    // Plusieurs sélecteurs pour pallier les défauts de vars.id vs manual id
+    const input = document.getElementById(_locFieldId) 
+               || document.getElementById('localisation-field')
+               || document.querySelector('input[name*="[localisation]"]');
+               
+    if (!input) {
+        console.warn("Autocomplete: input not found with id", _locFieldId);
+        return;
+    }
+
     const dropdown = document.getElementById('autocomplete-list');
     let timer, activeIdx = -1, results = [];
 
@@ -204,12 +226,19 @@ function deleteExistingImage(id, token) {
         activeIdx = i;
     };
 
-    input.addEventListener('input', () => {
+    function highlight(text, query) {
+        const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return text.replace(new RegExp('(' + escaped + ')', 'gi'), '<mark>$1</mark>');
+    }
+
+    const handleInput = () => {
         clearTimeout(timer);
         const q = input.value.trim();
         if (q.length < 3) { close(); return; }
+        
         dropdown.innerHTML = '<div class="ac-loading"><div class="ac-spinner"></div>Recherche...</div>';
         dropdown.classList.add('open');
+        
         timer = setTimeout(() => {
             fetch("{{ path('destination_autocomplete_location') }}?q=" + encodeURIComponent(q))
             .then(r => r.json()).then(data => {
@@ -219,14 +248,15 @@ function deleteExistingImage(id, token) {
                 data.forEach((res, i) => {
                     const item = document.createElement('div');
                     item.className = 'autocomplete-item';
-                    item.innerHTML = `<span class="ac-icon">📍</span><span class="ac-text">${res}</span>`;
+                    item.innerHTML = `<span class="ac-icon">📍</span><span class="ac-text">${highlight(res, q)}</span>`;
                     item.addEventListener('mousedown', e => { e.preventDefault(); input.value = res; close(); input.focus(); });
                     dropdown.appendChild(item);
                 });
             });
         }, 350);
-    });
+    };
 
+    input.addEventListener('input', handleInput);
     input.addEventListener('keydown', e => {
         const items = dropdown.querySelectorAll('.autocomplete-item');
         if (!items.length) return;

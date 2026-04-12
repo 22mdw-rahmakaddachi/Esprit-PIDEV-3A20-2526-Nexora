@@ -46,7 +46,6 @@ class DestinationController extends AbstractController
     public function new(Request $request): Response
     {
         $destination = new Destination();
-        $destination->setStatut('Disponible'); // Par défaut, la destination est disponible
         $form = $this->createForm(DestinationType::class, $destination);
         $form->handleRequest($request);
 

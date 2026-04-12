@@ -88,14 +88,8 @@ class DestinationClientController extends AbstractController
         $participant->setUserNom($user->getFullName());
         $this->em->persist($participant);
 
-        // Incrémente le compteur
-        $newCount = $destination->getNbParticipants() + 1;
-        $destination->setNbParticipants($newCount);
-
-        // Vérifie si le seuil est atteint → statut Disponible
-        if ($newCount >= $destination->getCapaciteMax()) {
-            $destination->setStatut('Disponible');
-        }
+        // Incrémente le compteur (le statut est mis à jour automatiquement par l'entité)
+        $destination->setNbParticipants($destination->getNbParticipants() + 1);
 
         $this->em->flush();
 

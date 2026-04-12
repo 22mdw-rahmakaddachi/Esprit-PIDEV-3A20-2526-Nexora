@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DestinationRepository::class)]
 #[ORM\Table(name: 'destination')]
+#[ORM\HasLifecycleCallbacks]
 class Destination
 {
     #[ORM\Id]
@@ -33,6 +34,9 @@ class Destination
 
     #[ORM\Column(options: ['default' => 0])]
     private int $nbParticipants = 0;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $dateLancement = null;
 
     /**
      * Ancien champ texte conservé pour rétro-compatibilité
@@ -72,13 +76,48 @@ class Destination
     public function setLocalisation(?string $v): static { $this->localisation = $v; return $this; }
 
     public function getStatut(): ?string { return $this->statut; }
-    public function setStatut(?string $v): static { $this->statut = $v; return $this; }
+    public function setStatut(?string $v): static 
+    { 
+        $this->statut = $v; 
+        return $this; 
+    }
+
+    #[ORM\PrePersist]
+    #[ORM\PreUpdate]
+    #[ORM\PostLoad]
+    public function updateStatutAutomatically(): void
+    {
+        if ($this->nbParticipants >= $this->capaciteMax) {
+            $this->statut = 'Complet';
+        } else {
+            $this->statut = 'Disponible';
+        }
+    }
 
     public function getCapaciteMax(): int { return $this->capaciteMax; }
-    public function setCapaciteMax(int $v): static { $this->capaciteMax = $v; return $this; }
+    public function setCapaciteMax(int $v): static 
+    { 
+        $this->capaciteMax = $v; 
+        $this->updateStatutAutomatically();
+        return $this; 
+    }
 
     public function getNbParticipants(): int { return $this->nbParticipants; }
-    public function setNbParticipants(int $v): static { $this->nbParticipants = $v; return $this; }
+    public function setNbParticipants(int $v): static 
+    { 
+        $this->nbParticipants = $v; 
+        $this->updateStatutAutomatically();
+        return $this; 
+    }
+
+    public function getDateLancement(): ?\DateTimeInterface { return $this->dateLancement; }
+    public function setDateLancement(?\DateTimeInterface $v): static { $this->dateLancement = $v; return $this; }
+
+    public function isExpired(): bool
+    {
+        if (!$this->dateLancement) return false;
+        return $this->dateLancement->getTimestamp() < time();
+    }
 
     public function getImages(): ?string { return $this->images; }
     public function setImages(?string $v): static { $this->images = $v; return $this; }
