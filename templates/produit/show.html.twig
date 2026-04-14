@@ -25,16 +25,10 @@
     <div class="row g-5 align-items-start">
         <div class="col-md-5" data-aos="fade-right">
             <div class="rounded-4 d-flex align-items-center justify-content-center img-zoom"
-                 style="height:400px;background:linear-gradient(135deg,#f0ebff,#e8d5ff);overflow:hidden">
-                {% if produit.imagePrincipale %}
-                <img src="/uploads/produits/{{ produit.imagePrincipale }}" alt="{{ produit.nom }}"
-                     style="width:100%;height:100%;object-fit:cover">
-                {% else %}
-                <span class="emoji-img" style="font-size:9rem">🛍️</span>
-                {% endif %}
+                 style="height:400px;background:linear-gradient(135deg,#f0ebff,#e8d5ff);font-size:9rem">
+                <span class="emoji-img">🛍️</span>
             </div>
         </div>
-
         <div class="col-md-7" data-aos="fade-left">
             <span class="badge-cat mb-3 d-inline-block">
                 {{ produit.sousCategorie ? produit.sousCategorie.nom : 'Produit' }}
@@ -44,70 +38,37 @@
             <p class="text-muted mb-3">Marque : <strong style="color:var(--primary)">{{ produit.marque }}</strong></p>
             {% endif %}
 
-            <div class="my-3" id="prix-display">
-                <span class="price" style="font-size:2rem" id="prix-actuel">
-                    {{ produit.prixMin ? produit.prixMin ~ ' TND' : 'N/A' }}
-                </span>
+            <div class="my-3">
+                <span class="price" style="font-size:2rem">{{ produit.prixMin ? produit.prixMin ~ ' TND' : 'N/A' }}</span>
             </div>
 
             <p class="text-muted">{{ produit.description }}</p>
 
             {% if produit.variants|length > 0 %}
-            <form method="post" action="" id="form-panier">
-                <div class="mb-4">
-                    <label class="fw-semibold mb-2 d-block" style="color:var(--primary)">
-                        <i class="bi bi-layers me-1"></i>Choisir une variante :
-                    </label>
-                    <div class="d-flex flex-wrap gap-2" id="variant-options">
-                        {% for v in produit.variants %}
-                        <label class="variant-btn" style="cursor:pointer">
-                            <input type="radio" name="variantId" value="{{ v.id }}"
-                                   data-prix="{{ v.prixPromo ?? v.prixVente }}"
-                                   data-stock="{{ v.quantiteStock }}"
-                                   data-label="{{ v.optionsLabel }}"
-                                   {{ loop.first ? 'checked' : '' }}
-                                   style="display:none">
-                            <span class="d-inline-block px-3 py-2 rounded-pill border variant-label
-                                         {{ loop.first ? 'active' : '' }}"
-                                  style="font-size:0.85rem;transition:all 0.2s;
-                                         {{ loop.first ? 'background:var(--primary);color:#fff;border-color:var(--primary)' : 'border-color:#ddd;color:#555' }}">
-                                {{ v.optionsLabel }}
-                                {% if v.quantiteStock <= 0 %}<span class="ms-1 opacity-50">(Rupture)</span>{% endif %}
-                            </span>
-                        </label>
-                        {% endfor %}
-                    </div>
-                    <div class="mt-2 small text-muted" id="stock-info">
-                        Stock : <span id="stock-count">{{ produit.variants.first.quantiteStock }}</span>
-                    </div>
-                </div>
-
-                <div class="d-flex align-items-center gap-3 mb-4">
-                    <label class="fw-semibold" style="color:var(--primary-dark)">Quantité :</label>
-                    <div class="d-flex align-items-center gap-2">
-                        <button type="button" id="btn-minus" class="btn rounded-circle" style="background:#f0ebff;color:var(--primary);width:36px;height:36px;padding:0">−</button>
-                        <input type="number" name="quantite" id="quantite" value="1" min="1" class="form-control text-center" style="width:60px;border-color:#ede5ff">
-                        <button type="button" id="btn-plus" class="btn rounded-circle" style="background:#f0ebff;color:var(--primary);width:36px;height:36px;padding:0">+</button>
-                    </div>
-                </div>
-
-                {# L'action sera mise à jour par JS #}
-                <input type="hidden" name="_method" value="POST">
-                <div class="d-flex gap-3 flex-wrap">
-                    <button type="submit" id="btn-add-cart" class="btn btn-lg rounded-pill px-4 btn-pulse"
-                            style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">
-                        <i class="bi bi-cart-plus me-2"></i>Ajouter au panier
-                    </button>
-                    <a href="{{ path('app_produits') }}" class="btn btn-outline-secondary btn-lg rounded-pill px-4">
-                        <i class="bi bi-arrow-left me-2"></i>Retour
-                    </a>
-                </div>
-            </form>
-            {% else %}
-            <div class="alert rounded-3" style="background:#fff3cd;color:#856404;border:none">
-                <i class="bi bi-exclamation-triangle me-2"></i>Ce produit n'a pas encore de variantes disponibles.
+            <div class="mb-4">
+                <label class="fw-semibold mb-2 d-block" style="color:var(--primary)">
+                    <i class="bi bi-layers me-1"></i>Variante :
+                </label>
+                <select class="form-select rounded-pill" style="max-width:300px;border-color:#ede5ff">
+                    {% for v in produit.variants %}
+                    <option value="{{ v.id }}">
+                        {{ v.sku }} — {{ v.prixPromo ?? v.prixVente }} TND ({{ v.quantiteStock }} en stock)
+                    </option>
+                    {% endfor %}
+                </select>
             </div>
             {% endif %}
+
+            <div class="d-flex gap-3 mt-4 flex-wrap">
+                <button class="btn btn-lg rounded-pill px-4 btn-pulse"
+                        style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">
+                    <i class="bi bi-cart-plus me-2"></i>Ajouter au panier
+                </button>
+                <a href="{{ path('app_produits') }}"
+                   class="btn btn-outline-secondary btn-lg rounded-pill px-4">
+                    <i class="bi bi-arrow-left me-2"></i>Retour
+                </a>
+            </div>
 
             <div class="mt-4 p-4 rounded-4" style="background:#f9f7ff;border:1px solid #ede5ff">
                 <div class="row text-center g-2">
@@ -128,67 +89,5 @@
         </div>
     </div>
 </div>
-{% endif %}
-{% endblock %}
-
-{% block javascripts %}
-{% if produit and produit.variants|length > 0 %}
-<script>
-const produitId = {{ produit.id }};
-
-// Sélection variante
-document.querySelectorAll('.variant-btn input[type=radio]').forEach(radio => {
-    radio.addEventListener('change', function() {
-        // Style
-        document.querySelectorAll('.variant-label').forEach(l => {
-            l.style.background = '';
-            l.style.color = '#555';
-            l.style.borderColor = '#ddd';
-            l.classList.remove('active');
-        });
-        const label = this.nextElementSibling;
-        label.style.background = 'var(--primary)';
-        label.style.color = '#fff';
-        label.style.borderColor = 'var(--primary)';
-        label.classList.add('active');
-
-        // Prix
-        document.getElementById('prix-actuel').textContent = this.dataset.prix + ' TND';
-
-        // Stock
-        const stock = parseInt(this.dataset.stock);
-        document.getElementById('stock-count').textContent = stock;
-        document.getElementById('btn-add-cart').disabled = stock <= 0;
-
-        // Action du formulaire
-        updateFormAction();
-    });
-});
-
-function getSelectedVariantId() {
-    const checked = document.querySelector('.variant-btn input[type=radio]:checked');
-    return checked ? checked.value : null;
-}
-
-function updateFormAction() {
-    const variantId = getSelectedVariantId();
-    if (variantId) {
-        document.getElementById('form-panier').action = `/panier/ajouter/${produitId}/${variantId}`;
-    }
-}
-
-// Init
-updateFormAction();
-
-// Quantité
-document.getElementById('btn-minus').addEventListener('click', () => {
-    const q = document.getElementById('quantite');
-    if (parseInt(q.value) > 1) q.value = parseInt(q.value) - 1;
-});
-document.getElementById('btn-plus').addEventListener('click', () => {
-    const q = document.getElementById('quantite');
-    q.value = parseInt(q.value) + 1;
-});
-</script>
 {% endif %}
 {% endblock %}
