@@ -1,0 +1,270 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}Gestion des utilisateurs{% endblock %}
+{% block page_title %}Gestion des utilisateurs{% endblock %}
+
+{% block body %}
+
+{# ── HEADER ── #}
+<div class="page-header mb-4">
+    <h1><i class="bi bi-people-fill me-2" style="color:var(--primary)"></i>Utilisateurs</h1>
+    <div class="d-flex gap-2">
+        <button class="btn btn-edit-admin" data-bs-toggle="modal" data-bs-target="#statsModal">
+            <i class="bi bi-pie-chart-fill me-2"></i>Statistiques
+        </button>
+        <a href="{{ path('app_users_new') }}" class="btn btn-primary-admin">
+            <i class="bi bi-person-plus-fill me-2"></i>Ajouter
+        </a>
+    </div>
+</div>
+
+{# ── MODAL STATISTIQUES ── #}
+<div class="modal fade" id="statsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:20px;border:none">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color:var(--primary-dark)">
+                    <i class="bi bi-pie-chart-fill me-2" style="color:var(--primary)"></i>Statistiques des rôles
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                {% set total = 0 %}
+                {% for r, count in stats %}{% set total = total + count %}{% endfor %}
+
+                {# Pie chart #}
+                <div class="text-center mb-4">
+                    <canvas id="roleChart" style="max-width:220px;max-height:220px"></canvas>
+                </div>
+
+                {# Légende détaillée #}
+                {% set roleConfig = {
+                    'ROLE_ADMIN':      {label: 'Admins',       color: '#c0392b', bg: '#fde8e8', icon: 'bi-shield-fill'},
+                    'ROLE_PARTENAIRE': {label: 'Partenaires',  color: '#e67e22', bg: '#fff3cd', icon: 'bi-shop'},
+                    'ROLE_USER':       {label: 'Utilisateurs', color: '#1a7a4a', bg: '#d1f2eb', icon: 'bi-person-fill'}
+                } %}
+                <div class="d-flex flex-column gap-2">
+                    {% for role, cfg in roleConfig %}
+                    {% set count = stats[role] ?? 0 %}
+                    {% set pct = total > 0 ? ((count / total) * 100)|round : 0 %}
+                    <div class="d-flex align-items-center gap-3 p-2 rounded-3" style="background:{{ cfg.bg }}">
+                        <div style="width:36px;height:36px;border-radius:10px;background:{{ cfg.color }};color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                            <i class="bi {{ cfg.icon }}"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="fw-semibold small" style="color:{{ cfg.color }}">{{ cfg.label }}</span>
+                                <span class="fw-bold small" style="color:{{ cfg.color }}">{{ count }} ({{ pct }}%)</span>
+                            </div>
+                            <div style="height:6px;background:rgba(0,0,0,0.08);border-radius:3px;overflow:hidden">
+                                <div style="height:100%;width:{{ pct }}%;background:{{ cfg.color }};border-radius:3px;transition:width 0.8s ease"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <div class="text-center mt-2 pt-2 border-top">
+                        <span class="text-muted small">Total : </span>
+                        <span class="fw-bold" style="color:var(--primary)">{{ total }} utilisateurs</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ── BARRE RECHERCHE + FILTRES ── #}
+<div class="admin-table mb-3 p-3">
+    <form method="get" action="{{ path('app_users_index') }}" class="row g-2 align-items-end" id="search-form">
+        <div class="col-md-5">
+            <label class="form-label mb-1 small fw-bold" style="color:var(--primary-dark)">Recherche</label>
+            <div class="input-group">
+                <span class="input-group-text" style="background:#f0ebff;border-color:#ddd">
+                    <i class="bi bi-search" style="color:var(--primary)"></i>
+                </span>
+                <input type="text" name="q" id="search-input" class="form-control"
+                       placeholder="Nom, prénom, email..."
+                       value="{{ q }}" autocomplete="off">
+                {% if q %}
+                <a href="{{ path('app_users_index', {role: roleActif}) }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label mb-1 small fw-bold" style="color:var(--primary-dark)">Rôle</label>
+            <select name="role" class="form-select" onchange="this.form.submit()">
+                <option value="">Tous les rôles</option>
+                {% for r in roles %}
+                <option value="{{ r }}" {{ roleActif == r ? 'selected' : '' }}>{{ r }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary-admin w-100">
+                <i class="bi bi-funnel-fill me-1"></i>Filtrer
+            </button>
+        </div>
+        <div class="col-md-2">
+            <a href="{{ path('app_users_new') }}" class="btn w-100"
+               style="background:#d1f2eb;color:#1a7a4a;font-weight:600;border-radius:10px">
+                <i class="bi bi-person-plus-fill me-1"></i>Ajouter
+            </a>
+        </div>
+    </form>
+</div>
+
+{# ── RÉSULTATS ── #}
+<div class="admin-table">
+    <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom" style="border-color:#ede5ff!important">
+        <span class="small text-muted">
+            <b style="color:var(--primary)">{{ users|length }}</b> utilisateur{{ users|length > 1 ? 's' : '' }} trouvé{{ users|length > 1 ? 's' : '' }}
+            {% if q %} pour "<b>{{ q }}</b>"{% endif %}
+            {% if roleActif %} · rôle <b>{{ roleActif }}</b>{% endif %}
+        </span>
+        {% if q or roleActif %}
+        <a href="{{ path('app_users_index') }}" class="small text-decoration-none" style="color:var(--primary)">
+            <i class="bi bi-x-circle me-1"></i>Réinitialiser
+        </a>
+        {% endif %}
+    </div>
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Utilisateur</th>
+                <th>Email</th>
+                <th>Téléphone</th>
+                <th>Rôle</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="users-tbody">
+        {% for user in users %}
+            <tr>
+                <td class="text-muted small">{{ user.id }}</td>
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;flex-shrink:0">
+                            {{ user.prenom|first|upper }}{{ user.nom|first|upper }}
+                        </div>
+                        <div>
+                            <div class="fw-semibold small">{{ user.prenom }} {{ user.nom }}</div>
+                            {% if user.blockUntil > date().timestamp %}
+                            <span style="font-size:0.7rem;color:#c0392b;font-weight:600">
+                                <i class="bi bi-lock-fill me-1"></i>Bloqué
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </td>
+                <td class="small"><i class="bi bi-envelope me-1 text-muted"></i>{{ user.email }}</td>
+                <td class="small text-muted">{{ user.num ?: '—' }}</td>
+                <td>
+                    {% if user.role == 'ROLE_ADMIN' %}
+                        <span class="status-badge badge-complet"><i class="bi bi-shield-fill me-1"></i>Admin</span>
+                    {% elseif user.role == 'ROLE_PARTENAIRE' %}
+                        <span class="status-badge badge-attente"><i class="bi bi-shop me-1"></i>Partenaire</span>
+                    {% else %}
+                        <span class="status-badge badge-actif"><i class="bi bi-person-fill me-1"></i>Utilisateur</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{{ path('app_users_edit', {id: user.id}) }}" class="btn btn-edit-admin btn-sm">
+                            <i class="bi bi-pencil-fill me-1"></i>Modifier
+                        </a>
+
+                        {# Bouton Bloquer / Débloquer #}
+                        {% set isBlocked = user.blockUntil > date().timestamp %}
+                        <form method="post" action="{{ path('app_users_toggle_block', {id: user.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('block' ~ user.id) }}">
+                            <button type="submit" class="btn btn-sm"
+                                    style="background:{{ isBlocked ? '#d1f2eb' : '#fff3cd' }};color:{{ isBlocked ? '#1a7a4a' : '#856404' }};border:none;border-radius:8px;font-size:0.82rem"
+                                    onclick="return confirm('{{ isBlocked ? 'Débloquer' : 'Bloquer' }} {{ user.prenom }} {{ user.nom }} ?')">
+                                <i class="bi {{ isBlocked ? 'bi-unlock-fill' : 'bi-lock-fill' }} me-1"></i>
+                                {{ isBlocked ? 'Débloquer' : 'Bloquer' }}
+                            </button>
+                        </form>
+
+                        <form method="post" action="{{ path('app_users_delete', {id: user.id}) }}"
+                              onsubmit="return confirm('Supprimer {{ user.prenom }} {{ user.nom }} ?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                            <button class="btn btn-danger-admin btn-sm">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6" class="text-center text-muted py-5">
+                    <i class="bi bi-search" style="font-size:2.5rem;opacity:0.2"></i>
+                    <p class="mt-2 mb-0">Aucun utilisateur trouvé</p>
+                    {% if q or roleActif %}
+                    <a href="{{ path('app_users_index') }}" class="btn btn-sm mt-2 btn-edit-admin">
+                        Réinitialiser les filtres
+                    </a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Init pie chart à l'ouverture du modal
+let chartInstance = null;
+document.getElementById('statsModal').addEventListener('shown.bs.modal', () => {
+    const ctx = document.getElementById('roleChart');
+    if (!ctx) return;
+    if (chartInstance) { chartInstance.destroy(); }
+    chartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Admins', 'Partenaires', 'Utilisateurs'],
+            datasets: [{
+                data: [
+                    {{ stats['ROLE_ADMIN'] ?? 0 }},
+                    {{ stats['ROLE_PARTENAIRE'] ?? 0 }},
+                    {{ stats['ROLE_USER'] ?? 0 }}
+                ],
+                backgroundColor: ['#c0392b', '#e67e22', '#1a7a4a'],
+                borderColor: ['#fff','#fff','#fff'],
+                borderWidth: 3,
+                hoverOffset: 12
+            }]
+        },
+        options: {
+            responsive: true,
+            cutout: '55%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: c => ` ${c.label} : ${c.parsed} (${Math.round(c.parsed / [{{ stats['ROLE_ADMIN'] ?? 0 }}, {{ stats['ROLE_PARTENAIRE'] ?? 0 }}, {{ stats['ROLE_USER'] ?? 0 }}].reduce((a,b)=>a+b,0) * 100)}%)`
+                    }
+                }
+            },
+            animation: { animateRotate: true, duration: 900 }
+        }
+    });
+});
+
+// Recherche dynamique debounce 300ms
+const input = document.getElementById('search-input');
+if (input) {
+    let timer;
+    input.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => document.getElementById('search-form').submit(), 300);
+    });
+}
+</script>
+{% endblock %}

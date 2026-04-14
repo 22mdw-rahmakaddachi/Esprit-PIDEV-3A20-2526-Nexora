@@ -1,0 +1,88 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}Demandes reçues{% endblock %}
+{% block page_title %}Demandes reçues{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1><i class="bi bi-people-fill me-2"></i>Demandes reçues</h1>
+    <div class="d-flex gap-2">
+        <span class="badge rounded-pill px-3 py-2" style="background:#fff3cd;color:#856404">
+            {{ demandes|filter(d => d.statut == 'EN_ATTENTE')|length }} en attente
+        </span>
+        <span class="badge rounded-pill px-3 py-2" style="background:#d1f2eb;color:#1a7a4a">
+            {{ demandes|filter(d => d.statut == 'ACCEPTEE')|length }} acceptées
+        </span>
+        <span class="badge rounded-pill px-3 py-2" style="background:#fde8e8;color:#c0392b">
+            {{ demandes|filter(d => d.statut == 'REFUSEE')|length }} refusées
+        </span>
+    </div>
+</div>
+
+{% if demandes is empty %}
+<div class="text-center py-5 rounded-4" style="background:#fff;border:2px dashed #ede5ff">
+    <div style="font-size:4rem">📭</div>
+    <h5 class="mt-3" style="color:var(--primary)">Aucune demande reçue</h5>
+    <p class="text-muted">Vos activités n'ont pas encore reçu de demandes de participation.</p>
+</div>
+{% else %}
+<div class="admin-table">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Client</th>
+                <th>Email</th>
+                <th>Téléphone</th>
+                <th>Activité</th>
+                <th>Date demande</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in demandes %}
+            <tr>
+                <td class="fw-semibold">{{ d.clientNom }}</td>
+                <td class="small text-muted">{{ d.clientEmail }}</td>
+                <td class="small">{{ d.clientTelephone }}</td>
+                <td>
+                    <span class="fw-semibold">{{ d.activite.nom }}</span>
+                    <span class="badge ms-1" style="background:#f0ebff;color:var(--primary);font-size:0.7rem">{{ d.activite.type }}</span>
+                </td>
+                <td class="small">{{ d.dateDemande|date('d/m/Y H:i') }}</td>
+                <td>
+                    {% if d.statut == 'EN_ATTENTE' %}
+                    <span class="status-badge badge-attente">En attente</span>
+                    {% elseif d.statut == 'ACCEPTEE' %}
+                    <span class="status-badge badge-actif">Acceptée</span>
+                    {% else %}
+                    <span class="status-badge badge-complet">Refusée</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if d.statut == 'EN_ATTENTE' %}
+                    <div class="d-flex gap-1">
+                        <form method="POST" action="{{ path('admin_demande_accepter', {id: d.id}) }}" class="d-inline">
+                            <button type="submit" class="btn btn-sm rounded-pill px-3"
+                                    style="background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;font-size:0.8rem">
+                                <i class="bi bi-check-lg me-1"></i>Accepter
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ path('admin_demande_refuser', {id: d.id}) }}" class="d-inline">
+                            <button type="submit" class="btn btn-sm rounded-pill px-3"
+                                    style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;font-size:0.8rem"
+                                    onclick="return confirm('Confirmer le refus ?')">
+                                <i class="bi bi-x-lg me-1"></i>Refuser
+                            </button>
+                        </form>
+                    </div>
+                    {% else %}
+                    <span class="text-muted small">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

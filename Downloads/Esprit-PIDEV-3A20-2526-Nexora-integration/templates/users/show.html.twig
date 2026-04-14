@@ -1,0 +1,74 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Détails utilisateur{% endblock %}
+{% block page_title %}Détails utilisateur{% endblock %}
+
+{% block body %}
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ user.id }}</td>
+            </tr>
+            <tr>
+                <th>Prenom</th>
+                <td>{{ user.prenom }}</td>
+            </tr>
+            <tr>
+                <th>Nom</th>
+                <td>{{ user.nom }}</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>{{ user.email }}</td>
+            </tr>
+            <tr>
+                <th>Num</th>
+                <td>{{ user.num }}</td>
+            </tr>
+            <tr>
+                <th>Role</th>
+                <td>{{ user.role }}</td>
+            </tr>
+            <tr>
+                <th>Mdp</th>
+                <td>{{ user.mdp }}</td>
+            </tr>
+            <tr>
+                <th>Tentative</th>
+                <td>{{ user.tentative }}</td>
+            </tr>
+            <tr>
+                <th>Validation</th>
+                <td>{{ user.validation ? 'Yes' : 'No' }}</td>
+            </tr>
+            <tr>
+                <th>BlockUntil</th>
+                <td>{{ user.blockUntil }}</td>
+            </tr>
+            <tr>
+                <th>BlockLevel</th>
+                <td>{{ user.blockLevel }}</td>
+            </tr>
+            <tr>
+                <th>ResetCode</th>
+                <td>{{ user.resetCode }}</td>
+            </tr>
+            <tr>
+                <th>ResetExpiration</th>
+                <td>{{ user.resetExpiration }}</td>
+            </tr>
+            <tr>
+                <th>FingerId</th>
+                <td>{{ user.fingerId }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_users_index') }}">back to list</a>
+
+    <a href="{{ path('app_users_edit', {'id': user.id}) }}">edit</a>
+
+    {{ include('users/_delete_form.html.twig') }}
+{% endblock %}

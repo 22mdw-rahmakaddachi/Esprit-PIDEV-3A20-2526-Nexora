@@ -1,0 +1,56 @@
+{% extends app.user and (is_granted('ROLE_ADMIN') or is_granted('ROLE_PARTENAIRE')) ? 'admin/base_admin.html.twig' : 'base.html.twig' %}
+{% block title %}Modifier mon profil{% endblock %}
+{% block page_title %}Modifier mon profil{% endblock %}
+
+{% block body %}
+<div class="{% if not (is_granted('ROLE_ADMIN') or is_granted('ROLE_PARTENAIRE')) %}container py-5{% endif %}">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="{{ is_granted('ROLE_ADMIN') or is_granted('ROLE_PARTENAIRE') ? 'form-card' : 'bg-white rounded-4 shadow-sm p-4' }}" style="border:1px solid #ede5ff">
+                <h5 class="mb-4" style="color:var(--primary-dark);font-family:'Playfair Display',serif">
+                    <i class="bi bi-pencil-fill me-2"></i>Modifier mon profil
+                </h5>
+                {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small" style="color:var(--primary-dark)">Prénom</label>
+                        {{ form_widget(form.prenom, {'attr': {'class': 'form-control rounded-3'}}) }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small" style="color:var(--primary-dark)">Nom</label>
+                        {{ form_widget(form.nom, {'attr': {'class': 'form-control rounded-3'}}) }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold small" style="color:var(--primary-dark)">Email</label>
+                        {{ form_widget(form.email, {'attr': {'class': 'form-control rounded-3'}}) }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small" style="color:var(--primary-dark)">Numéro</label>
+                        {{ form_widget(form.num, {'attr': {'class': 'form-control rounded-3'}}) }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small" style="color:var(--primary-dark)">Rôle</label>
+                        {{ form_widget(form.role, {'attr': {'class': 'form-control rounded-3'}}) }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold small" style="color:var(--primary-dark)">
+                            Nouveau mot de passe <span class="text-muted fw-normal">(laisser vide pour ne pas changer)</span>
+                        </label>
+                        {{ form_widget(form.mdp, {'attr': {'class': 'form-control rounded-3'}}) }}
+                    </div>
+                </div>
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn rounded-pill px-4 fw-semibold"
+                            style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:10px 24px">
+                        <i class="bi bi-check-lg me-1"></i>Enregistrer
+                    </button>
+                    <a href="{{ path('app_profile') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="bi bi-arrow-left me-1"></i>Retour
+                    </a>
+                </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
