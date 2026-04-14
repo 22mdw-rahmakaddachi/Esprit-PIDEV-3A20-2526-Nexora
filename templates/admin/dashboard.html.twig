@@ -1,0 +1,278 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block body %}
+
+{# STAT CARDS #}
+<div class="row g-4 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-num">{{ totalActivites }}</div>
+                    <div class="stat-label">Mes activités</div>
+                </div>
+                <div class="stat-icon" style="background:#f0ebff;color:var(--primary)">
+                    <i class="bi bi-calendar-event-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-num">{{ totalReservations }}</div>
+                    <div class="stat-label">Réservations</div>
+                </div>
+                <div class="stat-icon" style="background:#d1f2eb;color:#1a7a4a">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-num">{{ totalProduits ?? 0 }}</div>
+                    <div class="stat-label">Mes produits</div>
+                </div>
+                <div class="stat-icon" style="background:#e8f4fd;color:#2980b9">
+                    <i class="bi bi-bag-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-num">{{ totalPromos ?? 0 }}</div>
+                    <div class="stat-label">Codes promo</div>
+                </div>
+                <div class="stat-icon" style="background:#fef9e7;color:#d4ac0d">
+                    <i class="bi bi-tag-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ── ACTIVITÉS & DEMANDES ── #}
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="admin-table">
+            <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color:#ede5ff!important">
+                <h6 class="mb-0 fw-bold" style="color:var(--primary-dark)">
+                    <i class="bi bi-calendar-event me-2"></i>Mes dernières activités
+                </h6>
+                <a href="{{ path('admin_activites') }}" class="btn btn-primary-admin btn-sm">Voir tout</a>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Activité</th><th>Type</th><th>Places</th><th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in activites %}
+                    <tr>
+                        <td class="fw-semibold">{{ a.nom }}</td>
+                        <td><span class="badge" style="background:#f0ebff;color:var(--primary)">{{ a.type }}</span></td>
+                        <td>{{ a.placesDisponibles }}/{{ a.nombrePlaces }}</td>
+                        <td>
+                            {% if a.placesDisponibles == 0 %}
+                                <span class="status-badge badge-complet">Complet</span>
+                            {% elseif a.dateActivite < date() %}
+                                <span class="status-badge badge-passe">Passée</span>
+                            {% else %}
+                                <span class="status-badge badge-actif">Active</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" class="text-center text-muted py-4">Aucune activité</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="admin-table">
+            <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color:#ede5ff!important">
+                <h6 class="mb-0 fw-bold" style="color:var(--primary-dark)">
+                    <i class="bi bi-people me-2"></i>Dernières demandes
+                </h6>
+                <a href="{{ path('app_partenaire_demandes') }}" class="btn btn-primary-admin btn-sm">Voir tout</a>
+            </div>
+            <div class="p-3 d-flex flex-column gap-2">
+                {% for d in demandes %}
+                <div class="d-flex justify-content-between align-items-center p-2 rounded-3" style="background:#faf8ff">
+                    <div>
+                        <div class="fw-semibold small">{{ d.clientNom }}</div>
+                        <div class="text-muted" style="font-size:0.78rem">{{ d.activite.nom }}</div>
+                    </div>
+                    {% if d.statut == 'EN_ATTENTE' %}
+                        <span class="status-badge badge-attente">En attente</span>
+                    {% elseif d.statut == 'ACCEPTEE' %}
+                        <span class="status-badge badge-actif">Acceptée</span>
+                    {% else %}
+                        <span class="status-badge badge-complet">Refusée</span>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-3 small">Aucune demande</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ── BOUTIQUE ── #}
+<hr style="border-color:#ede5ff;margin:32px 0">
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="admin-table">
+            <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color:#ede5ff!important">
+                <h6 class="mb-0 fw-bold" style="color:var(--primary-dark)">
+                    <i class="bi bi-bag me-2"></i>Mes produits récents
+                </h6>
+                <div class="d-flex gap-2">
+                    <a href="{{ path('admin_produit_new') }}" class="btn btn-primary-admin btn-sm">+ Ajouter</a>
+                    <a href="{{ path('admin_produits') }}" class="btn btn-edit-admin btn-sm">Voir tout</a>
+                </div>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr><th>Produit</th><th>Catégorie</th><th>Variantes</th><th>Prix min</th><th>Statut</th><th></th></tr>
+                </thead>
+                <tbody>
+                    {% for p in (produits ?? [])|slice(0, 5) %}
+                    <tr>
+                        <td class="fw-semibold">{{ p.nom }}</td>
+                        <td>{{ p.sousCategorie ? p.sousCategorie.nom : '—' }}</td>
+                        <td><span class="badge" style="background:#f0ebff;color:var(--primary)">{{ p.variants|length }}</span></td>
+                        <td style="color:var(--primary);font-weight:600">{{ p.prixMin ? p.prixMin ~ ' TND' : '—' }}</td>
+                        <td><span class="status-badge {{ p.statut == 'actif' ? 'badge-actif' : 'badge-complet' }}">{{ p.statut }}</span></td>
+                        <td>
+                            <a href="{{ path('admin_produit_edit', {id: p.id}) }}" class="btn-edit-admin btn btn-sm">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="text-center text-muted py-4">Aucun produit — <a href="{{ path('admin_produit_new') }}">Ajouter le premier</a></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="admin-table">
+            <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color:#ede5ff!important">
+                <h6 class="mb-0 fw-bold" style="color:var(--primary-dark)">
+                    <i class="bi bi-tag me-2"></i>Codes promo
+                </h6>
+                <div class="d-flex gap-2">
+                    <a href="{{ path('admin_promo_new') }}" class="btn btn-primary-admin btn-sm">+ Créer</a>
+                    <a href="{{ path('admin_promos') }}" class="btn btn-edit-admin btn-sm">Voir tout</a>
+                </div>
+            </div>
+            <div class="p-3 d-flex flex-column gap-2">
+                {% for promo in (promos ?? [])|slice(0, 5) %}
+                <div class="d-flex justify-content-between align-items-center p-2 rounded-3" style="background:#faf8ff">
+                    <div>
+                        <div class="fw-bold small" style="color:var(--primary);font-family:monospace">{{ promo.code }}</div>
+                        <div class="text-muted" style="font-size:0.76rem">
+                            {% if promo.typeReduction == 'pourcentage' %}-{{ promo.valeurReduction }}%{% else %}-{{ promo.valeurReduction }} TND{% endif %}
+                            · jusqu'au {{ promo.dateFin|date('d/m/Y') }}
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
+                        <span class="status-badge {{ promo.actif ? 'badge-actif' : 'badge-complet' }}">{{ promo.actif ? 'Actif' : 'Inactif' }}</span>
+                        <a href="{{ path('admin_promo_edit', {id: promo.id}) }}" class="btn-edit-admin btn btn-sm ms-1">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-3 small">Aucun code promo</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ── UTILISATEURS (admin uniquement) ── #}
+{% if is_granted('ROLE_ADMIN') %}
+<hr style="border-color:#ede5ff;margin:32px 0">
+<div class="row g-4">
+    <div class="col-12">
+        <div class="admin-table">
+            <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color:#ede5ff!important">
+                <h6 class="mb-0 fw-bold" style="color:var(--primary-dark)">
+                    <i class="bi bi-people-fill me-2"></i>Gestion des utilisateurs
+                </h6>
+                <div class="d-flex gap-2">
+                    <a href="{{ path('app_users_new') }}" class="btn btn-primary-admin btn-sm">
+                        <i class="bi bi-person-plus-fill me-1"></i>Ajouter
+                    </a>
+                    <a href="{{ path('app_users_index') }}" class="btn btn-edit-admin btn-sm">Voir tout</a>
+                </div>
+            </div>
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th><th>Nom complet</th><th>Email</th><th>Téléphone</th><th>Rôle</th><th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in (users ?? []) %}
+                    <tr>
+                        <td class="text-muted">{{ user.id }}</td>
+                        <td class="fw-semibold">{{ user.prenom }} {{ user.nom }}</td>
+                        <td><i class="bi bi-envelope me-1 text-muted"></i>{{ user.email }}</td>
+                        <td>{{ user.num }}</td>
+                        <td>
+                            <span class="status-badge
+                                {% if user.role == 'ROLE_ADMIN' %}badge-complet
+                                {% elseif user.role == 'ROLE_PARTENAIRE' %}badge-attente
+                                {% else %}badge-actif{% endif %}">
+                                {{ user.role }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a href="{{ path('app_users_edit', {id: user.id}) }}" class="btn btn-edit-admin btn-sm">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+                                <form method="post" action="{{ path('app_users_delete', {id: user.id}) }}"
+                                      onsubmit="return confirm('Supprimer cet utilisateur ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                                    <button class="btn btn-danger-admin btn-sm">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="bi bi-people" style="font-size:2rem;opacity:0.3"></i>
+                            <p class="mt-2 mb-0 small">Aucun utilisateur</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
