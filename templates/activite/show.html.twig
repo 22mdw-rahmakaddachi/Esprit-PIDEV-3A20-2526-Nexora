@@ -1,0 +1,305 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ activite ? activite.nom : 'Activité' }} — TripShop{% endblock %}
+
+{% block body %}
+{% if not activite %}
+<div class="container py-5 text-center text-muted">
+    <i class="bi bi-calendar-x" style="font-size:3rem;opacity:0.4"></i>
+    <p class="mt-3">Activité introuvable.</p>
+    <a href="{{ path('app_activites') }}" class="btn rounded-pill px-4 mt-2" style="background:var(--primary);color:#fff">Retour aux activités</a>
+</div>
+{% else %}
+<div class="breadcrumb-section">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('app_activites') }}">Activités</a></li>
+                <li class="breadcrumb-item active">{{ activite.nom }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row g-5 align-items-start">
+        <div class="col-md-5" data-aos="fade-right">
+            <div class="rounded-4 d-flex align-items-center justify-content-center"
+                 style="height:400px;background:linear-gradient(135deg,var(--primary-dark),var(--primary));font-size:10rem">
+                {% if activite.type == 'Sport' %}🏃
+                {% elseif activite.type == 'Culture' %}🎭
+                {% elseif activite.type == 'Gastronomie' %}🍽️
+                {% else %}🌟{% endif %}
+            </div>
+        </div>
+        <div class="col-md-7" data-aos="fade-left">
+            <span class="badge mb-3" style="background:linear-gradient(135deg,var(--primary),var(--accent));font-size:0.85rem;padding:6px 14px;border-radius:50px">
+                {{ activite.type }}
+            </span>
+            <h1 class="mb-3" style="font-family:'Playfair Display',serif">{{ activite.nom }}</h1>
+
+            <div class="row g-3 my-3">
+                {% for info in [
+                    ['bi-geo-alt','Lieu', activite.lieu ?? 'Non précisé'],
+                    ['bi-calendar','Date', activite.avec_date == 1 ? activite.date_activite|date('d/m/Y') : '📅 Vous choisissez votre date'],
+                    ['bi-people','Places dispo', activite.places_disponibles ~ ' / ' ~ activite.nombre_places],
+                    ['bi-gender-ambiguous','Genre cible', activite.genre_cible]
+                ] %}
+                <div class="col-6" data-aos="zoom-in" data-aos-delay="{{ loop.index * 80 }}">
+                    <div class="p-3 rounded-3" style="background:#f9f7ff;border:1px solid #ede5ff">
+                        <i class="bi {{ info[0] }} me-2" style="color:var(--primary-light)"></i>
+                        <strong style="font-size:0.82rem;color:var(--primary)">{{ info[1] }}</strong>
+                        <div class="text-muted small mt-1">{{ info[2] }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <p class="text-muted mt-3">{{ activite.description }}</p>
+
+            <div class="d-flex align-items-center gap-4 mt-4 flex-wrap">
+                <span class="price" style="font-size:2.2rem">{{ activite.prix }} TND</span>
+
+                {% if demandeExistante %}
+                    {% if demandeExistante.statut == 'EN_ATTENTE' %}
+                    <span class="btn btn-lg rounded-pill px-4 btn-warning disabled">
+                        <i class="bi bi-hourglass-split me-2"></i>En attente de réponse...
+                    </span>
+                    {% elseif demandeExistante.statut == 'ACCEPTEE' %}
+                        {% if demandeExistante.paiementEffectue == 0 %}
+                        <button class="btn btn-lg rounded-pill px-4 btn-pulse"
+                                style="background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff">
+                            <i class="bi bi-credit-card me-2"></i>Payer {{ activite.prix }} TND
+                        </button>
+                        {% else %}
+                        <span class="btn btn-lg rounded-pill px-4 btn-success disabled">
+                            <i class="bi bi-check-circle-fill me-2"></i>Payé ✓
+                        </span>
+                        {% endif %}
+                    {% elseif demandeExistante.statut == 'REFUSEE' %}
+                    <span class="btn btn-lg rounded-pill px-4 btn-danger disabled">
+                        <i class="bi bi-x-circle me-2"></i>Demande refusée
+                    </span>
+                    {% endif %}
+                {% elseif activite.places_disponibles > 0 %}
+
+                {# Activité sans date : le client choisit sa date #}
+                {% if activite.avec_date == 0 %}
+                <form method="POST" action="{{ path('app_activite_inscrire', {id: activite.id}) }}">
+                    <div class="mb-3">
+                        <label class="fw-semibold d-block mb-1" style="color:var(--primary-dark)">
+                            <i class="bi bi-calendar-plus me-1"></i>Choisissez votre date
+                        </label>
+                        <input type="datetime-local" name="date_souhaitee" required
+                               class="form-control rounded-3"
+                               min="{{ 'now'|date('Y-m-d') }}T00:00"
+                               style="border-color:#ede5ff;max-width:260px">
+                        <div class="text-muted small mt-1">La date ne peut pas être dans le passé.</div>
+                    </div>
+                    <button type="submit" class="btn btn-lg rounded-pill px-4 btn-pulse"
+                            style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">
+                        <i class="bi bi-calendar-check me-2"></i>S'inscrire à cette activité
+                    </button>
+                </form>
+                {% else %}
+                <form method="POST" action="{{ path('app_activite_inscrire', {id: activite.id}) }}" class="d-inline">
+                    <button type="submit" class="btn btn-lg rounded-pill px-4 btn-pulse"
+                            style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">
+                        <i class="bi bi-calendar-check me-2"></i>S'inscrire — {{ activite.date_activite|date('d/m/Y') }}
+                    </button>
+                </form>
+                {% endif %}
+
+                {% else %}
+                <button class="btn btn-lg rounded-pill px-4 btn-secondary" disabled>
+                    <i class="bi bi-x-circle me-2"></i>Complet
+                </button>
+                {% endif %}
+
+                <a href="{{ path('app_mes_activites') }}"
+                   class="btn btn-outline-secondary btn-lg rounded-pill px-4">
+                    <i class="bi bi-clock-history me-2"></i>Mes activités
+                </a>
+                <a href="{{ path('app_activites') }}"
+                   class="btn btn-outline-secondary btn-lg rounded-pill px-4">
+                    <i class="bi bi-arrow-left me-2"></i>Retour
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ── SECTION AVIS ── #}
+<div class="container pb-5" id="avis">
+    <hr style="border-color:#ede5ff;margin:0 0 40px">
+
+    <div class="row g-5">
+
+        {# LISTE DES AVIS #}
+        <div class="col-lg-7" data-aos="fade-right">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <h3 style="font-family:'Playfair Display',serif;color:var(--primary-dark)">
+                    <i class="bi bi-chat-square-quote me-2"></i>Avis & Commentaires
+                </h3>
+                {% if totalAvis > 0 %}
+                <span class="badge rounded-pill px-3 py-2" style="background:#f0ebff;color:var(--primary)">
+                    {{ totalAvis }} avis
+                </span>
+                {% endif %}
+            </div>
+
+            {% if totalAvis > 0 %}
+            {# NOTE MOYENNE #}
+            <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-4" style="background:#fff;border:1px solid #ede5ff;box-shadow:0 4px 16px rgba(108,63,197,0.07)">
+                <div style="font-size:2.5rem;font-weight:700;color:var(--primary-dark);line-height:1">{{ moyenne }}</div>
+                <div>
+                    <div style="color:#f39c12;font-size:1.3rem">
+                        {% for i in 1..5 %}
+                            <i class="bi bi-star{{ i <= moyenne|round ? '-fill' : (i - 0.5 <= moyenne ? '-half' : '') }}"></i>
+                        {% endfor %}
+                    </div>
+                    <div class="text-muted small">Note moyenne sur {{ totalAvis }} avis</div>
+                </div>
+            </div>
+
+            {# LISTE #}
+            <div class="d-flex flex-column gap-3">
+                {% for a in avisList %}
+                <div class="p-4 rounded-4" style="background:#fff;border:1px solid #ede5ff;box-shadow:0 2px 12px rgba(108,63,197,0.06)" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 60 }}">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem">
+                                {{ a.auteur|slice(0,1)|upper }}
+                            </div>
+                            <div>
+                                <div class="fw-semibold" style="color:var(--primary-dark)">{{ a.auteur }}</div>
+                                <div class="text-muted" style="font-size:0.75rem">{{ a.createdAt|date('d/m/Y') }}</div>
+                            </div>
+                        </div>
+                        <div style="color:#f39c12">
+                            {% for i in 1..5 %}
+                                <i class="bi bi-star{{ i <= a.note ? '-fill' : '' }}" style="font-size:0.85rem"></i>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <p class="mb-0 text-muted" style="font-size:0.9rem;line-height:1.6">{{ a.commentaire }}</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% else %}
+            <div class="text-center py-4 rounded-4" style="background:#faf8ff;border:1px dashed #ede5ff">
+                <div style="font-size:3rem">💬</div>
+                <p class="text-muted mt-2">Aucun avis pour le moment. Soyez le premier !</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {# FORMULAIRE AVIS #}
+        <div class="col-lg-5" data-aos="fade-left">
+            <div class="p-4 rounded-4" style="background:#fff;border:1px solid #ede5ff;box-shadow:0 4px 20px rgba(108,63,197,0.08);position:sticky;top:90px">
+                <h5 class="fw-bold mb-4" style="color:var(--primary-dark)">
+                    <i class="bi bi-pencil-square me-2"></i>Laisser un avis
+                </h5>
+
+                {% for type, messages in app.flashes %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ type == 'error' ? 'danger' : type }} rounded-3 py-2 small">{{ message }}</div>
+                    {% endfor %}
+                {% endfor %}
+
+                {{ form_start(avisForm, {'attr': {'novalidate': 'novalidate', 'class': 'avis-form'}}) }}
+                {% form_theme avisForm 'form/avis_errors.html.twig' %}
+
+                <style>
+                    .avis-form .form-error-message {
+                        display: block;
+                        margin-top: 5px;
+                        padding: 6px 12px;
+                        background: #fff5f5;
+                        border-left: 3px solid #e74c3c;
+                        border-radius: 0 8px 8px 0;
+                        color: #c0392b;
+                        font-size: 0.8rem;
+                        font-weight: 500;
+                    }
+                    .avis-form .form-error-message::before {
+                        content: '⚠ ';
+                    }
+                    .avis-form .form-control:invalid,
+                    .avis-form .form-control.is-invalid {
+                        border-color: #e74c3c !important;
+                        box-shadow: 0 0 0 3px rgba(231,76,60,0.12);
+                    }
+                </style>
+
+                <div class="mb-3">
+                    {{ form_label(avisForm.auteur, null, {'label_attr': {'class': 'form-label fw-semibold small', 'style': 'color:var(--primary-dark)'}}) }}
+                    {{ form_widget(avisForm.auteur, {'attr': {'class': 'form-control rounded-3', 'style': 'border-color:#ede5ff'}}) }}
+                    {{ form_errors(avisForm.auteur) }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small" style="color:var(--primary-dark)">Note</label>
+                    <div class="d-flex gap-2" id="star-picker">
+                        {% for val in 1..5 %}
+                        <label class="star-label" style="cursor:pointer;font-size:1.6rem;color:#ddd;transition:color 0.15s" data-val="{{ val }}">
+                            <i class="bi bi-star-fill"></i>
+                            <input type="radio" name="{{ avisForm.note.vars.full_name }}"
+                                   value="{{ val }}" style="display:none"
+                                   {{ avisForm.note.vars.data == val ? 'checked' : '' }}>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    {{ form_errors(avisForm.note) }}
+                    <div style="display:none">{{ form_widget(avisForm.note) }}</div>
+                </div>
+
+                <div class="mb-4">
+                    {{ form_label(avisForm.commentaire, null, {'label_attr': {'class': 'form-label fw-semibold small', 'style': 'color:var(--primary-dark)'}}) }}
+                    {{ form_widget(avisForm.commentaire, {'attr': {'class': 'form-control rounded-3', 'rows': 4, 'style': 'border-color:#ede5ff'}}) }}
+                    {{ form_errors(avisForm.commentaire) }}
+                </div>
+
+                <button type="submit" class="btn w-100 rounded-pill py-2 fw-semibold"
+                        style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">
+                    <i class="bi bi-send me-2"></i>Publier mon avis
+                </button>
+
+                {{ form_end(avisForm) }}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+// Étoiles interactives
+const labels = document.querySelectorAll('#star-picker .star-label');
+const hiddenSelect = document.querySelector('select[name$="[note]"]');
+
+function paintStars(val) {
+    labels.forEach(l => {
+        l.style.color = parseInt(l.dataset.val) <= val ? '#f39c12' : '#ddd';
+    });
+}
+
+// Init avec valeur par défaut
+if (hiddenSelect) paintStars(parseInt(hiddenSelect.value) || 5);
+
+labels.forEach(label => {
+    label.addEventListener('click', () => {
+        const val = parseInt(label.dataset.val);
+        if (hiddenSelect) hiddenSelect.value = val;
+        paintStars(val);
+    });
+    label.addEventListener('mouseover', () => paintStars(parseInt(label.dataset.val)));
+    label.addEventListener('mouseout',  () => paintStars(parseInt(hiddenSelect?.value) || 5));
+});
+</script>
+{% endblock %}

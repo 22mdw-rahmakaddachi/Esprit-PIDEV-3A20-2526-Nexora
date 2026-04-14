@@ -1,0 +1,119 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}{{ activite ? activite.nom : 'Activité' }}{% endblock %}
+{% block page_title %}{{ activite ? activite.nom : 'Activité' }}{% endblock %}
+
+{% block body %}
+{% if not activite %}
+<div class="text-center py-5 text-muted">
+    <i class="bi bi-calendar-x" style="font-size:3rem;opacity:0.4"></i>
+    <p class="mt-3">Activité introuvable.</p>
+    <a href="{{ path('admin_activites') }}" class="btn rounded-pill px-4 mt-2" style="background:var(--primary);color:#fff">Retour</a>
+</div>
+{% else %}
+<div class="page-header">
+    <h1><i class="bi bi-calendar-event me-2"></i>{{ activite.nom }}</h1>
+    <div class="d-flex gap-2">
+        <a href="{{ path('admin_activite_edit', {id: activite.id}) }}" class="btn btn-edit-admin">
+            <i class="bi bi-pencil me-1"></i>Modifier
+        </a>
+        <a href="{{ path('admin_activites') }}" class="btn btn-sm rounded-pill px-3"
+           style="border:1.5px solid var(--primary);color:var(--primary)">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    {# INFOS ACTIVITÉ #}
+    <div class="col-lg-4">
+        <div class="form-card">
+            <h6 class="fw-bold mb-3" style="color:var(--primary-dark)">Informations</h6>
+            <div class="d-flex flex-column gap-3">
+                {% for label, val in {
+                    'Type': activite.type,
+                    'Lieu': activite.lieu,
+                    'Date': activite.date_activite|date('d/m/Y'),
+                    'Prix': activite.prix ~ ' TND',
+                    'Genre cible': activite.genre_cible,
+                    'Places totales': activite.nombre_places,
+                    'Places disponibles': activite.places_disponibles
+                } %}
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="border-color:#f0ebff!important">
+                    <span class="text-muted small">{{ label }}</span>
+                    <span class="fw-semibold small">{{ val }}</span>
+                </div>
+                {% endfor %}
+
+                {# Barre de progression places #}
+                <div>
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="text-muted">Taux de remplissage</span>
+                        <span class="fw-semibold" style="color:var(--primary)">
+                            {{ activite.nombre_places > 0 ? ((activite.nombre_places - activite.places_disponibles) / activite.nombre_places * 100)|round : 0 }}%
+                        </span>
+                    </div>
+                    <div class="progress" style="height:8px;border-radius:50px">
+                        <div class="progress-bar" role="progressbar"
+                             style="width:{{ activite.nombre_places > 0 ? ((activite.nombre_places - activite.places_disponibles) / activite.nombre_places * 100)|round : 0 }}%;background:linear-gradient(90deg,var(--primary),var(--accent))">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# DEMANDES #}
+    <div class="col-lg-8">
+        <div class="admin-table">
+            <div class="p-3 border-bottom d-flex justify-content-between align-items-center" style="border-color:#ede5ff!important">
+                <h6 class="mb-0 fw-bold" style="color:var(--primary-dark)">
+                    <i class="bi bi-people me-2"></i>Demandes de participation ({{ demandes|length }})
+                </h6>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Client</th>
+                        <th>Email</th>
+                        <th>Tél</th>
+                        <th>Date demande</th>
+                        <th>Statut</th>
+                        <th>Payé</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in demandes %}
+                    <tr>
+                        <td class="fw-semibold">{{ d.clientNom }}</td>
+                        <td class="small text-muted">{{ d.clientEmail }}</td>
+                        <td class="small">{{ d.clientTelephone }}</td>
+                        <td class="small">{{ d.dateDemande|date('d/m/Y H:i') }}</td>
+                        <td>
+                            {% if d.statut == 'EN_ATTENTE' %}
+                            <span class="status-badge badge-attente">En attente</span>
+                            {% elseif d.statut == 'ACCEPTEE' %}
+                            <span class="status-badge badge-actif">Acceptée</span>
+                            {% else %}
+                            <span class="status-badge badge-complet">Refusée</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if d.paiementEffectue %}
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            {% else %}
+                            <i class="bi bi-x-circle text-muted"></i>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="text-center text-muted py-4">Aucune demande</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endif %}
+{% endblock %}
