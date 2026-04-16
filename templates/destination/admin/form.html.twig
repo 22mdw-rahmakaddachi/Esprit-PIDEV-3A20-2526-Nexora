@@ -1,8 +1,8 @@
 {# templates/destination/admin/form.html.twig #}
 {% extends 'admin/base_admin.html.twig' %}
 
-{% block title %}{{ isEdit ? 'Modifier' : 'Ajouter' }} une Destination{% endblock %}
-{% block page_title %}{{ isEdit ? 'Modifier' : 'Nouvelle' }} Destination{% endblock %}
+{% block title %}{{ isEdit ? 'Modifier' : 'Ajouter' }} une Excursion{% endblock %}
+{% block page_title %}{{ isEdit ? 'Modifier' : 'Nouvelle' }} Excursion{% endblock %}
 
 {% block stylesheets %}
 <style>
@@ -61,7 +61,7 @@
     <a href="{{ path('admin_destination_index') }}" class="btn-edit-admin btn-sm text-decoration-none">
         <i class="bi bi-arrow-left me-1"></i> Retour à la liste
     </a>
-    <h1>{{ isEdit ? '✏️ Modifier Destination' : '➕ Nouvelle Destination' }}</h1>
+    <h1>{{ isEdit ? '✏️ Modifier Excursion' : '➕ Nouvelle Excursion' }}</h1>
 </div>
 
 <div class="form-card mx-auto" style="max-width: 800px;">
@@ -103,6 +103,50 @@
             {{ form_errors(form.dateLancement) }}
         </div>
 
+        {# ─── ESSENTIELS VOYAGE ─── #}
+        <div class="col-12 mt-3">
+            <div class="p-3 rounded-3" style="background:#f8f9fa; border:1px solid #ede5ff">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0 fw-bold" style="color:var(--primary-dark)">🌍 Informations Essentielles</h6>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnMagicFill" style="font-size:0.75rem; border-radius:30px">
+                        ✨ Auto-remplir (Magique)
+                    </button>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">{{ form_label(form.currency) }}</label>
+                        {{ form_widget(form.currency, {attr: {class: 'form-control form-control-sm'}}) }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">{{ form_label(form.plugType) }}</label>
+                        {{ form_widget(form.plugType, {attr: {class: 'form-control form-control-sm'}}) }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">{{ form_label(form.survivalPhrases) }}</label>
+                        {{ form_widget(form.survivalPhrases, {attr: {class: 'form-control form-control-sm'}}) }}
+                    </div>
+                </div>
+                <div id="magic-status" class="small mt-2 text-muted" style="display:none"></div>
+            </div>
+        </div>
+
+        {# ─── APERÇU 360° / VR ─── #}
+        <div class="col-12 mt-3">
+            <div class="p-3 rounded-3" style="background:#f0f9ff; border:1px solid #bae6fd">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0 fw-bold" style="color:#0369a1">🕶️ Vue Immersive 360° / VR</h6>
+                    <button type="button" class="btn btn-sm btn-outline-info" id="btnMagic360" style="font-size:0.75rem; border-radius:30px">
+                        🔍 Trouver un panorama (StreetView)
+                    </button>
+                </div>
+                <div class="col-12">
+                    <label class="form-label small fw-bold">{{ form_label(form.panoramaUrl) }}</label>
+                    {{ form_widget(form.panoramaUrl, {attr: {class: 'form-control form-control-sm', placeholder: 'Lien Google Maps ou URL photo 360...'}}) }}
+                    <div class="form-text" style="font-size:0.7rem">Collez l'URL de la barre d'adresse de Google Maps (Street View) ou un lien direct d'une photo sphérique.</div>
+                </div>
+            </div>
+        </div>
+
         <div class="col-12 mt-4">
             <label class="form-label d-block mb-2">🖼️ Galerie d'images</label>
             
@@ -131,7 +175,7 @@
                 <div class="preview-inner" id="previewInner">
                     <div class="preview-grid-inner" id="previewGrid"></div>
                     <span class="small text-muted my-2 d-block" id="fileCountLabel"></span>
-                    <button type="button" class="add-more-btn" onclick="document.getElementById('imageFilesInput').click()">
+                    <button type="button" class="add-more-btn" onclick="document.querySelector('#uploadZone input[type=file]').click()">
                         <i class="bi bi-plus-lg"></i> Ajouter d'autres
                     </button>
                 </div>
@@ -141,7 +185,7 @@
 
     <div class="d-flex gap-2 mt-4 pt-3 border-top">
         <button type="submit" class="btn-primary-admin">
-            <i class="bi bi-check-lg me-1"></i> {{ isEdit ? 'Sauvegarder' : 'Créer destination' }}
+            <i class="bi bi-check-lg me-1"></i> {{ isEdit ? 'Sauvegarder' : 'Créer excursion' }}
         </button>
         <a href="{{ path('admin_destination_index') }}" class="btn-edit-admin py-2 px-3">Annuler</a>
     </div>
@@ -267,5 +311,56 @@ function deleteExistingImage(id, token) {
     });
     document.addEventListener('click', e => { if (!input.contains(e.target) && !dropdown.contains(e.target)) close(); });
 })();
+
+// ============ MAGIC FILL ============
+document.getElementById('btnMagicFill').addEventListener('click', function() {
+    const locInput = document.getElementById(_locFieldId) 
+                  || document.getElementById('localisation-field')
+                  || document.querySelector('input[name*="[localisation]"]');
+    
+    const q = locInput.value;
+    if (!q) { alert('Veuillez d\'abord saisir une localisation.'); return; }
+
+    const btn = this;
+    const status = document.getElementById('magic-status');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="ac-spinner" style="width:12px;height:12px;vertical-align:middle"></span> Recherche...';
+    status.style.display = 'block';
+    status.textContent = 'Interrogation des services de voyage...';
+
+    fetch("{{ path('admin_destination_essentials') }}?q=" + encodeURIComponent(q))
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) throw new Error(data.error);
+        if (!data.currency) throw new Error('Données non trouvées');
+
+        document.querySelector('input[name*="[currency]"]').value = data.currency;
+        document.querySelector('input[name*="[plugType]"]').value = data.plugType;
+        document.querySelector('textarea[name*="[survivalPhrases]"]').value = data.survivalPhrases;
+
+        status.innerHTML = '<span class="text-success">✅ Informations récupérées pour : ' + data.country + '</span>';
+        setTimeout(() => { status.style.display = 'none'; }, 3000);
+    })
+    .catch(err => {
+        status.innerHTML = '<span class="text-danger">⚠️ ' + err.message + '</span>';
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = '✨ Auto-remplir (Magique)';
+    });
+});
+
+// ============ MAGIC 360 ============
+document.getElementById('btnMagic360').addEventListener('click', function() {
+    const locInput = document.getElementById(_locFieldId) 
+                  || document.getElementById('localisation-field')
+                  || document.querySelector('input[name*="[localisation]"]');
+    
+    const q = locInput.value;
+    if (!q) { alert('Veuillez d\'abord saisir une localisation.'); return; }
+
+    const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(q)}/@?api=1&map_action=pano`;
+    window.open(searchUrl, '_blank');
+});
 </script>
 {% endblock %}

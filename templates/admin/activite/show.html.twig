@@ -33,11 +33,11 @@
                 {% for label, val in {
                     'Type': activite.type,
                     'Lieu': activite.lieu,
-                    'Date': activite.dateActivite|date('d/m/Y'),
+                    'Date': activite.date_activite|date('d/m/Y'),
                     'Prix': activite.prix ~ ' TND',
-                    'Genre cible': activite.genreCible,
-                    'Places totales': activite.nombrePlaces,
-                    'Places disponibles': activite.placesDisponibles
+                    'Genre cible': activite.genre_cible,
+                    'Places totales': activite.nombre_places,
+                    'Places disponibles': activite.places_disponibles
                 } %}
                 <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="border-color:#f0ebff!important">
                     <span class="text-muted small">{{ label }}</span>
@@ -50,12 +50,12 @@
                     <div class="d-flex justify-content-between small mb-1">
                         <span class="text-muted">Taux de remplissage</span>
                         <span class="fw-semibold" style="color:var(--primary)">
-                            {{ activite.nombrePlaces > 0 ? ((activite.nombrePlaces - activite.placesDisponibles) / activite.nombrePlaces * 100)|round : 0 }}%
+                            {{ activite.nombre_places > 0 ? ((activite.nombre_places - activite.places_disponibles) / activite.nombre_places * 100)|round : 0 }}%
                         </span>
                     </div>
                     <div class="progress" style="height:8px;border-radius:50px">
                         <div class="progress-bar" role="progressbar"
-                             style="width:{{ activite.nombrePlaces > 0 ? ((activite.nombrePlaces - activite.placesDisponibles) / activite.nombrePlaces * 100)|round : 0 }}%;background:linear-gradient(90deg,var(--primary),var(--accent))">
+                             style="width:{{ activite.nombre_places > 0 ? ((activite.nombre_places - activite.places_disponibles) / activite.nombre_places * 100)|round : 0 }}%;background:linear-gradient(90deg,var(--primary),var(--accent))">
                         </div>
                     </div>
                 </div>

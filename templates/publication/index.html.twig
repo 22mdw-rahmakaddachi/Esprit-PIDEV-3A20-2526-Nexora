@@ -1,0 +1,374 @@
+{% extends 'base.html.twig' %}
+{% block title %}Publications — TripShop{% endblock %}
+
+{% block stylesheets %}
+<style>
+.feed-wrap { max-width: 640px; margin: 0 auto; }
+
+/* Carte publication */
+.pub-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 16px rgba(108,63,197,0.08);
+    border: 1px solid #ede5ff;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+}
+.pub-card:hover { box-shadow: 0 6px 28px rgba(108,63,197,0.13); }
+
+/* Avatar */
+.pub-avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: #fff; font-weight: 700; font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+
+/* Réactions */
+.reaction-bar {
+    display: flex; gap: 4px;
+    padding: 8px 16px;
+    border-top: 1px solid #f0ebff;
+    border-bottom: 1px solid #f0ebff;
+}
+.reaction-btn {
+    position: relative;
+    background: none; border: none;
+    font-size: 1.3rem; cursor: pointer;
+    padding: 4px 8px; border-radius: 50px;
+    transition: transform 0.15s, background 0.15s;
+    line-height: 1;
+}
+.reaction-btn:hover { transform: scale(1.35); background: #f0ebff; }
+.reaction-btn.active { background: #ede5ff; }
+.reaction-btn .r-count {
+    position: absolute; top: -4px; right: -2px;
+    background: var(--primary); color: #fff;
+    font-size: 0.6rem; font-weight: 700;
+    min-width: 16px; height: 16px; border-radius: 50px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 3px;
+}
+
+/* Commentaires */
+.comment-item {
+    display: flex; gap: 10px; align-items: flex-start;
+}
+.comment-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, #a78bda, var(--accent));
+    color: #fff; font-weight: 700; font-size: 0.78rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.comment-bubble {
+    background: #f4f1fb; border-radius: 0 12px 12px 12px;
+    padding: 8px 14px; font-size: 0.85rem; flex: 1;
+}
+.comment-bubble .c-author { font-weight: 700; color: var(--primary-dark); font-size: 0.82rem; }
+.comment-bubble .c-text   { color: #444; margin-top: 2px; line-height: 1.5; }
+.comment-bubble .c-date   { color: #aaa; font-size: 0.72rem; margin-top: 3px; }
+
+/* Input commentaire */
+.comment-input-wrap {
+    display: flex; gap: 10px; align-items: center;
+    padding: 12px 16px;
+}
+.comment-input {
+    flex: 1; border: 1.5px solid #ede5ff; border-radius: 50px;
+    padding: 8px 16px; font-size: 0.85rem; outline: none;
+    transition: border-color 0.2s;
+}
+.comment-input:focus { border-color: var(--primary-light); }
+.comment-send-btn {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: #fff; border: none; border-radius: 50%;
+    width: 36px; height: 36px; display: flex; align-items: center;
+    justify-content: center; cursor: pointer; font-size: 0.9rem;
+    transition: opacity 0.2s, transform 0.2s; flex-shrink: 0;
+}
+.comment-send-btn:hover { opacity: 0.85; transform: scale(1.08); }
+
+/* Formulaire nouvelle publication */
+.new-pub-card {
+    background: #fff; border-radius: 16px;
+    box-shadow: 0 2px 16px rgba(108,63,197,0.08);
+    border: 1px solid #ede5ff; padding: 20px;
+}
+.new-pub-textarea {
+    width: 100%; border: 1.5px solid #ede5ff; border-radius: 12px;
+    padding: 12px 16px; font-size: 0.9rem; resize: none; outline: none;
+    transition: border-color 0.2s; font-family: inherit;
+}
+.new-pub-textarea:focus { border-color: var(--primary-light); }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="breadcrumb-section">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                <li class="breadcrumb-item active">Publications</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="feed-wrap" id="feed">
+
+        {# ── NOUVELLE PUBLICATION ── #}
+        <div class="new-pub-card mb-4" data-aos="fade-down">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="pub-avatar">?</div>
+                <input type="text" id="new-pub-auteur" placeholder="Votre nom..."
+                       class="form-control rounded-pill" style="border-color:#ede5ff;font-size:0.88rem">
+            </div>
+            <textarea id="new-pub-contenu" class="new-pub-textarea" rows="3"
+                      placeholder="Quoi de neuf ? Partagez votre expérience TripShop..."></textarea>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="text-muted small"><i class="bi bi-globe me-1"></i>Visible par tous</div>
+                <button onclick="publier()" class="btn rounded-pill px-4 fw-semibold"
+                        style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;font-size:0.88rem">
+                    <i class="bi bi-send me-2"></i>Publier
+                </button>
+            </div>
+            <div id="pub-error" class="mt-2 small" style="color:#e74c3c;display:none"></div>
+        </div>
+
+        {# ── LISTE DES PUBLICATIONS ── #}
+        {% for pub in publications %}
+        <div class="pub-card mb-4" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 60 }}" id="pub-{{ pub.id }}">
+
+            {# En-tête #}
+            <div class="d-flex align-items-center gap-3 p-3">
+                <div class="pub-avatar">{{ pub.auteur|slice(0,1)|upper }}</div>
+                <div>
+                    <div class="fw-bold" style="color:var(--primary-dark);font-size:0.95rem">{{ pub.auteur }}</div>
+                    <div class="text-muted" style="font-size:0.75rem">
+                        <i class="bi bi-clock me-1"></i>{{ pub.created_at|date('d/m/Y à H:i') }}
+                    </div>
+                </div>
+            </div>
+
+            {# Contenu #}
+            <div class="px-3 pb-3" style="font-size:0.92rem;line-height:1.7;color:#333">
+                {{ pub.contenu }}
+            </div>
+
+            {# Compteur réactions #}
+            {% if pub.total_reactions > 0 %}
+            <div class="px-3 pb-2 d-flex gap-2 align-items-center" style="font-size:0.8rem;color:#888">
+                <span id="summary-{{ pub.id }}">
+                    {% for r in pub.reactions %}
+                        {{ r.type_reaction == 'jaime'  ? '👍' :
+                           r.type_reaction == 'jadore' ? '❤️' :
+                           r.type_reaction == 'haha'   ? '😂' :
+                           r.type_reaction == 'wow'    ? '😮' :
+                           r.type_reaction == 'triste' ? '😢' : '😡' }}
+                        {{ r.total }}
+                    {% endfor %}
+                </span>
+            </div>
+            {% else %}
+            <div class="px-3 pb-2" id="summary-{{ pub.id }}" style="font-size:0.8rem;color:#bbb"></div>
+            {% endif %}
+
+            {# Barre de réactions #}
+            <div class="reaction-bar" id="reactions-{{ pub.id }}">
+                {% set emojis = {'jaime':'👍','jadore':'❤️','haha':'😂','wow':'😮','triste':'😢','grrr':'😡'} %}
+                {% for key, emoji in emojis %}
+                {% set count = 0 %}
+                {% for r in pub.reactions %}{% if r.type_reaction == key %}{% set count = r.total %}{% endif %}{% endfor %}
+                <button class="reaction-btn" data-pub="{{ pub.id }}" data-type="{{ key }}"
+                        title="{{ key|capitalize }}" onclick="reagir({{ pub.id }}, '{{ key }}', this)">
+                    {{ emoji }}
+                    {% if count > 0 %}<span class="r-count">{{ count }}</span>{% endif %}
+                </button>
+                {% endfor %}
+
+                <button class="ms-auto btn btn-sm rounded-pill px-3"
+                        style="font-size:0.8rem;color:var(--primary);border:1.5px solid #ede5ff"
+                        onclick="toggleComments({{ pub.id }})">
+                    <i class="bi bi-chat me-1"></i>
+                    <span id="nb-comments-{{ pub.id }}">{{ pub.commentaires|length }}</span>
+                </button>
+            </div>
+
+            {# Commentaires #}
+            <div id="comments-{{ pub.id }}" style="display:none">
+                <div class="px-3 pt-3 d-flex flex-column gap-3" id="comments-list-{{ pub.id }}">
+                    {% for c in pub.commentaires %}
+                    <div class="comment-item">
+                        <div class="comment-avatar">{{ c.auteur|slice(0,1)|upper }}</div>
+                        <div class="comment-bubble">
+                            <div class="c-author">{{ c.auteur }}</div>
+                            <div class="c-text">{{ c.contenu }}</div>
+                            <div class="c-date">{{ c.created_at|date('d/m/Y H:i') }}</div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-muted small text-center py-2" id="no-comment-{{ pub.id }}">Aucun commentaire.</div>
+                    {% endfor %}
+                </div>
+
+                {# Input commentaire #}
+                <div class="comment-input-wrap">
+                    <div class="comment-avatar" style="background:linear-gradient(135deg,#ccc,#aaa)">?</div>
+                    <input type="text" class="comment-input" id="c-auteur-{{ pub.id }}" placeholder="Votre nom">
+                    <input type="text" class="comment-input" id="c-text-{{ pub.id }}" placeholder="Écrire un commentaire..."
+                           onkeydown="if(event.key==='Enter') envoyerCommentaire({{ pub.id }})">
+                    <button class="comment-send-btn" onclick="envoyerCommentaire({{ pub.id }})">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted" data-aos="fade-up">
+            <div style="font-size:4rem">📝</div>
+            <p class="mt-3">Aucune publication. Soyez le premier à partager !</p>
+        </div>
+        {% endfor %}
+
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+const userName = localStorage.getItem('tripshop_username') || '';
+
+// Pré-remplir le nom si connu
+document.addEventListener('DOMContentLoaded', () => {
+    if (userName) {
+        const el = document.getElementById('new-pub-auteur');
+        if (el) el.value = userName;
+    }
+});
+
+// ── PUBLIER ──
+function publier() {
+    const auteur  = document.getElementById('new-pub-auteur').value.trim();
+    const contenu = document.getElementById('new-pub-contenu').value.trim();
+    const err     = document.getElementById('pub-error');
+
+    if (auteur.length < 2) { err.textContent = '⚠ Le nom est obligatoire (min. 2 caractères).'; err.style.display='block'; return; }
+    if (contenu.length < 2) { err.textContent = '⚠ Le contenu est obligatoire (min. 2 caractères).'; err.style.display='block'; return; }
+    err.style.display = 'none';
+
+    localStorage.setItem('tripshop_username', auteur);
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ path("app_publication_new") }}';
+    [['auteur', auteur], ['contenu', contenu], ['_token', '']].forEach(([k, v]) => {
+        const i = document.createElement('input');
+        i.type = 'hidden'; i.name = k; i.value = v;
+        form.appendChild(i);
+    });
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// ── RÉAGIR ──
+function reagir(pubId, type, btn) {
+    const auteur = prompt('Votre prénom pour réagir ?', localStorage.getItem('tripshop_username') || '');
+    if (!auteur || auteur.trim().length < 2) return;
+    localStorage.setItem('tripshop_username', auteur.trim());
+
+    const fd = new FormData();
+    fd.append('auteur', auteur.trim());
+    fd.append('type', type);
+
+    fetch(`/publications/${pubId}/reagir`, { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) return;
+            // Mise à jour des compteurs
+            const bar = document.getElementById(`reactions-${pubId}`);
+            bar.querySelectorAll('.reaction-btn').forEach(b => {
+                const t = b.dataset.type;
+                const found = data.reactions.find(r => r.type_reaction === t);
+                let badge = b.querySelector('.r-count');
+                if (found && found.total > 0) {
+                    if (!badge) { badge = document.createElement('span'); badge.className = 'r-count'; b.appendChild(badge); }
+                    badge.textContent = found.total;
+                } else if (badge) {
+                    badge.remove();
+                }
+            });
+            // Résumé
+            const emojis = {jaime:'👍',jadore:'❤️',haha:'😂',wow:'😮',triste:'😢',grrr:'😡'};
+            const summary = document.getElementById(`summary-${pubId}`);
+            summary.innerHTML = data.reactions.map(r => `${emojis[r.type_reaction]} ${r.total}`).join(' ');
+        });
+}
+
+// ── TOGGLE COMMENTAIRES ──
+function toggleComments(pubId) {
+    const el = document.getElementById(`comments-${pubId}`);
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    if (el.style.display === 'block') {
+        const auteurInput = document.getElementById(`c-auteur-${pubId}`);
+        if (auteurInput && localStorage.getItem('tripshop_username')) {
+            auteurInput.value = localStorage.getItem('tripshop_username');
+        }
+    }
+}
+
+// ── COMMENTER ──
+function envoyerCommentaire(pubId) {
+    const auteurEl  = document.getElementById(`c-auteur-${pubId}`);
+    const contenuEl = document.getElementById(`c-text-${pubId}`);
+    const auteur    = auteurEl.value.trim();
+    const contenu   = contenuEl.value.trim();
+
+    if (auteur.length < 2 || contenu.length < 2) {
+        auteurEl.style.borderColor  = auteur.length < 2  ? '#e74c3c' : '#ede5ff';
+        contenuEl.style.borderColor = contenu.length < 2 ? '#e74c3c' : '#ede5ff';
+        return;
+    }
+
+    localStorage.setItem('tripshop_username', auteur);
+
+    const fd = new FormData();
+    fd.append('auteur', auteur);
+    fd.append('contenu', contenu);
+
+    fetch(`/publications/${pubId}/commenter`, { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) return;
+            contenuEl.value = '';
+            contenuEl.style.borderColor = '#ede5ff';
+
+            // Supprimer "Aucun commentaire"
+            const noComment = document.getElementById(`no-comment-${pubId}`);
+            if (noComment) noComment.remove();
+
+            // Ajouter le commentaire
+            const list = document.getElementById(`comments-list-${pubId}`);
+            const div  = document.createElement('div');
+            div.className = 'comment-item';
+            div.innerHTML = `
+                <div class="comment-avatar">${data.auteur[0].toUpperCase()}</div>
+                <div class="comment-bubble">
+                    <div class="c-author">${data.auteur}</div>
+                    <div class="c-text">${data.contenu}</div>
+                    <div class="c-date">${data.created_at}</div>
+                </div>`;
+            list.appendChild(div);
+
+            // Mettre à jour le compteur
+            const nb = document.getElementById(`nb-comments-${pubId}`);
+            if (nb) nb.textContent = parseInt(nb.textContent || 0) + 1;
+        });
+}
+</script>
+{% endblock %}

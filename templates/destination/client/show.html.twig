@@ -1,7 +1,7 @@
 {# templates/destination/client/show.html.twig #}
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ destination.nom }} — Destination{% endblock %}
+{% block title %}{{ destination.nom }} — Excursion{% endblock %}
 
 {% block stylesheets %}
 <style>
@@ -153,6 +153,44 @@
     .badge-disponible { background: #16A34A; color: white; }
     .badge-complet    { background: #DC2626; color: white; }
     .badge-attente    { background: #D97706; color: white; }
+
+    /* ─── VR 360 STYLES ─── */
+    .vr-toggle-btn {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        z-index: 30;
+        background: rgba(0,0,0,0.7);
+        color: white;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 30px;
+        padding: 8px 18px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        backdrop-filter: blur(8px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    .vr-toggle-btn:hover {
+        background: var(--primary);
+        border-color: white;
+        transform: scale(1.05);
+    }
+    .vr-toggle-btn.active {
+        background: #EF4444;
+        border-color: white;
+    }
+    .vr-icon { font-size: 1.2rem; }
+    #vr-viewer {
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .pnlm-container { border-radius: 0; }
 
     /* ─── Info side ─── */
     .detail-info-side { padding: 40px; }
@@ -316,25 +354,127 @@
         position: fixed;
         bottom: 96px;
         left: 28px;
-        width: 340px;
-        height: 460px;
-        background: white;
-        border-radius: 18px;
-        box-shadow: 0 8px 40px rgba(0,0,0,.18);
+        width: 360px;
+        height: 520px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.15);
         display: flex;
         flex-direction: column;
         z-index: 999;
-        transform: translateY(20px) scale(.96);
+        transform: translateY(20px) scale(.95);
         opacity: 0;
         pointer-events: none;
-        transition: all .3s cubic-bezier(.34,1.56,.64,1);
-        border: 1px solid var(--gray-200);
+        transition: all .4s cubic-bezier(.34,1.56,.64,1);
+        border: 1px solid rgba(255,255,255,0.4);
         overflow: hidden;
     }
     .chat-window.open {
         transform: translateY(0) scale(1);
         opacity: 1;
         pointer-events: all;
+    }
+
+    /* ─── ESSENTIALS WIDGET (Float Right) ─── */
+    .essentials-toggle-btn {
+        position: fixed;
+        bottom: 28px;
+        right: 28px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: white;
+        color: var(--primary);
+        font-size: 1.4rem;
+        border: 2px solid var(--primary);
+        cursor: pointer;
+        box-shadow: 0 4px 20px rgba(0,0,0,.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        transition: all .25s cubic-bezier(.34,1.56,.64,1);
+    }
+    .essentials-toggle-btn:hover {
+        transform: scale(1.1) rotate(12deg);
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 6px 28px rgba(37,99,235,.25);
+    }
+    .essentials-toggle-btn.active {
+        background: var(--primary);
+        color: white;
+        transform: rotate(90deg);
+    }
+
+    .essentials-card {
+        position: fixed;
+        bottom: 96px;
+        right: 28px;
+        width: 320px;
+        max-height: 80vh;
+        overflow-y: auto;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        z-index: 999;
+        padding: 24px;
+        transform: translateY(20px) scale(.95);
+        opacity: 0;
+        pointer-events: none;
+        transition: all .4s cubic-bezier(.34,1.56,.64,1);
+        border: 1px solid rgba(255,255,255,0.4);
+        scrollbar-width: none;
+    }
+    .essentials-card::-webkit-scrollbar { display: none; }
+    .essentials-card.open {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+        pointer-events: all;
+    }
+    .essentials-card h4 {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--gray-800);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .essential-item {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 18px;
+    }
+    .essential-item:last-child { margin-bottom: 0; }
+    .essential-icon {
+        width: 40px;
+        height: 40px;
+        background: #f0ebff;
+        color: var(--primary);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    .essential-content { flex: 1; }
+    .essential-label {
+        font-size: .7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--gray-600);
+        margin-bottom: 2px;
+        letter-spacing: .02em;
+    }
+    .essential-value {
+        font-size: .9rem;
+        font-weight: 600;
+        color: var(--gray-800);
+        line-height: 1.4;
     }
 
     .chat-header {
@@ -552,12 +692,239 @@
         margin-bottom: 8px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    /* ─── Reviews & Social Proof : GOOGLE MAPS STYLE ─── */
+    .social-proof-section {
+        margin-top: 50px;
+        padding: 40px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 24px rgba(0,0,0,.04);
+        border: 1px solid var(--gray-100);
+    }
+    .social-proof-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--gray-800);
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    /* Stats Header (Maps Style) */
+    .maps-stats-container {
+        display: flex;
+        gap: 60px;
+        margin-bottom: 40px;
+        padding-bottom: 30px;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    @media (max-width: 768px) {
+        .maps-stats-container { flex-direction: column; gap: 30px; }
+    }
+    .main-rating-box {
+        text-align: center;
+        min-width: 140px;
+    }
+    .big-score {
+        font-size: 4rem;
+        font-weight: 700;
+        color: var(--gray-800);
+        line-height: 1;
+    }
+    .stars-total {
+        color: #FABB05;
+        font-size: 1.1rem;
+        margin: 8px 0;
+    }
+    .total-count {
+        font-size: .85rem;
+        color: var(--gray-600);
+    }
+
+    .rating-bars {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .bar-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: .8rem;
+        color: var(--gray-600);
+    }
+    .bar-label { width: 12px; font-weight: 600; }
+    .bar-bg {
+        flex: 1;
+        height: 8px;
+        background: var(--gray-100);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .bar-fill {
+        height: 100%;
+        background: #FABB05;
+        border-radius: 4px;
+        transition: width 1s ease;
+    }
+
+    /* Social Proof Grid */
+    .social-proof-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 12px;
+        margin-bottom: 40px;
+    }
+    .proof-item {
+        aspect-ratio: 1;
+        border-radius: 12px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform .3s;
+        border: 1px solid var(--gray-100);
+    }
+    .proof-item:hover { transform: scale(1.04); }
+    .proof-item img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* Review Card */
+    .review-card {
+        padding: 24px 0;
+        border-bottom: 1px solid var(--gray-100);
+        display: flex;
+        gap: 16px;
+    }
+    .review-card:last-child { border-bottom: none; }
+    .review-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #1a73e8; /* Google Blue */
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: .9rem;
+        flex-shrink: 0;
+    }
+    .review-main { flex: 1; }
+    .review-top {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 8px;
+    }
+    .author-name {
+        font-weight: 700;
+        font-size: .9rem;
+        color: var(--gray-800);
+    }
+    .review-metadata {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: .78rem;
+        color: var(--gray-600);
+    }
+    .stars-small {
+        color: #FABB05;
+        letter-spacing: -2px;
+        font-size: 1rem;
+    }
+    .review-text {
+        font-size: 1rem;
+        color: var(--gray-800);
+        line-height: 1.5;
+        margin: 12px 0;
+    }
+    .review-images-inline {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+    }
+    .review-img-thumb {
+        width: 120px;
+        height: 90px;
+        border-radius: 10px;
+        object-fit: cover;
+        cursor: pointer;
+        border: 1px solid var(--gray-200);
+        transition: opacity .2s;
+    }
+    .review-img-thumb:hover { opacity: .9; }
+
+    /* Review Form (Modal-like/Clean) */
+    .btn-maps-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        background: white;
+        color: #1a73e8;
+        border: 1px solid var(--gray-200);
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: .88rem;
+        cursor: pointer;
+        transition: all .2s;
+        text-decoration: none;
+    }
+    .btn-maps-action:hover {
+        background: #f8fbff;
+        border-color: #1a73e8;
+        box-shadow: 0 1px 3px rgba(0,0,0,.1);
+    }
+    .btn-maps-primary {
+        background: #1a73e8;
+        color: white;
+        border: none;
+    }
+    .btn-maps-primary:hover {
+        background: #1557b0;
+        box-shadow: 0 2px 8px rgba(26,115,232,.3);
+    }
+
+    .review-form-box {
+        margin-top: 30px;
+        padding: 40px;
+        background: #f8f9fa;
+        border-radius: 16px;
+        border: 1px solid var(--gray-200);
+        display: none; /* Collapsed by default */
+    }
+    .review-form-box.open { display: block; }
+
+    /* Star Picker Custom */
+    .star-picker {
+        display: flex;
+        gap: 4px;
+        margin: 12px 0;
+    }
+    .star-picker-item {
+        font-size: 2rem;
+        cursor: pointer;
+        color: var(--gray-200);
+        transition: color .15s;
+    }
+    .star-picker-item.active, .star-picker-item.hover { color: #FABB05; }
+
+    .form-input-maps {
+        width: 100%;
+        padding: 16px;
+        border: 1px solid var(--gray-300);
+        border-radius: 8px;
+        font-size: 1rem;
+        outline: none;
+    }
+    .form-input-maps:focus { border: 2px solid #1a73e8; padding: 15px; }
 </style>
 {% endblock %}
 
 {% block body %}
 <div class="back-bar">
-    <a href="{{ path('client_destination_index') }}" class="back-btn">← Retour aux destinations</a>
+    <a href="{{ path('client_destination_index') }}" class="back-btn">← Retour aux excursions</a>
 </div>
 
 <div class="container">
@@ -568,17 +935,32 @@
             {% set images = destination.imagesList %}
 
             <div class="main-image-wrapper">
-                {% if images|length > 0 %}
-                    <img src="{{ images[0] }}" alt="{{ destination.nom }}" class="main-image" id="mainImage">
+                {% if destination.panoramaUrl is not empty %}
+                <button class="vr-toggle-btn" id="vrToggleButton" onclick="toggleVR()" style="display: flex !important;">
+                    <span class="vr-icon">🕶️</span>
+                    <span class="vr-text">Vue 360°</span>
+                </button>
+                {% endif %}
 
-                    {# Navigation flèches (si + d'une image) #}
-                    {% if images|length > 1 %}
-                        <button class="gallery-nav prev" onclick="prevImage()" title="Précédente">&#8249;</button>
-                        <button class="gallery-nav next" onclick="nextImage()" title="Suivante">&#8250;</button>
-                        <span class="gallery-counter" id="galleryCounter">1 / {{ images|length }}</span>
+                <div id="photo-viewer" style="height:100%;">
+                    {% if images|length > 0 %}
+                        <img src="{{ images[0] }}" alt="{{ destination.nom }}" class="main-image" id="mainImage">
+
+                        {# Navigation flèches (si + d'une image) #}
+                        {% if images|length > 1 %}
+                            <button class="gallery-nav prev" onclick="prevImage()" title="Précédente">&#8249;</button>
+                            <button class="gallery-nav next" onclick="nextImage()" title="Suivante">&#8250;</button>
+                            <span class="gallery-counter" id="galleryCounter">1 / {{ images|length }}</span>
+                        {% endif %}
+                    {% else %}
+                        <div class="image-placeholder">🏔️</div>
                     {% endif %}
-                {% else %}
-                    <div class="image-placeholder">🏔️</div>
+                </div>
+
+                {% if destination.panoramaUrl is not empty %}
+                <div id="vr-viewer" style="display:none; position:absolute; inset:0; z-index:10; height:100%;">
+                    {# Contenu injecté par JS #}
+                </div>
                 {% endif %}
 
                 {% if destination.statut %}
@@ -614,7 +996,7 @@
             </div>
             {% elseif destination.isExpired %}
             <div style="margin-top:20px; padding:15px; background:#F3F4F6; border-radius:12px; text-align:center; color:#4B5563; font-weight:600;">
-                ⌛ Cette destination est déjà partie (Vécu)
+                ⌛ Cette excursion est déjà partie (Vécu)
             </div>
             {% endif %}
         </div>
@@ -674,12 +1056,17 @@
             {% endif %}
 
             {# GALERIE (compteur) #}
-            {% if images|length > 0 %}
+            {% if images|length > 0 or destination.panoramaUrl is not empty %}
             <div class="info-row">
                 <span class="info-icon">🖼️</span>
                 <div>
-                    <div class="info-label">Photos disponibles</div>
-                    <div class="info-value">{{ images|length }} photo{{ images|length > 1 ? 's' : '' }}</div>
+                    <div class="info-label">Contenu visuel</div>
+                    <div class="info-value">
+                        {{ images|length }} photo{{ images|length > 1 ? 's' : '' }}
+                        {% if destination.panoramaUrl is not empty %}
+                            <span style="color:var(--primary); font-weight:700; margin-left:8px;">🕶️ 360° Dispo</span>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
             {% endif %}
@@ -707,9 +1094,9 @@
                             onclick="rejoindreDestination()"
                             {% if hasJoined %}disabled{% endif %}>
                         {% if hasJoined %}
-                            ✅ Vous avez déjà rejoint cette destination
+                            ✅ Vous avez déjà rejoint cette excursion
                         {% else %}
-                            ✈️ Rejoindre cette destination
+                            ✈️ Rejoindre cette excursion
                         {% endif %}
                     </button>
                 {% else %}
@@ -721,9 +1108,228 @@
 
         </div>
     </div>
+
+    {# ─── RÉSEAUX SOCIAUX & PREUVE SOCIALE (GOOGLE MAPS STYLE) ─── #}
+    <div class="social-proof-section" id="reviews-section">
+        <div class="social-proof-title">
+            <span>⭐ Avis et photos des voyageurs</span>
+            {% if app.user %}
+                <button class="btn-maps-action btn-maps-primary" onclick="toggleReviewForm()">
+                    🖊️ Donner un avis
+                </button>
+            {% endif %}
+        </div>
+
+        {# 1. Statistiques des avis #}
+        {% set totalReviews = destination.reviews|length %}
+        {% set avgRating = 0 %}
+        {% set ratingCounts = {'s5':0, 's4':0, 's3':0, 's2':0, 's1':0} %}
+        
+        {% if totalReviews > 0 %}
+            {% set sumRating = 0 %}
+            {% for r in destination.reviews %}
+                {% set sumRating = sumRating + r.rating %}
+                {% set key = 's' ~ r.rating %}
+                {% set rCount = attribute(ratingCounts, key) + 1 %}
+                {% set ratingCounts = ratingCounts|merge({(key): rCount}) %}
+            {% endfor %}
+            {% set avgRating = (sumRating / totalReviews)|number_format(1) %}
+        {% endif %}
+
+        <div class="maps-stats-container">
+            <div class="main-rating-box">
+                <div class="big-score">{{ avgRating }}</div>
+                <div class="stars-total">
+                    {% for i in 1..5 %}
+                        {{ i <= avgRating|round(0, 'floor') ? '★' : '☆' }}
+                    {% endfor %}
+                </div>
+                <div class="total-count">{{ totalReviews }} avis</div>
+            </div>
+
+            <div class="rating-bars">
+                {% for i in 5..1 %}
+                    {% set count = attribute(ratingCounts, 's' ~ i) %}
+                    {% set percent = totalReviews > 0 ? (count / totalReviews * 100) : 0 %}
+                    <div class="bar-row">
+                        <div class="bar-label">{{ i }}</div>
+                        <div class="bar-bg">
+                            <div class="bar-fill" style="width: {{ percent }}%"></div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# 2. Galerie Social Proof (Photos agrégées) #}
+        <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:16px;">Photos partagées</h3>
+        <div class="social-proof-grid">
+            {% set allProofPhotos = [] %}
+            {% for review in destination.reviews %}
+                {% for img in review.images %}
+                    {% set allProofPhotos = allProofPhotos|merge([img.chemin]) %}
+                {% endfor %}
+            {% endfor %}
+
+            {% if allProofPhotos|length > 0 %}
+                {% for photo in allProofPhotos %}
+                    <div class="proof-item" onclick="viewProofPhoto('{{ photo }}')">
+                        <img src="{{ photo }}" alt="Preuve sociale {{ loop.index }}">
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div style="grid-column: 1/-1; text-align: center; padding: 30px; background: #f8f9fa; border-radius: 12px; color: var(--gray-600); font-size: .95rem;">
+                    Aucune photo partagée pour l'instant. ✨
+                </div>
+            {% endif %}
+        </div>
+
+        {# 3. Formulaire d'Avis (Collapsé) #}
+        {% if app.user %}
+        <div class="review-form-box" id="reviewFormArea">
+            <h3 style="font-weight: 800; margin-bottom: 24px;">Racontez votre expérience</h3>
+            
+            {{ form_start(reviewForm) }}
+                <div style="margin-bottom: 24px;">
+                    <label class="author-name">Votre note globale</label>
+                    <div class="star-picker" id="starPicker">
+                        <span class="star-picker-item" data-value="1">★</span>
+                        <span class="star-picker-item" data-value="2">★</span>
+                        <span class="star-picker-item" data-value="3">★</span>
+                        <span class="star-picker-item" data-value="4">★</span>
+                        <span class="star-picker-item" data-value="5">★</span>
+                    </div>
+                    {{ form_widget(reviewForm.rating, {'id': 'rating_input'}) }}
+                    {{ form_errors(reviewForm.rating) }}
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label class="author-name">Votre commentaire</label>
+                    {{ form_widget(reviewForm.commentaire, {
+                        'attr': {
+                            'class': 'form-input-maps',
+                            'placeholder': 'Dites-nous ce que vous avez aimé (ou pas)...'
+                        }
+                    }) }}
+                    {{ form_errors(reviewForm.commentaire) }}
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label class="author-name">Photos du lieu</label>
+                    <div style="background: white; padding: 20px; border-radius: 12px; border: 2px dashed #e2e8f0; margin-top: 8px;">
+                        {{ form_widget(reviewForm.imageFiles) }}
+                        <div style="margin-top: 10px; font-size: .85rem; color: var(--gray-600);">
+                            Astuce : Les photos aident beaucoup les autres voyageurs !
+                        </div>
+                    </div>
+                    {{ form_errors(reviewForm.imageFiles) }}
+                </div>
+
+                <div style="display:flex; justify-content: flex-end; gap: 12px;">
+                    <button type="button" class="btn-maps-action" onclick="toggleReviewForm()">Annuler</button>
+                    <button type="submit" class="btn-maps-action btn-maps-primary">Publier l'avis</button>
+                </div>
+            {{ form_end(reviewForm) }}
+        </div>
+        {% endif %}
+
+        <hr style="border:none; border-top:1px solid var(--gray-100); margin: 30px 0;">
+
+        {# 4. Liste des Avis #}
+        <div class="reviews-list">
+            {% for review in destination.reviews %}
+                <div class="review-card">
+                    <div class="review-avatar">
+                        {{ review.user.prenom|first|upper }}{{ review.user.nom|first|upper }}
+                    </div>
+                    <div class="review-main">
+                        <div class="review-top">
+                            <span class="author-name">{{ review.user.prenom }} {{ review.user.nom }}</span>
+                            <div class="review-metadata">
+                                <div class="stars-small">
+                                    {% for i in 1..5 %}
+                                        {{ i <= review.rating ? '★' : '☆' }}
+                                    {% endfor %}
+                                </div>
+                                <span class="dot">·</span>
+                                <span>{{ review.createdAt|date('d/m/Y') }}</span>
+                            </div>
+                        </div>
+                        <div class="review-text">{{ review.commentaire }}</div>
+                        
+                        {% if review.images|length > 0 %}
+                            <div class="review-images-inline">
+                                {% for img in review.images %}
+                                    <img src="{{ img.chemin }}" class="review-img-thumb" onclick="viewProofPhoto('{{ img.chemin }}')" alt="Avis photo">
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div style="margin-top: 16px; display: flex; gap: 16px;">
+                            <button class="btn-maps-action" style="padding: 6px 12px; font-size: .75rem;">👍 Utile</button>
+                            <button class="btn-maps-action" style="padding: 6px 12px; font-size: .75rem;">🚩 Signaler</button>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: 40px; color: var(--gray-600);">
+                    Aucun avis détaillé n'a été rédigé pour le moment.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
 </div>
 
 {# ─── CHAT FLOTTANT ─── #}
+{# ─── TRAVEL ASSISTANT WIDGET (WEATHER + ESSENTIALS) ─── #}
+<button class="essentials-toggle-btn" id="essentialsToggle" onclick="toggleEssentials()" title="Assistant de Voyage">
+    🌍
+</button>
+
+<div class="essentials-card" id="essentialsCard">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h4 style="margin:0">✨ Infos Voyage</h4>
+        <button onclick="toggleEssentials()" style="background:none; border:none; cursor:pointer; font-size:1.2rem; color:var(--gray-600);">✕</button>
+    </div>
+    
+    {# ─── ESSENTIALS SECTION ─── #}
+    <div class="essentials-list">
+        {% if destination.currency %}
+        <div class="essential-item">
+            <div class="essential-icon">💰</div>
+            <div class="essential-content">
+                <div class="essential-label">Monnaie</div>
+                <div class="essential-value">{{ destination.currency }}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if destination.plugType %}
+        <div class="essential-item">
+            <div class="essential-icon">🔌</div>
+            <div class="essential-content">
+                <div class="essential-label">Prise Électrique</div>
+                <div class="essential-value">{{ destination.plugType }}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if destination.survivalPhrases %}
+        <div class="essential-item">
+            <div class="essential-icon">🗣️</div>
+            <div class="essential-content">
+                <div class="essential-label">Phrases</div>
+                <div class="essential-value">{{ destination.survivalPhrases }}</div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div style="margin-top:20px; padding-top:15px; border-top:1px solid #f1f5f9; text-align:center;">
+        <small style="color:#94a3b8; font-size:0.7rem;">Bon voyage à {{ destination.nom }} ! ✈️</small>
+    </div>
+</div>
+
 <button class="chat-toggle-btn" id="chatToggleBtn" onclick="toggleChat()" title="Discuter avec les voyageurs">
     💬
     <span class="chat-unread-dot" id="chatUnreadDot"></span>
@@ -855,7 +1461,74 @@ async function loadWeather() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', loadWeather);
+// ─── Review System Logic (Maps Style) ──────────────────────────────
+function toggleReviewForm() {
+    const box = document.getElementById('reviewFormArea');
+    if (!box) return;
+    box.classList.toggle('open');
+    if (box.classList.contains('open')) {
+        box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+function initStarPicker() {
+    const stars = document.querySelectorAll('.star-picker-item');
+    const input = document.getElementById('rating_input');
+    if (!stars.length || !input) return;
+
+    stars.forEach(star => {
+        star.addEventListener('mouseover', () => {
+            const val = parseInt(star.dataset.value);
+            highlightStars(val, 'hover');
+        });
+        star.addEventListener('mouseout', () => {
+            const currentVal = parseInt(input.value) || 0;
+            highlightStars(currentVal, 'active');
+        });
+        star.addEventListener('click', () => {
+            const val = parseInt(star.dataset.value);
+            input.value = val;
+            highlightStars(val, 'active');
+        });
+    });
+
+    function highlightStars(val, className) {
+        stars.forEach(s => {
+            const sVal = parseInt(s.dataset.value);
+            s.classList.remove('hover', 'active');
+            if (sVal <= val) s.classList.add(className);
+        });
+    }
+
+    if (input.value) highlightStars(parseInt(input.value), 'active');
+}
+
+function viewProofPhoto(url) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position:fixed; top:0; left:0; width:100%; height:100%;
+        background:rgba(0,0,0,.9); z-index:10000;
+        display:flex; align-items:center; justify-content:center;
+        cursor:pointer; padding:20px;
+    `;
+    const img = document.createElement('img');
+    img.src = url;
+    img.style.cssText = 'max-width:90%; max-height:90%; border-radius:12px; box-shadow:0 0 40px rgba(0,0,0,.5);';
+    
+    overlay.appendChild(img);
+    overlay.onclick = () => overlay.remove();
+    document.body.appendChild(overlay);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadWeather();
+    initStarPicker();
+
+    if (document.querySelector('.review-form-box .alert-danger') || document.querySelector('.review-form-box .invalid-feedback')) {
+        toggleReviewForm();
+        document.getElementById('reviewFormArea')?.scrollIntoView({ behavior: 'smooth' });
+    }
+});
 
 // ─── Galerie ─────────────────────────────────────────────────────
 const images = {{ destination.imagesList|json_encode|raw }};
@@ -913,20 +1586,20 @@ async function rejoindreDestination() {
 
             btn.classList.remove('loading', 'primary');
             btn.classList.add('joined');
-            btn.textContent = '✅ Vous avez rejoint cette destination !';
+            btn.textContent = '✅ Vous avez rejoint cette excursion !';
             btn.disabled = true;
 
             showToast('🎉 ' + data.message, 'success');
         } else {
             btn.classList.remove('loading');
             btn.classList.add('joined');
-            btn.textContent = '✅ Vous avez déjà rejoint cette destination';
+            btn.textContent = '✅ Vous avez déjà rejoint cette excursion';
             btn.disabled = true;
             showToast(data.message, 'info');
         }
     } catch (e) {
         btn.classList.remove('loading');
-        btn.textContent = '✈️ Rejoindre cette destination';
+        btn.textContent = '✈️ Rejoindre cette excursion';
         showToast('Erreur de connexion. Réessayez.', 'error');
     }
 }
@@ -1079,7 +1752,7 @@ async function sendMessage() {
                 'Content-Type': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify({ contenu })
+            body: JSON.stringify({ content: contenu })
         });
 
         if (res.ok) {
@@ -1117,5 +1790,106 @@ setTimeout(() => {
         }
     }, 10000); // check non-lu toutes les 10s
 }, 5000);
+
+let essentialsOpen = false;
+function toggleEssentials() {
+    essentialsOpen = !essentialsOpen;
+    const card = document.getElementById('essentialsCard');
+    const btn = document.getElementById('essentialsToggle');
+    card.classList.toggle('open', essentialsOpen);
+    btn.classList.toggle('active', essentialsOpen);
+
+    // Close chat if open
+    if (essentialsOpen && chatOpen) toggleChat();
+}
+
+// ============ VR 360 LOGIC ============
+let vrActive = false;
+let pannellumViewer = null;
+
+function toggleVR() {
+    const photoWrap = document.getElementById('photo-viewer');
+    const vrWrap = document.getElementById('vr-viewer');
+    const btn = document.getElementById('vrToggleButton');
+    const url = "{{ destination.panoramaUrl|escape('js') }}";
+
+    if (!vrActive) {
+        photoWrap.style.display = 'none';
+        vrWrap.style.display = 'block';
+        btn.classList.add('active');
+        btn.querySelector('.vr-text').textContent = 'Quitter 360°';
+        
+        if (url.includes('google.com/maps') || url.includes('google.com/streetview') || url.includes('goo.gl') || url.includes('maps.app.goo.gl') || url.includes('<iframe')) {
+            loadStreetView(url);
+        } else {
+            loadPannellum(url);
+        }
+        vrActive = true;
+    } else {
+        photoWrap.style.display = 'block';
+        vrWrap.style.display = 'none';
+        btn.classList.remove('active');
+        btn.querySelector('.vr-text').textContent = 'Vue 360°';
+        if (pannellumViewer) {
+            pannellumViewer.destroy();
+            pannellumViewer = null;
+        }
+        vrWrap.innerHTML = '';
+        vrActive = false;
+    }
+}
+
+function loadStreetView(url) {
+    const vrWrap = document.getElementById('vr-viewer');
+    
+    if (url.includes('<iframe')) {
+         vrWrap.innerHTML = url;
+         const ifr = vrWrap.querySelector('iframe');
+         if(ifr) {
+            ifr.style.width = '100%';
+            ifr.style.height = '100%';
+            ifr.style.border = 'none';
+         }
+    } else if (url.includes('goo.gl') || url.includes('maps.app.goo.gl')) {
+        // Warning pour les liens courts qui ne supportent pas l'iframe directe
+        vrWrap.innerHTML = `
+            <div style="color:white; text-align:center; padding:40px; background:#111; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                <p style="margin-bottom:20px;">⚠️ L'affichage direct de ce lien court est bloqué par Google.</p>
+                <a href="${url}" target="_blank" class="btn-rejoindre primary" style="text-decoration:none; display:inline-block; margin-bottom:15px;">
+                    Ouvrir dans Google Maps ↗️
+                </a>
+                <p style="font-size:0.8rem; color:#888;">Pour un affichage direct ici, utilisez l'option "Partager > Intégrer une carte" dans Maps.</p>
+            </div>`;
+    } else {
+        vrWrap.innerHTML = `<iframe src="${url}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>`;
+    }
+}
+
+function loadPannellum(url) {
+    const vrWrap = document.getElementById('vr-viewer');
+    vrWrap.innerHTML = '<div id="pannellum-container" style="width:100%; height:100%;"></div>';
+    
+    if (typeof pannellum === 'undefined') {
+        const script = document.createElement('script');
+        script.src = "https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js";
+        const link = document.createElement('link');
+        link.rel = "stylesheet";
+        link.href = "https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css";
+        document.head.appendChild(link);
+        document.head.appendChild(script);
+        script.onload = () => initPannellum(url);
+    } else {
+        initPannellum(url);
+    }
+}
+
+function initPannellum(url) {
+    pannellumViewer = pannellum.viewer('pannellum-container', {
+        "type": "equirectangular",
+        "panorama": url,
+        "autoLoad": true,
+        "showFullscreenCtrl": false
+    });
+}
 </script>
 {% endblock %}

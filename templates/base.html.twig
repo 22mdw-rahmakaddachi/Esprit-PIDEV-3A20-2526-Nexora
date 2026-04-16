@@ -480,19 +480,29 @@
                     <li class="nav-item">
                         <a class="nav-link {% if 'destination' in app.request.get('_route') %}active{% endif %}"
                            href="{{ path('client_destination_index') }}">
-                            <i class="bi bi-geo-alt-fill me-1"></i>Destinations
+                            <i class="bi bi-geo-alt-fill me-1"></i>Excursions
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'avis' in app.request.get('_route') %}active{% endif %}"
+                           href="{{ path('app_avis') }}">
+                            <i class="bi bi-chat-square-text-fill me-1"></i>Avis
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'publication' in app.request.get('_route') %}active{% endif %}"
+                           href="{{ path('app_publications') }}">
+                            <i class="bi bi-newspaper me-1"></i>Publications
                         </a>
                     </li>
                 </ul>
                 <div class="d-flex align-items-center gap-2">
-                    <a href="{{ path('app_panier') }}" class="btn btn-cart btn-pulse position-relative">
+                    <a href="#" class="btn btn-cart btn-pulse">
                         <i class="bi bi-cart3 me-1"></i>Panier
-                        <span id="badge-panier" class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
-                              style="background:#e74c3c;font-size:0.65rem;display:none">0</span>
                     </a>
-                    <a href="{{ path('admin_dashboard') }}" class="btn btn-sm rounded-pill px-3"
+                    <a href="#" class="btn btn-sm rounded-pill px-3"
                        style="border:1.5px solid var(--primary);color:var(--primary)">
-                        <i class="bi bi-shop me-1"></i>Espace Partenaire
+                        <i class="bi bi-person me-1"></i>Connexion
                     </a>
                 </div>
             </div>
@@ -608,19 +618,6 @@
                 })
                 .catch(() => {});
         }, 30000);
-
-        // Badge panier
-        fetch('/panier/api/count')
-            .then(r => r.ok ? r.json() : null)
-            .then(data => {
-                if (!data) return;
-                const badge = document.getElementById('badge-panier');
-                if (badge && data.count > 0) {
-                    badge.textContent = data.count;
-                    badge.style.display = 'inline';
-                }
-            })
-            .catch(() => {});
     </script>
     {% block javascripts %}{% endblock %}
 </body>

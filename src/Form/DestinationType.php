@@ -22,14 +22,14 @@ class DestinationType extends AbstractType
     {
         $builder
             ->add('nom', TextType::class, [
-                'label'       => 'Nom de la destination',
+                'label'       => "Nom de l'excursion",
                 'constraints' => [new NotBlank(['message' => 'Le nom est obligatoire'])],
                 'attr'        => ['placeholder' => 'Ex: Paris, Marrakech...'],
             ])
             ->add('description', TextareaType::class, [
                 'label'    => 'Description',
                 'required' => false,
-                'attr'     => ['rows' => 4, 'placeholder' => 'Décrivez la destination...'],
+                'attr'     => ['rows' => 4, 'placeholder' => "Décrivez l'excursion..."],
             ])
             ->add('localisation', TextType::class, [
                 'label'       => 'Localisation',
@@ -50,13 +50,34 @@ class DestinationType extends AbstractType
                 'widget'   => 'single_text',
                 'required' => false,
                 'attr'     => ['class' => 'form-control'],
+            ])
+            ->add('currency', TextType::class, [
+                'label'    => 'Monnaie locale',
+                'required' => false,
+                'attr'     => ['placeholder' => 'Ex: Euro (€), Dollar ($)...'],
+            ])
+            ->add('plugType', TextType::class, [
+                'label'    => 'Type de prise',
+                'required' => false,
+                'attr'     => ['placeholder' => 'Ex: Type E / F / C...'],
+            ])
+            ->add('survivalPhrases', TextareaType::class, [
+                'label'    => 'Phrases de survie',
+                'required' => false,
+                'attr'     => ['rows' => 2, 'placeholder' => 'Ex: Bonjour / Merci / S\'il vous plaît'],
+            ])
+            ->add('panoramaUrl', TextType::class, [
+                'label'    => 'Lien Panorama 360° / VR',
+                'required' => false,
+                'help'     => 'Format recommandé : Code "Intégrer une carte" (iframe) ou URL complète de la barre d\'adresse.',
+                'attr'     => ['placeholder' => 'Code <iframe... ou URL complète maps.google.com/...'],
             ]);
 
 
         $builder
             // ── Champ multi-fichiers (non mappé, géré manuellement dans le contrôleur) ──
             ->add('imageFiles', FileType::class, [
-                'label'       => 'Images de la destination',
+                'label'       => "Images de l'excursion",
                 'mapped'      => false,
                 'required'    => false,
                 'multiple'    => true,

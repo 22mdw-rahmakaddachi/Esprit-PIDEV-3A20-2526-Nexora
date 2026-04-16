@@ -6,12 +6,12 @@
 
 {# STAT CARDS #}
 <div class="row g-4 mb-4">
-    <div class="col-6 col-xl-2">
+    <div class="col-6 col-xl-3">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <div class="stat-num">{{ totalActivites }}</div>
-                    <div class="stat-label">Activités</div>
+                    <div class="stat-label">Mes activités</div>
                 </div>
                 <div class="stat-icon" style="background:#f0ebff;color:var(--primary)">
                     <i class="bi bi-calendar-event-fill"></i>
@@ -32,28 +32,40 @@
             </div>
         </div>
     </div>
-    <div class="col-6 col-xl-2">
+    <div class="col-6 col-xl-3">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="stat-num">{{ totalProduits ?? 0 }}</div>
-                    <div class="stat-label">Produits</div>
+                    <div class="stat-num">{{ placesDisponibles }}</div>
+                    <div class="stat-label">Places disponibles</div>
                 </div>
-                <div class="stat-icon" style="background:#e8f4fd;color:#2980b9">
-                    <i class="bi bi-bag-fill"></i>
+                <div class="stat-icon" style="background:#fff3cd;color:#856404">
+                    <i class="bi bi-people-fill"></i>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-6 col-xl-2">
+    <div class="col-6 col-xl-3">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-start">
-                <div>
                     <div class="stat-num">{{ totalDestinations ?? 0 }}</div>
-                    <div class="stat-label">Destinations</div>
+                    <div class="stat-label">Excursions</div>
                 </div>
                 <div class="stat-icon" style="background:#fef5e7;color:#e67e22">
                     <i class="bi bi-geo-alt-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-num">{{ demandesEnAttente }}</div>
+                    <div class="stat-label">Demandes en attente</div>
+                </div>
+                <div class="stat-icon" style="background:#fde8e8;color:#c0392b">
+                    <i class="bi bi-bell-fill"></i>
                 </div>
             </div>
         </div>
@@ -85,11 +97,11 @@
                     <tr>
                         <td class="fw-semibold">{{ a.nom }}</td>
                         <td><span class="badge" style="background:#f0ebff;color:var(--primary)">{{ a.type }}</span></td>
-                        <td>{{ a.placesDisponibles }}/{{ a.nombrePlaces }}</td>
+                        <td>{{ a.places_disponibles }}/{{ a.nombre_places }}</td>
                         <td>
-                            {% if a.placesDisponibles == 0 %}
+                            {% if a.places_disponibles == 0 %}
                             <span class="status-badge badge-complet">Complet</span>
-                            {% elseif a.dateActivite < date() %}
+                            {% elseif a.date_activite < date() %}
                             <span class="status-badge badge-passe">Passée</span>
                             {% else %}
                             <span class="status-badge badge-actif">Active</span>
@@ -219,14 +231,14 @@
 
 </div>
 
-{# ── SECTION DESTINATIONS ── #}
+{# ── SECTION EXCURSIONS ── #}
 <hr style="border-color:#ede5ff;margin:32px 0">
 <div class="row g-4">
     <div class="col-12">
         <div class="admin-table">
             <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color:#ede5ff!important">
                 <h6 class="mb-0 fw-bold" style="color:var(--primary-dark)">
-                    <i class="bi bi-geo-alt me-2"></i>Mes destinations récentes
+                    <i class="bi bi-geo-alt me-2"></i>Mes excursions récentes
                 </h6>
                 <div class="d-flex gap-2">
                     <a href="{{ path('admin_destination_new') }}" class="btn btn-primary-admin btn-sm">+ Ajouter</a>
@@ -261,7 +273,7 @@
                         </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="5" class="text-center text-muted py-4">Aucune destination</td></tr>
+                    <tr><td colspan="5" class="text-center text-muted py-4">Aucune excursion</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -269,4 +281,3 @@
     </div>
 </div>
 {% endblock %}
-
