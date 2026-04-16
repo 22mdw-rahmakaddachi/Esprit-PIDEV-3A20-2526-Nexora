@@ -50,7 +50,7 @@
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <div class="stat-num">{{ totalDestinations ?? 0 }}</div>
-                    <div class="stat-label">Destinations</div>
+                    <div class="stat-label">Excursions</div>
                 </div>
                 <div class="stat-icon" style="background:#fef5e7;color:#e67e22">
                     <i class="bi bi-geo-alt-fill"></i>
@@ -219,14 +219,14 @@
 
 </div>
 
-{# ── SECTION DESTINATIONS ── #}
+{# ── SECTION EXCURSIONS ── #}
 <hr style="border-color:#ede5ff;margin:32px 0">
 <div class="row g-4">
     <div class="col-12">
         <div class="admin-table">
             <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color:#ede5ff!important">
                 <h6 class="mb-0 fw-bold" style="color:var(--primary-dark)">
-                    <i class="bi bi-geo-alt me-2"></i>Mes destinations récentes
+                    <i class="bi bi-geo-alt me-2"></i>Mes excursions récentes
                 </h6>
                 <div class="d-flex gap-2">
                     <a href="{{ path('admin_destination_new') }}" class="btn btn-primary-admin btn-sm">+ Ajouter</a>
@@ -261,7 +261,7 @@
                         </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="5" class="text-center text-muted py-4">Aucune destination</td></tr>
+                    <tr><td colspan="5" class="text-center text-muted py-4">Aucune excursion</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

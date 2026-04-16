@@ -57,9 +57,34 @@ class Destination
     #[ORM\OrderBy(['ordre' => 'ASC'])]
     private Collection $destinationImages;
 
+    /**
+     * @var Collection<int, DestinationAvis>
+     */
+    #[ORM\OneToMany(
+        mappedBy: 'destination',
+        targetEntity: DestinationAvis::class,
+        cascade: ['persist', 'remove'],
+        orphanRemoval: true
+    )]
+    #[ORM\OrderBy(['createdAt' => 'DESC'])]
+    private Collection $reviews;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $currency = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $plugType = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $survivalPhrases = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $panoramaUrl = null;
+
     public function __construct()
     {
         $this->destinationImages = new ArrayCollection();
+        $this->reviews = new ArrayCollection();
     }
 
     // ─── Getters / Setters simples ───────────────────────────────────
@@ -149,6 +174,31 @@ class Destination
         return $this;
     }
 
+    /** @return Collection<int, DestinationAvis> */
+    public function getReviews(): Collection
+    {
+        return $this->reviews;
+    }
+
+    public function addReview(DestinationAvis $review): static
+    {
+        if (!$this->reviews->contains($review)) {
+            $this->reviews->add($review);
+            $review->setDestination($this);
+        }
+        return $this;
+    }
+
+    public function removeReview(DestinationAvis $review): static
+    {
+        if ($this->reviews->removeElement($review)) {
+            if ($review->getDestination() === $this) {
+                $review->setDestination(null);
+            }
+        }
+        return $this;
+    }
+
 
 
 
@@ -217,4 +267,16 @@ class Destination
     {
         return $this->destinationImages->count();
     }
+
+    public function getCurrency(): ?string { return $this->currency; }
+    public function setCurrency(?string $v): static { $this->currency = $v; return $this; }
+
+    public function getPlugType(): ?string { return $this->plugType; }
+    public function setPlugType(?string $v): static { $this->plugType = $v; return $this; }
+
+    public function getSurvivalPhrases(): ?string { return $this->survivalPhrases; }
+    public function setSurvivalPhrases(?string $v): static { $this->survivalPhrases = $v; return $this; }
+
+    public function getPanoramaUrl(): ?string { return $this->panoramaUrl; }
+    public function setPanoramaUrl(?string $v): static { $this->panoramaUrl = $v; return $this; }
 }

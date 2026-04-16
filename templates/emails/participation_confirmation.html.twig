@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmation de votre participation</title>
+    <style>
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f4f7fa; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+        .wrapper { width: 100%; table-layout: fixed; background-color: #f4f7fa; padding-bottom: 40px; }
+        .main { background-color: #ffffff; margin: 0 auto; width: 100%; max-width: 600px; border-spacing: 0; color: #334155; }
+        .header { background: linear-gradient(135deg, #2563EB, #7C3AED); padding: 40px 20px; text-align: center; color: white; }
+        .header h1 { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.02em; }
+        .content { padding: 40px 30px; line-height: 1.6; }
+        .greeting { font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 12px; }
+        .excursion-card { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; }
+        .excursion-title { font-size: 20px; font-weight: 800; color: #2563eb; margin-bottom: 8px; }
+        .detail-item { display: table; width: 100%; margin-bottom: 6px; }
+        .detail-label { display: table-cell; width: 30%; font-weight: 700; color: #64748b; font-size: 13px; text-transform: uppercase; }
+        .detail-value { display: table-cell; font-weight: 600; color: #334155; font-size: 15px; }
+        .btn-container { text-align: center; margin-top: 32px; }
+        .btn { background-color: #2563eb; color: #ffffff !important; padding: 14px 28px; border-radius: 12px; font-weight: 700; text-decoration: none; display: inline-block; box-shadow: 0 4px 12px rgba(37,99,235,0.2); }
+        .footer { padding: 30px; text-align: center; font-size: 13px; color: #94a3b8; }
+        .footer a { color: #64748b; text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <center>
+            <table class="main" width="100%">
+                <tr>
+                    <td class="header">
+                        <h1>Nexora</h1>
+                        <p style="margin-top: 8px; font-size: 14px; opacity: 0.9;">Votre prochaine aventure commence ici.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="content">
+                        <p class="greeting">Félicitations, {{ user_prenom }} ! 🎉</p>
+                        <p>Nous sommes ravis de vous confirmer que vous avez bien rejoint l'excursion suivante. Votre participation a été enregistrée avec succès.</p>
+                        
+                        <div class="excursion-card">
+                            <div class="excursion-title">{{ excursion_nom }}</div>
+                            <div class="detail-item">
+                                <span class="detail-label">📍 Lieu :</span>
+                                <span class="detail-value">{{ excursion_localisation }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">📅 Date de départ :</span>
+                                <span class="detail-value" style="color: #2563eb; font-size: 17px;">
+                                    {{ excursion_date ? excursion_date|date('d/m/Y à H:i') : 'Date à confirmer' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <p>Vous recevrez d'autres informations par email à l'approche du départ. En attendant, n'hésitez pas à partager cette aventure avec vos amis !</p>
+
+                        <div class="btn-container">
+                            <a href="{{ absolute_url(path('client_destination_show', {id: excursion_id})) }}" class="btn">Voir les détails du voyage</a>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="footer">
+                        <p>&copy; {{ "now"|date("Y") }} Nexora. Tous droits réservés.</p>
+                        <p>Vous recevez cet email car vous vous êtes inscrit à une excursion sur notre plateforme.</p>
+                        <p><a href="#">Conditions Générales</a> | <a href="#">Aide & Support</a></p>
+                    </td>
+                </tr>
+            </table>
+        </center>
+    </div>
+</body>
+</html>

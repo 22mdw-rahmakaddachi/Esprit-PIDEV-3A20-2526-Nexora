@@ -1,7 +1,7 @@
 {# templates/destination/client/index.html.twig #}
 {% extends 'base.html.twig' %}
 
-{% block title %}Destinations{% endblock %}
+{% block title %}Excursions{% endblock %}
 
 {% block stylesheets %}
 <style>
@@ -332,8 +332,8 @@
 
 <div class="page-header">
     <div>
-        <h1>🌍 Nos Destinations</h1>
-        <div class="header-sub">Découvrez nos destinations de voyage</div>
+        <h1>🌍 Nos Excursions</h1>
+        <div class="header-sub">Découvrez nos excursions de voyage</div>
     </div>
 </div>
 
@@ -342,10 +342,10 @@
         <input type="text"
                id="liveSearch"
                value="{{ search }}"
-               placeholder="🔍 Rechercher une destination..."
+               placeholder="🔍 Rechercher une excursion..."
                autocomplete="off">
         <span class="count-label" id="resultCount">
-            {{ destinations|length }} destination{{ destinations|length != 1 ? 's' : '' }} trouvée{{ destinations|length != 1 ? 's' : '' }}
+            {{ destinations|length }} excursion{{ destinations|length != 1 ? 's' : '' }} trouvée{{ destinations|length != 1 ? 's' : '' }}
         </span>
     </div>
 
@@ -361,6 +361,7 @@
         <div class="sort-control">
             <label for="sortSelect">🔘 Trier par :</label>
             <select id="sortSelect" class="sort-select">
+                <option value="id-desc">Ajouté récemment</option>
                 <option value="name-asc">Nom (A-Z)</option>
                 <option value="name-desc">Nom (Z-A)</option>
                 <option value="part-asc">Participants (Moins → Plus)</option>
@@ -377,7 +378,7 @@
     {% if destinations is empty %}
         <div class="empty-state">
             <div class="icon">🌍</div>
-            <p>Aucune destination trouvée{% if search %} pour "{{ search }}"{% endif %}.</p>
+            <p>Aucune excursion trouvée{% if search %} pour "{{ search }}"{% endif %}.</p>
         </div>
     {% else %}
         {% for dest in destinations %}
@@ -644,7 +645,7 @@
     function updateCounter(n) {
         const counter = document.getElementById('resultCount');
         if (!counter) return;
-        counter.textContent = n + ' destination' + (n !== 1 ? 's' : '') + ' trouvée' + (n !== 1 ? 's' : '');
+        counter.textContent = n + ' excursion' + (n !== 1 ? 's' : '') + ' trouvée' + (n !== 1 ? 's' : '');
     }
 
     function sortCards() {
@@ -665,6 +666,9 @@
                 // Si date 0 (non définie), on la met à la fin
                 if (valA === 0) valA = order === 'asc' ? Infinity : -Infinity;
                 if (valB === 0) valB = order === 'asc' ? Infinity : -Infinity;
+            } else if (crit === 'id') {
+                valA = parseInt(a.dataset.id) || 0;
+                valB = parseInt(b.dataset.id) || 0;
             }
 
             if (valA < valB) return order === 'asc' ? -1 : 1;

@@ -262,12 +262,12 @@
         <span class="sidebar-badge" id="sb-demandes" style="display:none">0</span>
     </a>
 
-    <div class="sidebar-section">Destinations</div>
+    <div class="sidebar-section">Excursions</div>
     <a href="{{ path('admin_destination_index') }}" class="sidebar-link {{ 'admin_destination' in app.request.get('_route') ? 'active' : '' }}">
-        <i class="bi bi-geo-alt-fill"></i> Mes destinations
+        <i class="bi bi-geo-alt-fill"></i> Mes excursions
     </a>
     <a href="{{ path('admin_destination_new') }}" class="sidebar-link {{ app.request.get('_route') == 'admin_destination_new' ? 'active' : '' }}">
-        <i class="bi bi-plus-circle-fill"></i> Ajouter destination
+        <i class="bi bi-plus-circle-fill"></i> Ajouter excursion
     </a>
 
     <div class="sidebar-section">Boutique</div>

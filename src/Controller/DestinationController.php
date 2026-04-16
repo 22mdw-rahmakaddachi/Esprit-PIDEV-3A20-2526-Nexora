@@ -7,6 +7,7 @@ use App\Entity\DestinationImage;
 use App\Form\DestinationType;
 use App\Repository\DestinationRepository;
 use App\Service\GoogleDriveService;
+use App\Service\TravelInfoService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,6 +24,7 @@ class DestinationController extends AbstractController
         private DestinationRepository  $repo,
         private SluggerInterface       $slugger,
         private GoogleDriveService     $driveService,
+        private TravelInfoService       $travelService,
     ) {}
 
     // ========================= LIST =========================
@@ -55,7 +57,7 @@ class DestinationController extends AbstractController
             $this->em->persist($destination);
             $this->em->flush();
 
-            $this->addFlash('success', 'Destination ajoutée avec succès !');
+            $this->addFlash('success', 'Excursion ajoutée avec succès !');
             return $this->redirectToRoute('admin_destination_index');
         }
 
@@ -78,7 +80,7 @@ class DestinationController extends AbstractController
 
             $this->em->flush();
 
-            $this->addFlash('success', 'Destination modifiée avec succès !');
+            $this->addFlash('success', 'Excursion modifiée avec succès !');
             return $this->redirectToRoute('admin_destination_index');
         }
 
@@ -105,7 +107,7 @@ class DestinationController extends AbstractController
 
             $this->em->remove($destination);
             $this->em->flush();
-            $this->addFlash('success', 'Destination supprimée.');
+            $this->addFlash('success', 'Excursion supprimée.');
         }
 
         return $this->redirectToRoute('admin_destination_index');
@@ -183,6 +185,7 @@ class DestinationController extends AbstractController
         if (empty($imageFiles)) return;
 
         $ordre = $destination->getImagesCount();
+        $newUrls = [];
 
         foreach ($imageFiles as $imageFile) {
             try {
@@ -191,22 +194,31 @@ class DestinationController extends AbstractController
                 $fileName         = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
                 $mimeType         = $imageFile->getMimeType() ?? 'image/jpeg';
 
-                // Upload vers Google Drive — retourne l'URL publique
+                // Upload vers Google Drive — retourne l'URL publique (thumbnail avec sz=w1200)
                 $driveUrl = $this->driveService->uploadImage(
                     $imageFile->getPathname(),
                     $fileName,
                     $mimeType
                 );
 
+                // 1. Stockage dans la table de relation (Recommandé)
                 $destImage = new DestinationImage();
-                $destImage->setChemin($driveUrl);      // ex: https://drive.google.com/uc?id=XXX
+                $destImage->setChemin($driveUrl);
                 $destImage->setOrdre($ordre++);
                 $destination->addDestinationImage($destImage);
+                
+                $newUrls[] = $driveUrl;
 
             } catch (\Throwable $e) {
-                // Log l'erreur sans bloquer les autres images
                 $this->addFlash('warning', "Erreur upload image '{$imageFile->getClientOriginalName()}': " . $e->getMessage());
             }
+        }
+
+        // 2. Synchronisation avec l'ancienne colonne 'images' (pour visibilité directe dans la table 'destination')
+        if (!empty($newUrls)) {
+            $existingImages = $destination->getImages() ? explode(',', $destination->getImages()) : [];
+            $allImages = array_merge($existingImages, $newUrls);
+            $destination->setImages(implode(',', array_filter($allImages)));
         }
     }
 
@@ -232,5 +244,26 @@ class DestinationController extends AbstractController
                 unlink($fullPath);
             }
         }
+    }
+
+    // ========================= MAGIC AUTO-FILL ESSENTIALS =========================
+    #[Route('/api/essentials-magic', name: 'admin_destination_essentials', methods: ['GET'])]
+    public function apiEssentials(Request $request): JsonResponse
+    {
+        $localisation = $request->query->get('q', '');
+        if (!$localisation) return $this->json(['error' => 'Localisation manquante'], 400);
+
+        // Extraire le pays (souvent après la dernière virgule)
+        $parts = explode(',', $localisation);
+        $country = trim(end($parts));
+
+        $data = $this->travelService->getEssentials($country);
+        
+        if (empty($data)) {
+            // Tentative sans virgule si un seul mot
+            $data = $this->travelService->getEssentials($localisation);
+        }
+
+        return $this->json($data);
     }
 }
