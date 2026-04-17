@@ -14,6 +14,12 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Repository\DestinationParticipantRepository;
+use App\Repository\UsersRepository;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\HeaderUtils;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route('/admin/destinations')]
@@ -142,6 +148,68 @@ class DestinationController extends AbstractController
         return $this->render('destination/admin/show.html.twig', [
             'destination' => $destination,
         ]);
+    }
+
+    // ========================= EXPORT PARTICIPANTS (EXCEL) =========================
+    #[Route('/{id}/export-participants', name: 'admin_destination_export_participants', methods: ['GET'])]
+    public function exportParticipants(Destination $destination,DestinationParticipantRepository $partRepo,UsersRepository $userRepo): Response {
+        $participants = $partRepo->findBy(['destination' => $destination]);
+
+        if (count($participants) === 0) {
+            $this->addFlash('warning', 'Aucun participant à exporter pour ' . $destination->getNom());
+            return $this->redirectToRoute('admin_destination_index');
+        }
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Participants');
+
+        // Style des en-têtes
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '4F46E5']],
+            'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
+        ];
+
+        // Remplissage En-têtes
+        $sheet->setCellValue('A1', 'Nom Complet');
+        $sheet->setCellValue('B1', 'Adresse Email');
+        $sheet->setCellValue('C1', 'Date d\'inscription');
+        $sheet->getStyle('A1:C1')->applyFromArray($headerStyle);
+
+        $row = 2;
+        foreach ($participants as $p) {
+            $user = $userRepo->find($p->getUserId());
+            $email = $user ? $user->getEmail() : 'Utilisateur supprimé';
+
+            $sheet->setCellValue('A' . $row, $p->getUserNom());
+            $sheet->setCellValue('B' . $row, $email);
+            $sheet->setCellValue('C' . $row, $p->getJoinedAt()->format('d/m/Y H:i'));
+            
+            // Bordures pour les données
+            $sheet->getStyle("A$row:C$row")->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            
+            $row++;
+        }
+
+        // Auto-dimensionnement
+        foreach (range('A', 'C') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $writer = new Xlsx($spreadsheet);
+        $safeName = $this->slugger->slug($destination->getNom());
+        $fileName = "Participants_{$safeName}_" . date('Y-m-d') . ".xlsx";
+
+        $response = new StreamedResponse(function() use ($writer) {
+            $writer->save('php://output');
+        });
+
+        $disposition = HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, $fileName);
+        $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $response->headers->set('Content-Disposition', $disposition);
+
+        return $response;
     }
 
     // ========================= AUTOCOMPLETE LOCALISATION =========================

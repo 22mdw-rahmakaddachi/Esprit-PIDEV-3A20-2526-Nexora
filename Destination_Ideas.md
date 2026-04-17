@@ -5,15 +5,15 @@ Ce document récapitule les fonctionnalités innovantes qui peuvent être ajout�
 ---
 
 ## 🏗️ Niveau 1 : Expérience Utilisateur (UX) & Utilité
-### 1. Intégration Météo en Temps Réel 🌦️
+### 1. Intégration Météo en Temps Réel 🌦️ ✅ **[COMPLET]**
 *   **Description** : Afficher la météo actuelle et les prévisions sur 3 jours du lieu de destination.
 *   **Techno** : API OpenWeatherMap + JavaScript.
 
-### 2. Carte Interactive 🗺️
+### 2. Carte Interactive 🗺️ ✅ **[COMPLET]**
 *   **Description** : Afficher un marqueur sur une carte Leaflet/Google Maps.
 *   **Option** : Ajouter des Points d'Intérêt (POI) alentours comme des restaurants ou monuments.
 
-### 3. Compte à Rebours (Countdown) ⏳
+### 3. Compte à Rebours (Countdown) ⏳ ✅ **[COMPLET]**
 *   **Description** : Afficher dynamiquement le temps restant avant le départ sur la page de détails et le profil utilisateur.
 
 ### 4. Partage Social Rapide 📱
@@ -34,7 +34,7 @@ Ce document récapitule les fonctionnalités innovantes qui peuvent être ajout�
 
 ### ⚡ Niveau 2.1 : Gestion Intelligente & Groupes (Plus Innovant)
 *   **Vote de Budget Collaboratif** : Pour les voyages de groupe, permettre aux membres de voter sur la gamme de prix des activités (Économique, Moyen, Luxe).
-*   **Assistant Bagages Prédictif** : L'app analyse la météo ET le type d'activités (ex: rando) pour suggérer une liste de valise ultra-précise (ex: "N'oubliez pas vos chaussures de marche et une veste imperméable").
+*   **Assistant Bagages Prédictif** ✅ **[COMPLET]** : L'app analyse la météo ET le type d'activités (ex: rando) pour suggérer une liste de valise ultra-précise (ex: "N'oubliez pas vos chaussures de marche et une veste imperméable").
 
 ---
 
@@ -53,7 +53,7 @@ Ce document récapitule les fonctionnalités innovantes qui peuvent être ajout�
 ### 11. Mini-Lexique Local 🗣️
 *   **Description** : Pour les destinations étrangères, afficher les 5-10 mots essentiels de la langue locale.
 
-### 12. Système d'Avis et de Notation ⭐
+### 12. Système d'Avis et de Notation ⭐ ✅ **[COMPLET]**
 *   **Description** : Permettre aux participants de noter l'organisation et la destination après le voyage pour aider les futurs clients.
 
 ### 13. Gamification (Badges) 🏆
@@ -72,7 +72,7 @@ Ce document récapitule les fonctionnalités innovantes qui peuvent être ajout�
 *   **Description** : Utiliser l'IA pour générer un planning personnalisé de 3 à 7 jours basé sur les intérêts (nature, culture, fête) et la destination.
 *   **Techno** : OpenAI API / Google Gemini API.
 
-### 17. Aperçu Immersif 360° / VR 🕶️
+### 17. Aperçu Immersif 360° / VR 🕶️ ✅ **[COMPLET]**
 *   **Description** : Intégrer une vue panoramique 360° (via StreetView ou photos sphériques) pour permettre une immersion totale avant la réservation.
 
 ### 18. Mode "Surprise Me" (Destination Mystère) 🎁
@@ -183,11 +183,11 @@ Ces idées sont directement liées au code actuel de votre module **Destination/
 *   **Concept** : Intégrer `Chart.js` dans votre tableau de bord admin pour afficher un graphique des destinations les plus rejointes ou l'évolution des inscriptions par mois.
 *   **Lien avec votre code** : Utiliser les données de la table `destination_participant` pour alimenter le graphique.
 
-### 3. Filtre de Recherche Avancé 🔍💰
+### 3. Filtre de Recherche Avancé 🔍💰 ✅ **[COMPLET]**
 *   **Concept** : Ajouter un curseur (range slider) pour filtrer par prix et un sélecteur de date dans votre barre de recherche actuelle.
 *   **Lien avec votre code** : Modifier la méthode `index` de `DestinationClientController` pour accepter les paramètres `min_price`, `max_price` et `date`.
 
-### 4. Export Excel de la Liste des Participants 📥📗
+### 4. Export Excel de la Liste des Participants 📥📗 ✅ **[COMPLET]**
 *   **Concept** : Ajouter un bouton "Exporter la liste" pour l'administrateur afin de télécharger les noms et emails des participants d'une excursion donnée au format Excel (.xlsx).
 *   **Techno** : `PhpSpreadsheet`.
 
@@ -195,7 +195,7 @@ Ces idées sont directement liées au code actuel de votre module **Destination/
 *   **Concept** : Permettre aux utilisateurs de cliquer sur un cœur pour enregistrer une destination dans leur profil sans forcément la rejoindre immédiatement.
 *   **Lien avec votre code** : Créer une entité `Favorite` liée à `User` et `Destination`.
 
-### 6. Gestion Automatisée du Statut (Pleine/Ouverte) 🚦
+### 6. Gestion Automatisée du Statut (Pleine/Ouverte) 🚦 ✅ **[COMPLET]**
 *   **Concept** : Faire en sorte que le statut passe automatiquement à "Complet" dès que `nbParticipants >= capaciteMax`, et griser le bouton "Rejoindre" dynamiquement.
 *   **Lien avec votre code** : Logique à ajouter dans la méthode `rejoindre` et dans le template `show.html.twig`.
 
@@ -218,7 +218,7 @@ Voici des idées qui se concentrent exclusivement sur la gestion et l'expérienc
 *   **Concept** : Quand l'excursion est "Complète", proposer un bouton "M'avertir si une place se libère".
 *   **Logique** : Si un participant annule ou si l'admin augmente la capacité, un email automatique est envoyé aux personnes en liste d'attente.
 
-### 9. Conseils de Bagages Intelligents (Weather Tips) ☂️🕶️
+### 9. Conseils de Bagages Intelligents (Weather Tips) ☂️🕶️ ✅ **[COMPLET]**
 *   **Concept** : Puisque vous avez déjà l'API météo, afficher des conseils automatiques basés sur les prévisions :
     *   *S'il pleut* -> "N'oubliez pas votre parapluie !"
     *   *Si > 30°C* -> "Prévoyez de la crème solaire et beaucoup d'eau."
@@ -232,7 +232,7 @@ Voici des idées qui se concentrent exclusivement sur la gestion et l'expérienc
 ### 12. Système de Filtrage par "Tags" Thématiques 🏷️
 *   **Concept** : Ajouter des tags simples (ex: #Mer, #Désert, #Randonnée) sur chaque destination pour une recherche plus intuitive.
 
-### 13. Notification de Rappel de Départ (24h avant) 🔔
+### 13. Notification de Rappel de Départ (24h avant) 🔔 ✅ **[COMPLET]**
 *   **Concept** : Envoyer un email automatique 24h avant le départ pour rappeler les infos essentielles (lieu, heure, météo prévue).
 
 ---
@@ -242,5 +242,6 @@ Voici des idées qui se concentrent exclusivement sur la gestion et l'expérienc
 
 
 
-php bin/console messenger
-scheduler_default -v
+
+
+php bin/console messenger:consume scheduler_default -v
