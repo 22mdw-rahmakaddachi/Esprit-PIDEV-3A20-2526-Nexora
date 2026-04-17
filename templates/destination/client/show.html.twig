@@ -298,6 +298,12 @@
         border: 2px solid #BBF7D0;
         cursor: default;
     }
+    .btn-rejoindre.full {
+        background: #fee2e2;
+        color: #DC2626;
+        border: 2px solid #FECACA;
+        cursor: not-allowed;
+    }
     .btn-rejoindre.loading { opacity: .7; pointer-events: none; }
 
     .status-badge-join {
@@ -1089,12 +1095,15 @@
                 </div>
 
                 {% if app.user %}
-                    <button class="btn-rejoindre {{ hasJoined ? 'joined' : 'primary' }}"
+                    {% set isFull = destination.nbParticipants >= destination.capaciteMax %}
+                    <button class="btn-rejoindre {{ hasJoined ? 'joined' : (isFull ? 'full' : 'primary') }}"
                             id="btnRejoindre"
-                            onclick="rejoindreDestination()"
-                            {% if hasJoined %}disabled{% endif %}>
+                            onclick="{{ not hasJoined and not isFull ? 'rejoindreDestination()' : '' }}"
+                            {% if hasJoined or isFull %}disabled{% endif %}>
                         {% if hasJoined %}
                             ✅ Vous avez déjà rejoint cette excursion
+                        {% elseif isFull %}
+                            🚫 Désolé, cette excursion est complète
                         {% else %}
                             ✈️ Rejoindre cette excursion
                         {% endif %}
@@ -1621,6 +1630,24 @@ function updateParticipantsUI(nb, max, statut) {
         if (badgeImg) {
             badgeImg.className = 'badge-overlay badge-disponible';
             badgeImg.textContent = '✅ Disponible';
+        }
+    } else if (statut === 'Complet') {
+        if (badgeJoin) {
+            badgeJoin.className = 'status-badge-join status-complet';
+            badgeJoin.textContent = '🔴 Complet';
+        }
+        if (badgeImg) {
+            badgeImg.className = 'badge-overlay badge-complet';
+            badgeImg.textContent = '🔴 Complet';
+        }
+        
+        // Désactivation du bouton rejoindre si nécessaire
+        const btn = document.getElementById('btnRejoindre');
+        if (btn && !btn.classList.contains('joined')) {
+            btn.className = 'btn-rejoindre full';
+            btn.textContent = '🚫 Désolé, cette excursion est complète';
+            btn.disabled = true;
+            btn.onclick = null;
         }
     }
 }

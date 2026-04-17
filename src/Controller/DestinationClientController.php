@@ -115,18 +115,32 @@ class DestinationClientController extends AbstractController
             ]);
         }
 
-        // 2. Enregistre le participant
+        // 2. Vérifie si l'excursion est complète
+        if ($destination->getNbParticipants() >= $destination->getCapaciteMax()) {
+            return $this->json([
+                'success'       => false,
+                'message'       => 'Désolé, cette excursion est déjà complète.',
+                'nbParticipants'=> $destination->getNbParticipants(),
+                'capaciteMax'   => $destination->getCapaciteMax(),
+                'statut'        => 'Complet',
+            ]);
+        }
+
+        // 3. Enregistre le participant
         $participant = new DestinationParticipant();
         $participant->setDestination($destination);
         $participant->setUserId($user->getId());
         $participant->setUserNom($user->getFullName());
         $this->em->persist($participant);
 
-        // 3. Incrémente le compteur
+        // 4. Incrémente le compteur et met à jour le statut
         $destination->setNbParticipants($destination->getNbParticipants() + 1);
+        if ($destination->getNbParticipants() >= $destination->getCapaciteMax()) {
+            $destination->setStatut('Complet');
+        }
         
         $this->em->flush();
-        // 4. 📧 ENVOI D'EMAIL PROFESSIONNEL
+        // 5. 📧 ENVOI D'EMAIL PROFESSIONNEL
         try {
             $subject = '🚢 Confirmation : ' . $destination->getNom() . ' - Départ le ' . ($destination->getDateLancement() ? $destination->getDateLancement()->format('d/m/Y') : 'à venir');
 
@@ -156,6 +170,7 @@ class DestinationClientController extends AbstractController
             'capaciteMax'    => $destination->getCapaciteMax(),
             'statut'         => $destination->getStatut(),
         ]);
+
     }
 
     // ========================= WEATHER =========================

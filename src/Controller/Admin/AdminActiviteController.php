@@ -2,6 +2,11 @@
 
 namespace App\Controller\Admin;
 
+use App\Repository\ActiviteRepository;
+use App\Repository\CodePromoRepository;
+use App\Repository\DestinationParticipantRepository;
+use App\Repository\DestinationRepository;
+use App\Repository\ProduitParentRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -9,16 +14,66 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/admin')]
 final class AdminActiviteController extends AbstractController
 {
+    public function __construct(
+        private ActiviteRepository $activiteRepo,
+        private DestinationRepository $destinationRepo,
+        private DestinationParticipantRepository $participantRepo,
+        private ProduitParentRepository $produitRepo,
+        private CodePromoRepository $promoRepo
+    ) {}
+
     #[Route('/dashboard', name: 'admin_dashboard')]
     public function dashboard(): Response
     {
+        // Totaux
+        $totalActivites = $this->activiteRepo->count([]);
+        $totalDestinations = $this->destinationRepo->count([]);
+        $totalReservations = $this->participantRepo->count([]);
+        
+        // Calcul des places restantes totales
+        $activitesAll = $this->activiteRepo->findAll();
+        $placesLibres = 0;
+        foreach ($activitesAll as $a) {
+            $placesLibres += $a->getPlacesDisponibles();
+        }
+
+        // --- Données pour les Graphiques ---
+        
+        // 1. Top 5 Excursions (Popularité)
+        $topDestinations = $this->destinationRepo->findBy([], ['nbParticipants' => 'DESC'], 5);
+        $destLabels = [];
+        $destData = [];
+        foreach ($topDestinations as $d) {
+            $destLabels[] = $d->getNom();
+            $destData[]   = $d->getNbParticipants();
+        }
+
+        // 2. Répartition des Activités par Type
+        $typesCount = [];
+        foreach ($activitesAll as $a) {
+            $t = $a->getType() ?? 'Autre';
+            $typesCount[$t] = ($typesCount[$t] ?? 0) + 1;
+        }
+
         return $this->render('admin/dashboard.html.twig', [
-            'totalActivites'    => 0,
-            'totalReservations' => 0,
-            'placesDisponibles' => 0,
-            'demandesEnAttente' => 0,
-            'activites'         => [],
+            'totalActivites'    => $totalActivites,
+            'totalReservations' => $totalReservations,
+            'placesDisponibles' => $placesLibres,
+            'totalDestinations' => $totalDestinations,
+            'demandesEnAttente' => 0, // À lier plus tard si nécessaire
+            
+            // Listes pour les tableaux
+            'activites'         => $this->activiteRepo->findBy([], ['id' => 'DESC'], 5),
+            'destinations'      => $this->destinationRepo->findBy([], ['id' => 'DESC'], 5),
+            'produits'          => $this->produitRepo->findBy([], ['id' => 'DESC'], 5),
+            'promos'            => $this->promoRepo->findBy([], ['id' => 'DESC'], 5),
             'demandes'          => [],
+            
+            // Stats pour Chart.js (JSON)
+            'destLabels' => $destLabels,
+            'destData'   => $destData,
+            'activiteTypes' => array_keys($typesCount),
+            'activiteCounts' => array_values($typesCount),
         ]);
     }
 

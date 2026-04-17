@@ -81,6 +81,9 @@ class Destination
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $panoramaUrl = null;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $reminderSent = false;
+
     public function __construct()
     {
         $this->destinationImages = new ArrayCollection();
@@ -279,4 +282,7 @@ class Destination
 
     public function getPanoramaUrl(): ?string { return $this->panoramaUrl; }
     public function setPanoramaUrl(?string $v): static { $this->panoramaUrl = $v; return $this; }
+
+    public function isReminderSent(): bool { return $this->reminderSent; }
+    public function setReminderSent(bool $reminderSent): static { $this->reminderSent = $reminderSent; return $this; }
 }
