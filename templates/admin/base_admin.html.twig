@@ -262,7 +262,6 @@
         <span class="sidebar-badge" id="sb-demandes" style="display:none">0</span>
     </a>
 
-<<<<<<< HEAD
     <div class="sidebar-section">Excursions</div>
     <a href="{{ path('admin_destination_index') }}" class="sidebar-link {{ 'admin_destination' in app.request.get('_route') ? 'active' : '' }}">
         <i class="bi bi-geo-alt-fill"></i> Mes excursions
@@ -289,11 +288,11 @@
     </a>
     <a href="{{ path('admin_promo_new') }}" class="sidebar-link {{ app.request.get('_route') == 'admin_promo_new' ? 'active' : '' }}">
         <i class="bi bi-plus-circle"></i> Nouveau code promo
-=======
+    </a>
+
     <div class="sidebar-section">Avis</div>
     <a href="{{ path('admin_avis_activites') }}" class="sidebar-link {{ 'admin_avis' in app.request.get('_route') ? 'active' : '' }}">
         <i class="bi bi-chat-square-text-fill"></i> Avis & Commentaires
->>>>>>> b7608f2c4cd9d42151a65a41f613645a284245aa
     </a>
 
     <div class="sidebar-section">Aperçu</div>
