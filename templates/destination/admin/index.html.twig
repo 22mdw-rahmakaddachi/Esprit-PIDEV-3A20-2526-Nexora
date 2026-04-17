@@ -26,6 +26,14 @@
     .confirm-modal p { color: #666; margin-bottom: 24px; }
     .confirm-actions { display: flex; gap: 12px; justify-content: flex-end; }
 
+    .btn-success-admin {
+        background: #d1f2eb; color: #1a7a4a;
+        border: none; border-radius: 8px;
+        padding: 6px 14px; font-size: 0.82rem;
+        transition: background 0.2s;
+    }
+    .btn-success-admin:hover { background: #1a7a4a; color: #fff; }
+
     tr.dest-row.hidden { display: none; }
     .no-results-row { text-align: center; color: #888; padding: 40px; }
 </style>
@@ -106,6 +114,9 @@
                 </td>
                 <td class="text-end">
                     <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ path('admin_destination_export_participants', {id: dest.id}) }}" class="btn-success-admin btn-sm" title="Exporter les participants">
+                            <i class="bi bi-file-earmark-excel"></i>
+                        </a>
                         <a href="{{ path('admin_destination_edit', {id: dest.id}) }}" class="btn-edit-admin btn-sm">
                             <i class="bi bi-pencil"></i>
                         </a>
