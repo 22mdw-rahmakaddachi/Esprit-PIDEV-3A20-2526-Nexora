@@ -7,6 +7,7 @@ use App\Entity\Paiement;
 use App\Entity\ParticipationDemande;
 use App\Repository\CommandeRepository;
 use App\Repository\ParticipationDemandeRepository;
+use App\Service\ActivityEmailService;
 use App\Service\FlouciService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -223,6 +224,7 @@ final class PaiementController extends AbstractController
         Request $request,
         ParticipationDemandeRepository $demandeRepo,
         FlouciService $flouci,
+        ActivityEmailService $emailService,
         EntityManagerInterface $em
     ): Response {
         $demande   = $demandeRepo->find($demandeId);
@@ -243,7 +245,15 @@ final class PaiementController extends AbstractController
                     $paiement->setDatePaiement(new \DateTime());
                 }
 
+                // Décrémenter les places disponibles
+                $activite = $demande->getActivite();
+                $activite->setPlacesDisponibles(max(0, $activite->getPlacesDisponibles() - 1));
+
                 $em->flush();
+
+                // Envoyer les emails de confirmation de paiement
+                $emailService->sendConfirmationPaiementClient($demande, $paymentId);
+                $emailService->sendConfirmationPaiementPartenaire($demande, $paymentId);
 
                 return $this->render('participation/paiement_succes.html.twig', [
                     'demande'   => $demande,

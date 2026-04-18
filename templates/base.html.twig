@@ -759,6 +759,86 @@
                 })
                 .catch(() => {});
         }, 30000);
+
+        // ── Notifications temps réel (polling SSE) ──
+        {% if app.user %}
+        (function() {
+            let lastId = 0;
+
+            // Conteneur toast
+            const toastContainer = document.createElement('div');
+            toastContainer.style.cssText = 'position:fixed;top:80px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:10px;min-width:320px;max-width:380px';
+            document.body.appendChild(toastContainer);
+
+            function showToast(titre, message, type) {
+                const colors = {
+                    'NOUVELLE_DEMANDE': { bg: '#6c3fc5', icon: '📩' },
+                    'ACCEPTATION':      { bg: '#16a34a', icon: '✅' },
+                    'REFUS':            { bg: '#dc2626', icon: '❌' },
+                    'PAIEMENT':         { bg: '#0284c7', icon: '💳' },
+                };
+                const c = colors[type] || { bg: '#6c3fc5', icon: '🔔' };
+
+                const toast = document.createElement('div');
+                toast.style.cssText = `background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.15);overflow:hidden;animation:slideIn 0.3s ease;border-left:4px solid ${c.bg}`;
+                toast.innerHTML = `
+                    <div style="padding:14px 16px;display:flex;align-items:flex-start;gap:12px">
+                        <div style="font-size:22px;flex-shrink:0">${c.icon}</div>
+                        <div style="flex:1">
+                            <div style="font-weight:700;font-size:14px;color:#222;margin-bottom:3px">${titre}</div>
+                            <div style="font-size:13px;color:#666;line-height:1.4">${message}</div>
+                        </div>
+                        <button onclick="this.closest('div[style]').remove()" style="background:none;border:none;color:#aaa;font-size:18px;cursor:pointer;padding:0;line-height:1">×</button>
+                    </div>
+                    <div style="height:3px;background:${c.bg};animation:toastProgress 5s linear forwards"></div>
+                `;
+
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes slideIn { from { transform:translateX(120%);opacity:0 } to { transform:translateX(0);opacity:1 } }
+                    @keyframes toastProgress { from { width:100% } to { width:0% } }
+                `;
+                document.head.appendChild(style);
+
+                toastContainer.appendChild(toast);
+                setTimeout(() => toast.remove(), 5500);
+
+                // Mettre à jour les badges
+                fetch('/api/badges').then(r => r.ok ? r.json() : null).then(data => {
+                    if (!data) return;
+                    updateBadge('badge-historique', data.mesActivites ?? 0);
+                    updateBadge('badge-demandes',   data.demandes ?? 0);
+                }).catch(() => {});
+            }
+
+            function pollNotifications() {
+                fetch('/api/notifications/stream?lastId=' + lastId)
+                    .then(r => r.ok ? r.json() : [])
+                    .then(notifications => {
+                        if (!Array.isArray(notifications)) return;
+                        notifications.forEach(n => {
+                            showToast(n.titre, n.message, n.type);
+                            if (n.id > lastId) lastId = n.id;
+                        });
+                    })
+                    .catch(() => {});
+            }
+
+            // Initialiser lastId avec la dernière notification connue
+            fetch('/api/notifications/stream?lastId=0')
+                .then(r => r.ok ? r.json() : [])
+                .then(notifications => {
+                    if (Array.isArray(notifications) && notifications.length > 0) {
+                        lastId = Math.max(...notifications.map(n => n.id));
+                    }
+                })
+                .catch(() => {})
+                .finally(() => {
+                    // Démarrer le polling toutes les 5 secondes
+                    setInterval(pollNotifications, 5000);
+                });
+        })();
+        {% endif %}
     </script>
     {% block javascripts %}{% endblock %}
 </body>

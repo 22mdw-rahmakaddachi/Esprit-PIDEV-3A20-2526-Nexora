@@ -145,4 +145,35 @@ class ActivityEmailService
             ['demande' => $demande, 'activite' => $activite]
         );
     }
+
+    /** Email au client : confirmation de paiement */
+    public function sendConfirmationPaiementClient(ParticipationDemande $demande, string $paymentId): void
+    {
+        $activite = $demande->getActivite();
+        $this->send(
+            $demande->getClientEmail(),
+            '💳 Paiement confirmé — ' . $activite->getNom(),
+            'emails/activite/paiement_client.html.twig',
+            ['demande' => $demande, 'activite' => $activite, 'paymentId' => $paymentId]
+        );
+    }
+
+    /** Email au partenaire : paiement reçu */
+    public function sendConfirmationPaiementPartenaire(ParticipationDemande $demande, string $paymentId): void
+    {
+        $activite   = $demande->getActivite();
+        $partenaire = $activite->getPartenaire();
+        $partenaireUser = $partenaire?->getUser();
+
+        if (!$partenaireUser || empty($partenaireUser->getEmail())) {
+            return;
+        }
+
+        $this->send(
+            $partenaireUser->getEmail(),
+            '💰 Paiement reçu — ' . $activite->getNom(),
+            'emails/activite/paiement_partenaire.html.twig',
+            ['demande' => $demande, 'activite' => $activite, 'paymentId' => $paymentId]
+        );
+    }
 }
