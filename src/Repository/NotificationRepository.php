@@ -35,4 +35,18 @@ class NotificationRepository extends ServiceEntityRepository
             ->setParameter('utype', $userType)
             ->getQuery()->getSingleScalarResult();
     }
+
+    public function findNewSince(int $userId, string $userType, int $lastId): array
+    {
+        return $this->createQueryBuilder('n')
+            ->where('n.userId = :uid')
+            ->andWhere('n.userType = :utype')
+            ->andWhere('n.id > :lastId')
+            ->andWhere('n.lue = false')
+            ->setParameter('uid', $userId)
+            ->setParameter('utype', $userType)
+            ->setParameter('lastId', $lastId)
+            ->orderBy('n.id', 'ASC')
+            ->getQuery()->getResult();
+    }
 }

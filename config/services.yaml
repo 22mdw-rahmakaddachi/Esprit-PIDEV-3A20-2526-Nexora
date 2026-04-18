@@ -5,6 +5,9 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     huggingface_token: ''
+    flouci_mode_test: 'true'
+    flouci_public_key: ''
+    flouci_private_key: ''
 
 services:
     _defaults:
@@ -25,3 +28,9 @@ services:
     App\Controller\AiController:
         arguments:
             $huggingFaceToken: '%env(default:huggingface_token:HUGGINGFACE_TOKEN)%'
+
+    App\Service\FlouciService:
+        arguments:
+            $publicKey:  '%env(default:flouci_public_key:FLOUCI_PUBLIC_KEY)%'
+            $privateKey: '%env(default:flouci_private_key:FLOUCI_PRIVATE_KEY)%'
+            $modeTest:   '%env(default:flouci_mode_test:FLOUCI_MODE_TEST)%'

@@ -123,10 +123,11 @@
 
                             {# Bouton payer si acceptée et non payée #}
                             {% if demande.statut == 'ACCEPTEE' and demande.paiementEffectue == 0 %}
-                            <button class="btn btn-sm rounded-pill px-3 btn-pulse"
-                                    style="background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;font-size:0.82rem">
+                            <a href="{{ path('app_paiement_activite_initier', {demandeId: demande.id}) }}"
+                               class="btn btn-sm rounded-pill px-3 btn-pulse"
+                               style="background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;font-size:0.82rem">
                                 <i class="bi bi-credit-card me-1"></i>Payer {{ demande.activite.prix }} TND
-                            </button>
+                            </a>
                             {% elseif demande.statut == 'ACCEPTEE' and demande.paiementEffectue == 1 %}
                             <span class="badge rounded-pill px-3 py-2"
                                   style="background:#d1f2eb;color:#1a7a4a;font-size:0.82rem">
