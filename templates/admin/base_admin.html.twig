@@ -277,10 +277,6 @@
     </a>
 
     <div class="sidebar-section">Boutique</div>
-    <a href="{{ path('admin_notifications') }}" class="sidebar-link {{ app.request.get('_route') == 'admin_notifications' ? 'active' : '' }}">
-        <i class="bi bi-bag-check-fill"></i> Commandes reçues
-        <span class="sidebar-badge" id="notif-badge-sidebar" style="display:none">0</span>
-    </a>
     <a href="{{ path('admin_categories') }}" class="sidebar-link {{ 'admin_categorie' in app.request.get('_route') or 'admin_sous_categorie' in app.request.get('_route') ? 'active' : '' }}">
         <i class="bi bi-grid-fill"></i> Catégories
     </a>
@@ -361,49 +357,6 @@
             el.classList.remove('show'); setTimeout(() => el.remove(), 300);
         });
     }, 4000);
-
-    // Badge notifications commandes — polling toutes les 15 secondes
-    function refreshNotifBadge() {
-        fetch('/admin/notifications/api/count')
-            .then(r => r.ok ? r.json() : null)
-            .then(d => {
-                if (!d) return;
-                const badge = document.getElementById('notif-badge-sidebar');
-                if (!badge) return;
-                badge.textContent = d.count;
-                badge.style.display = d.count > 0 ? 'inline' : 'none';
-                // Toast si nouvelle notification
-                if (d.count > 0 && !window._lastNotifCount) {
-                    window._lastNotifCount = d.count;
-                } else if (d.count > (window._lastNotifCount || 0)) {
-                    window._lastNotifCount = d.count;
-                    showNewOrderToast();
-                } else {
-                    window._lastNotifCount = d.count;
-                }
-            })
-            .catch(() => {});
-    }
-
-    function showNewOrderToast() {
-        const t = document.createElement('div');
-        t.style.cssText = 'position:fixed;top:80px;right:20px;z-index:99999;min-width:300px;animation:fadeIn 0.3s ease';
-        t.innerHTML = `<div class="alert shadow-lg rounded-4 p-3 border-0" style="background:#fff;border-left:4px solid var(--primary)!important">
-            <div class="d-flex align-items-center gap-2">
-                <span style="font-size:1.5rem">🛍️</span>
-                <div>
-                    <div class="fw-bold small" style="color:var(--primary-dark)">Nouvelle commande reçue !</div>
-                    <a href="/admin/notifications" class="small" style="color:var(--primary)">Voir les détails →</a>
-                </div>
-                <button onclick="this.closest('div[style]').remove()" class="btn-close ms-auto" style="font-size:0.7rem"></button>
-            </div>
-        </div>`;
-        document.body.appendChild(t);
-        setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity 0.3s'; setTimeout(()=>t.remove(),300); }, 7000);
-    }
-
-    refreshNotifBadge();
-    setInterval(refreshNotifBadge, 15000);
 </script>
 {% block javascripts %}{% endblock %}
 </body>

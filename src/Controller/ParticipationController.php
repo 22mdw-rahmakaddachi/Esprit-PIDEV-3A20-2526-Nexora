@@ -7,6 +7,8 @@ use App\Entity\Users;
 use App\Repository\ActiviteRepository;
 use App\Repository\NotificationRepository;
 use App\Repository\ParticipationDemandeRepository;
+use App\Repository\PartenaireRepository;
+use App\Service\ActivityEmailService;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,13 +26,23 @@ final class ParticipationController extends AbstractController
         return $user instanceof Users ? $user : null;
     }
 
+    /** Retourne l'ID du partenaire lié à l'utilisateur connecté, ou 0 */
+    private function getPartenaireId(PartenaireRepository $partenaireRepo): int
+    {
+        $user = $this->getUser();
+        if (!$user instanceof Users) return 0;
+        $partenaire = $partenaireRepo->findOneBy(['user' => $user]);
+        return $partenaire?->getId() ?? 0;
+    }
+
     #[Route('/api/badges', name: 'api_badges')]
-    public function apiBadges(ParticipationDemandeRepository $demandeRepo, NotificationRepository $notifRepo, ActiviteRepository $activiteRepo): JsonResponse
+    public function apiBadges(ParticipationDemandeRepository $demandeRepo, NotificationRepository $notifRepo, ActiviteRepository $activiteRepo, PartenaireRepository $partenaireRepo): JsonResponse
     {
         $client = $this->getCurrentClient();
         $notifNonLues = $client ? $notifRepo->countUnread($client->getId(), 'CLIENT') : 0;
 
-        $activites = $activiteRepo->findByPartenaire(8);
+        $partenaireId = $this->getPartenaireId($partenaireRepo);
+        $activites = $partenaireId ? $activiteRepo->findByPartenaire($partenaireId) : [];
         $demandesEnAttente = 0;
         foreach ($activites as $a) {
             foreach ($demandeRepo->findByActivite($a->getId()) as $d) {
@@ -42,7 +54,7 @@ final class ParticipationController extends AbstractController
     }
 
     #[Route('/activites/{id}/inscrire', name: 'app_activite_inscrire', methods: ['POST'])]
-    public function inscrire(int $id, Request $request, ActiviteRepository $activiteRepo, ParticipationDemandeRepository $demandeRepo, EntityManagerInterface $em, NotificationService $notif): Response
+    public function inscrire(int $id, Request $request, ActiviteRepository $activiteRepo, ParticipationDemandeRepository $demandeRepo, EntityManagerInterface $em, NotificationService $notif, ActivityEmailService $emailService): Response
     {
         $activite = $activiteRepo->find($id);
         if (!$activite) throw $this->createNotFoundException();
@@ -87,15 +99,18 @@ final class ParticipationController extends AbstractController
         $activite->setPlacesDisponibles(max(0, $activite->getPlacesDisponibles() - 1));
         $em->flush();
 
-        // Notifier le partenaire — utiliser user_id du partenaire, pas partenaire_id
+        // Notifier le partenaire via la relation ORM
         $partenaire = $activite->getPartenaire();
         if ($partenaire) {
-            $conn = $em->getConnection();
-            $partenaireUserId = $conn->fetchOne('SELECT user_id FROM partenaire WHERE id = ?', [$partenaire->getId()]);
-            if ($partenaireUserId) {
-                $notif->notifyNouvelleDemandePartenaire($demande, (int)$partenaireUserId);
+            $partenaireUser = $partenaire->getUser();
+            if ($partenaireUser) {
+                $notif->notifyNouvelleDemandePartenaire($demande, $partenaireUser->getId());
             }
         }
+
+        // Envoyer les emails
+        $emailService->sendConfirmationDemande($demande);
+        $emailService->sendNotificationPartenaire($demande);
 
         $this->addFlash('success', '✅ Votre demande a été envoyée !');
         return $this->redirectToRoute('app_mes_activites');
@@ -122,9 +137,10 @@ final class ParticipationController extends AbstractController
     }
 
     #[Route('/partenaire/demandes', name: 'app_partenaire_demandes')]
-    public function partenaireDemandes(ParticipationDemandeRepository $demandeRepo, ActiviteRepository $activiteRepo): Response
+    public function partenaireDemandes(ParticipationDemandeRepository $demandeRepo, ActiviteRepository $activiteRepo, PartenaireRepository $partenaireRepo): Response
     {
-        $activites = $activiteRepo->findByPartenaire(8);
+        $partenaireId = $this->getPartenaireId($partenaireRepo);
+        $activites = $partenaireId ? $activiteRepo->findByPartenaire($partenaireId) : [];
         $demandes = [];
         foreach ($activites as $a) {
             $demandes = array_merge($demandes, $demandeRepo->findByActivite($a->getId()));
@@ -133,25 +149,27 @@ final class ParticipationController extends AbstractController
     }
 
     #[Route('/partenaire/demandes/{id}/accepter', name: 'app_demande_accepter', methods: ['POST'])]
-    public function accepter(int $id, ParticipationDemandeRepository $repo, EntityManagerInterface $em, NotificationService $notif): Response
+    public function accepter(int $id, ParticipationDemandeRepository $repo, EntityManagerInterface $em, NotificationService $notif, ActivityEmailService $emailService): Response
     {
         $demande = $repo->find($id);
         if (!$demande) throw $this->createNotFoundException();
         $demande->setStatut(ParticipationDemande::STATUT_ACCEPTEE);
         $em->flush();
         $notif->notifyAcceptation($demande);
+        $emailService->sendAcceptation($demande);
         $this->addFlash('success', '✅ Demande acceptée.');
         return $this->redirectToRoute('app_partenaire_demandes');
     }
 
     #[Route('/partenaire/demandes/{id}/refuser', name: 'app_demande_refuser', methods: ['POST'])]
-    public function refuser(int $id, ParticipationDemandeRepository $repo, EntityManagerInterface $em, NotificationService $notif): Response
+    public function refuser(int $id, ParticipationDemandeRepository $repo, EntityManagerInterface $em, NotificationService $notif, ActivityEmailService $emailService): Response
     {
         $demande = $repo->find($id);
         if (!$demande) throw $this->createNotFoundException();
         $demande->setStatut(ParticipationDemande::STATUT_REFUSEE);
         $em->flush();
         $notif->notifyRefus($demande);
+        $emailService->sendRefus($demande);
         $this->addFlash('info', '❌ Demande refusée.');
         return $this->redirectToRoute('app_partenaire_demandes');
     }

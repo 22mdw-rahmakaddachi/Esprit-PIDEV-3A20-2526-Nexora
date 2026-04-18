@@ -20,7 +20,7 @@ class ProduitParentRepository extends ServiceEntityRepository
     public function findActifs(?int $sousCategorieId = null): array
     {
         $qb = $this->createQueryBuilder('p')
-            ->where('LOWER(p.statut) = :statut OR p.statut IS NULL')
+            ->where('p.statut = :statut')
             ->setParameter('statut', 'actif')
             ->orderBy('p.dateAjout', 'DESC');
 

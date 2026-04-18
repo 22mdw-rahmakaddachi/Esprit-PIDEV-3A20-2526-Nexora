@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: DejaVu Sans, sans-serif; margin: 0; padding: 20px; background: #fff; color: #333; font-size: 13px; }
+  .ticket { width: 100%; border: 2px solid #6c3fc5; border-radius: 8px; }
+  .header { background-color: #6c3fc5; color: #fff; padding: 20px 25px; }
+  .header-table { width: 100%; }
+  .header h1 { margin: 0; font-size: 20px; color: #fff; }
+  .header p { margin: 4px 0 0; font-size: 12px; color: #ddd; }
+  .ref { font-size: 26px; font-weight: bold; color: #fff; text-align: right; }
+  .barcode { height: 5px; background: repeating-linear-gradient(90deg,#6c3fc5 0,#6c3fc5 3px,#fff 3px,#fff 6px); }
+  .body { padding: 20px 25px; }
+  .status { background: #e8f5e9; border: 2px solid #4caf50; border-radius: 6px; padding: 10px; text-align: center; color: #2e7d32; font-size: 15px; font-weight: bold; margin-bottom: 18px; }
+  .sections-table { width: 100%; margin-bottom: 18px; }
+  .section { background: #f8f5ff; border: 1px solid #e0d5f5; border-radius: 6px; padding: 14px; vertical-align: top; width: 48%; }
+  .section h3 { font-size: 10px; font-weight: bold; color: #6c3fc5; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 10px; padding-bottom: 6px; border-bottom: 1px solid #e0d5f5; }
+  .row { margin-bottom: 7px; }
+  .label { font-size: 10px; color: #888; }
+  .value { font-size: 13px; color: #222; font-weight: 600; }
+  .value-purple { font-size: 14px; color: #6c3fc5; font-weight: 700; }
+  .qr-box { text-align: center; padding: 15px; background: #fafafa; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 18px; }
+  .qr-box p { font-size: 11px; color: #aaa; margin: 6px 0 0; }
+  .footer { background: #f8f5ff; border-top: 2px dashed #e0d5f5; padding: 14px 25px; }
+  .footer-table { width: 100%; }
+  .brand { font-size: 13px; font-weight: bold; color: #6c3fc5; }
+  .footer-note { font-size: 10px; color: #999; margin-top: 3px; }
+</style>
+</head>
+<body>
+
+<div class="ticket">
+
+  <!-- HEADER -->
+  <div class="header">
+    <table class="header-table">
+      <tr>
+        <td>
+          <h1>🎫 Ticket de Participation</h1>
+          <p>Nexora Activités — Justificatif officiel</p>
+        </td>
+        <td class="ref">#{{ demande.id }}</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <div class="status">✅ PARTICIPATION CONFIRMÉE</div>
+
+    <!-- DEUX COLONNES -->
+    <table class="sections-table" cellpadding="0" cellspacing="8">
+      <tr>
+        <!-- ACTIVITE -->
+        <td class="section">
+          <h3>🎯 Activité</h3>
+          <div class="row"><div class="label">Nom</div><div class="value-purple">{{ activite.nom }}</div></div>
+          <div class="row"><div class="label">Type</div><div class="value">{{ activite.type }}</div></div>
+          <div class="row"><div class="label">📍 Lieu</div><div class="value">{{ activite.lieu }}</div></div>
+          {% if activite.avecDate and activite.dateActivite %}
+          <div class="row"><div class="label">📅 Date</div><div class="value-purple">{{ activite.dateActivite|date('d/m/Y') }}</div></div>
+          <div class="row"><div class="label">🕐 Heure</div><div class="value">{{ activite.dateActivite|date('H:i') }}</div></div>
+          {% endif %}
+          <div class="row"><div class="label">💰 Prix</div><div class="value-purple">{{ activite.prix }} TND</div></div>
+        </td>
+
+        <td style="width:4%"></td>
+
+        <!-- CLIENT -->
+        <td class="section">
+          <h3>👤 Participant</h3>
+          <div class="row"><div class="label">Nom complet</div><div class="value">{{ demande.clientNom }}</div></div>
+          <div class="row"><div class="label">📧 Email</div><div class="value">{{ demande.clientEmail }}</div></div>
+          <div class="row"><div class="label">📞 Téléphone</div><div class="value">{{ demande.clientTelephone }}</div></div>
+          <div class="row"><div class="label">📆 Date demande</div><div class="value">{{ demande.dateDemande|date('d/m/Y') }}</div></div>
+          <div class="row"><div class="label">Référence</div><div class="value-purple">#{{ demande.id }}</div></div>
+        </td>
+      </tr>
+    </table>
+
+    <!-- QR CODE -->
+    <div class="qr-box">
+      <img src="{{ qrCodeUrl }}" alt="QR Code" width="120" height="120"/>
+      <p>Scannez ce QR code pour valider votre participation — Réf: NEXORA-{{ demande.id }}-{{ activite.id }}</p>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <table class="footer-table">
+      <tr>
+        <td>
+          <div class="brand">Nexora Activités</div>
+          <div class="footer-note">Ce ticket est votre justificatif officiel. Présentez-le le jour de l'activité.</div>
+        </td>
+        <td style="text-align:right">
+          <div class="footer-note">Émis le {{ "now"|date('d/m/Y à H:i') }}</div>
+          <div style="color:#6c3fc5;font-weight:bold;font-size:11px;">NEXORA-{{ demande.id }}-{{ activite.id }}</div>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+</div>
+
+</body>
+</html>
