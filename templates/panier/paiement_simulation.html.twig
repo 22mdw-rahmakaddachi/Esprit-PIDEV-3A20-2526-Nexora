@@ -1,0 +1,160 @@
+{% extends 'base.html.twig' %}
+{% block title %}Paiement Konnect — NEXORA{% endblock %}
+
+{% block stylesheets %}
+<style>
+.konnect-card {
+    max-width: 480px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+    overflow: hidden;
+}
+.konnect-header {
+    background: linear-gradient(135deg, #0066cc, #0099ff);
+    padding: 28px 32px;
+    color: #fff;
+    text-align: center;
+}
+.konnect-header .logo { font-size: 1.8rem; font-weight: 800; letter-spacing: 1px; }
+.konnect-header .logo span { color: #7dd3fc; }
+.konnect-header .montant { font-size: 2.2rem; font-weight: 700; margin-top: 8px; }
+.konnect-header .ref { font-size: 0.8rem; opacity: 0.7; margin-top: 4px; }
+.konnect-body { padding: 32px; }
+.card-input-wrap { position: relative; margin-bottom: 18px; }
+.card-input-wrap label { font-size: 0.82rem; font-weight: 600; color: #555; margin-bottom: 6px; display: block; }
+.card-input-wrap input {
+    width: 100%; padding: 12px 16px;
+    border: 2px solid #e5e7eb; border-radius: 10px;
+    font-size: 0.95rem; transition: border-color 0.2s;
+    outline: none;
+}
+.card-input-wrap input:focus { border-color: #0066cc; }
+.card-icon { position: absolute; right: 14px; top: 38px; font-size: 1.2rem; }
+.btn-pay {
+    width: 100%; padding: 14px;
+    background: linear-gradient(135deg, #0066cc, #0099ff);
+    color: #fff; border: none; border-radius: 12px;
+    font-size: 1rem; font-weight: 700; cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+    margin-top: 8px;
+}
+.btn-pay:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-pay:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.secure-badge { text-align: center; margin-top: 16px; color: #888; font-size: 0.78rem; }
+.processing-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    align-items: center; justify-content: center;
+    flex-direction: column;
+}
+.processing-overlay.show { display: flex; }
+.spinner {
+    width: 60px; height: 60px;
+    border: 5px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.test-badge {
+    background: #fff3cd; color: #856404;
+    border: 1px solid #ffc107;
+    border-radius: 8px; padding: 8px 14px;
+    font-size: 0.8rem; margin-bottom: 20px;
+    text-align: center;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+
+    <div class="processing-overlay" id="processing">
+        <div class="spinner mb-4"></div>
+        <div class="text-white fw-bold fs-5">Traitement du paiement...</div>
+        <div class="text-white opacity-75 small mt-2">Veuillez patienter</div>
+    </div>
+
+    <div class="konnect-card" data-aos="fade-up">
+        <div class="konnect-header">
+            <div class="logo">Kon<span>nect</span></div>
+            <div style="font-size:0.85rem;opacity:0.8;margin-top:4px">Paiement sécurisé</div>
+            <div class="montant">{{ montant|number_format(2) }} TND</div>
+            <div class="ref">Commande #{{ commandeId }}</div>
+        </div>
+
+        <div class="konnect-body">
+
+            <form id="form-paiement" onsubmit="simulerPaiement(event)">
+                <div class="card-input-wrap">
+                    <label>Numéro de carte</label>
+                    <input type="text" id="card-number" placeholder="1234 5678 9012 3456"
+                           maxlength="19" value="4111 1111 1111 1111"
+                           oninput="formatCard(this)">
+                    <span class="card-icon">💳</span>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="card-input-wrap">
+                            <label>Date d'expiration</label>
+                            <input type="text" placeholder="MM/AA" maxlength="5" value="12/27"
+                                   oninput="formatExpiry(this)">
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card-input-wrap">
+                            <label>CVV</label>
+                            <input type="text" placeholder="123" maxlength="3" value="123">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-input-wrap">
+                    <label>Nom sur la carte</label>
+                    <input type="text" placeholder="PRÉNOM NOM" value="CLIENT NEXORA">
+                </div>
+
+                <button type="submit" class="btn-pay" id="btn-pay">
+                    🔒 Payer {{ montant|number_format(2) }} TND
+                </button>
+            </form>
+
+            <div class="secure-badge">
+                <i class="bi bi-shield-lock-fill me-1"></i>
+                Paiement crypté SSL 256-bit · Powered by Konnect
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+function formatCard(input) {
+    let v = input.value.replace(/\D/g, '').substring(0, 16);
+    input.value = v.replace(/(.{4})/g, '$1 ').trim();
+}
+function formatExpiry(input) {
+    let v = input.value.replace(/\D/g, '').substring(0, 4);
+    if (v.length >= 2) v = v.substring(0,2) + '/' + v.substring(2);
+    input.value = v;
+}
+
+function simulerPaiement(e) {
+    e.preventDefault();
+    document.getElementById('btn-pay').disabled = true;
+    document.getElementById('processing').classList.add('show');
+
+    // Simuler 2 secondes de traitement puis rediriger vers succès
+    setTimeout(() => {
+        window.location.href = '{{ successUrl }}';
+    }, 2000);
+}
+</script>
+{% endblock %}
