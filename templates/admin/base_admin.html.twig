@@ -363,47 +363,49 @@
     }, 4000);
 
     // Badge notifications commandes — polling toutes les 15 secondes
-    function refreshNotifBadge() {
-        fetch('/admin/notifications/api/count')
-            .then(r => r.ok ? r.json() : null)
-            .then(d => {
-                if (!d) return;
-                const badge = document.getElementById('notif-badge-sidebar');
-                if (!badge) return;
-                badge.textContent = d.count;
-                badge.style.display = d.count > 0 ? 'inline' : 'none';
-                // Toast si nouvelle notification
-                if (d.count > 0 && !window._lastNotifCount) {
-                    window._lastNotifCount = d.count;
-                } else if (d.count > (window._lastNotifCount || 0)) {
-                    window._lastNotifCount = d.count;
-                    showNewOrderToast();
-                } else {
-                    window._lastNotifCount = d.count;
-                }
-            })
-            .catch(() => {});
-    }
+    // (uniquement sur les pages admin)
+    if (document.querySelector('.sidebar')) {
+        function refreshNotifBadge() {
+            fetch('/admin/notifications/api/count')
+                .then(r => r.ok ? r.json() : null)
+                .then(d => {
+                    if (!d) return;
+                    const badge = document.getElementById('notif-badge-sidebar');
+                    if (!badge) return;
+                    badge.textContent = d.count;
+                    badge.style.display = d.count > 0 ? 'inline' : 'none';
+                    if (d.count > 0 && !window._lastNotifCount) {
+                        window._lastNotifCount = d.count;
+                    } else if (d.count > (window._lastNotifCount || 0)) {
+                        window._lastNotifCount = d.count;
+                        showNewOrderToast();
+                    } else {
+                        window._lastNotifCount = d.count;
+                    }
+                })
+                .catch(() => {});
+        }
 
-    function showNewOrderToast() {
-        const t = document.createElement('div');
-        t.style.cssText = 'position:fixed;top:80px;right:20px;z-index:99999;min-width:300px;animation:fadeIn 0.3s ease';
-        t.innerHTML = `<div class="alert shadow-lg rounded-4 p-3 border-0" style="background:#fff;border-left:4px solid var(--primary)!important">
-            <div class="d-flex align-items-center gap-2">
-                <span style="font-size:1.5rem">🛍️</span>
-                <div>
-                    <div class="fw-bold small" style="color:var(--primary-dark)">Nouvelle commande reçue !</div>
-                    <a href="/admin/notifications" class="small" style="color:var(--primary)">Voir les détails →</a>
+        function showNewOrderToast() {
+            const t = document.createElement('div');
+            t.style.cssText = 'position:fixed;top:80px;right:20px;z-index:99999;min-width:300px;animation:fadeIn 0.3s ease';
+            t.innerHTML = `<div class="alert shadow-lg rounded-4 p-3 border-0" style="background:#fff;border-left:4px solid var(--primary)!important">
+                <div class="d-flex align-items-center gap-2">
+                    <span style="font-size:1.5rem">🛍️</span>
+                    <div>
+                        <div class="fw-bold small" style="color:var(--primary-dark)">Nouvelle commande reçue !</div>
+                        <a href="/admin/notifications" class="small" style="color:var(--primary)">Voir les détails →</a>
+                    </div>
+                    <button onclick="this.closest('div[style]').remove()" class="btn-close ms-auto" style="font-size:0.7rem"></button>
                 </div>
-                <button onclick="this.closest('div[style]').remove()" class="btn-close ms-auto" style="font-size:0.7rem"></button>
-            </div>
-        </div>`;
-        document.body.appendChild(t);
-        setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity 0.3s'; setTimeout(()=>t.remove(),300); }, 7000);
-    }
+            </div>`;
+            document.body.appendChild(t);
+            setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity 0.3s'; setTimeout(()=>t.remove(),300); }, 7000);
+        }
 
-    refreshNotifBadge();
-    setInterval(refreshNotifBadge, 15000);
+        refreshNotifBadge();
+        setInterval(refreshNotifBadge, 15000);
+    }
 </script>
 {% block javascripts %}{% endblock %}
 </body>
