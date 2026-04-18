@@ -277,10 +277,6 @@
     </a>
 
     <div class="sidebar-section">Boutique</div>
-    <a href="{{ path('admin_notifications') }}" class="sidebar-link {{ app.request.get('_route') == 'admin_notifications' ? 'active' : '' }}">
-        <i class="bi bi-bag-check-fill"></i> Commandes reçues
-        <span class="sidebar-badge" id="notif-badge-sidebar" style="display:none">0</span>
-    </a>
     <a href="{{ path('admin_categories') }}" class="sidebar-link {{ 'admin_categorie' in app.request.get('_route') or 'admin_sous_categorie' in app.request.get('_route') ? 'active' : '' }}">
         <i class="bi bi-grid-fill"></i> Catégories
     </a>
@@ -363,7 +359,6 @@
     }, 4000);
 
     // Badge notifications commandes — polling toutes les 15 secondes
-    // (uniquement sur les pages admin)
     if (document.querySelector('.sidebar')) {
         function refreshNotifBadge() {
             fetch('/admin/notifications/api/count')

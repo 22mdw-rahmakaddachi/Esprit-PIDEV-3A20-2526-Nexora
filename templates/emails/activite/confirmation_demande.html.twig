@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirmation de votre demande</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f0f2f5;font-family:'Segoe UI',Arial,sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f2f5;padding:30px 0;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+      <!-- HEADER -->
+      <tr>
+        <td style="background:linear-gradient(135deg,#6c3fc5 0%,#9b59b6 100%);border-radius:12px 12px 0 0;padding:35px 40px;text-align:center;">
+          <div style="font-size:42px;margin-bottom:10px;">📋</div>
+          <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:700;">Demande bien enregistrée !</h1>
+          <p style="color:rgba(255,255,255,0.85);margin:8px 0 0;font-size:14px;">Votre demande est en cours de traitement</p>
+        </td>
+      </tr>
+
+      <!-- BODY -->
+      <tr>
+        <td style="background:#ffffff;padding:35px 40px;">
+
+          <p style="color:#444;font-size:16px;margin:0 0 8px;">Bonjour <strong style="color:#6c3fc5;">{{ demande.clientNom }}</strong>,</p>
+          <p style="color:#666;font-size:15px;margin:0 0 25px;line-height:1.6;">
+            Votre demande de participation a bien été enregistrée. Le partenaire va l'examiner et vous recevrez une réponse par email.
+          </p>
+
+          <!-- STATUS BADGE -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:25px;">
+            <tr>
+              <td align="center">
+                <span style="display:inline-block;background:#fff8e1;border:2px solid #ffc107;color:#f59e0b;font-size:14px;font-weight:700;padding:10px 25px;border-radius:50px;">
+                  ⏳ Statut : En attente de confirmation
+                </span>
+              </td>
+            </tr>
+          </table>
+
+          <!-- ACTIVITE CARD -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f5ff;border:1px solid #e0d5f5;border-radius:10px;margin-bottom:20px;">
+            <tr>
+              <td style="padding:20px 25px;">
+                <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:#6c3fc5;text-transform:uppercase;letter-spacing:1px;">🎯 Activité demandée</p>
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="padding:6px 0;color:#555;font-size:14px;width:130px;">Nom</td>
+                    <td style="padding:6px 0;color:#222;font-size:15px;font-weight:700;">{{ activite.nom }}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:6px 0;color:#555;font-size:14px;">Type</td>
+                    <td style="padding:6px 0;color:#222;font-size:14px;">{{ activite.type }}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:6px 0;color:#555;font-size:14px;">📍 Lieu</td>
+                    <td style="padding:6px 0;color:#222;font-size:14px;">{{ activite.lieu }}</td>
+                  </tr>
+                  {% if activite.avecDate and activite.dateActivite %}
+                  <tr>
+                    <td style="padding:6px 0;color:#555;font-size:14px;">📅 Date</td>
+                    <td style="padding:6px 0;color:#6c3fc5;font-size:14px;font-weight:700;">{{ activite.dateActivite|date('d/m/Y à H:i') }}</td>
+                  </tr>
+                  {% endif %}
+                  <tr>
+                    <td style="padding:6px 0;color:#555;font-size:14px;">💰 Prix</td>
+                    <td style="padding:6px 0;color:#6c3fc5;font-size:16px;font-weight:700;">{{ activite.prix }} TND</td>
+                  </tr>
+                  {% if activite.description %}
+                  <tr>
+                    <td style="padding:6px 0;color:#555;font-size:14px;vertical-align:top;">Description</td>
+                    <td style="padding:6px 0;color:#555;font-size:13px;line-height:1.5;">{{ activite.description|slice(0, 150) }}{% if activite.description|length > 150 %}...{% endif %}</td>
+                  </tr>
+                  {% endif %}
+                </table>
+              </td>
+            </tr>
+          </table>
+
+          <!-- CLIENT CARD -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;margin-bottom:25px;">
+            <tr>
+              <td style="padding:20px 25px;">
+                <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:#0284c7;text-transform:uppercase;letter-spacing:1px;">👤 Vos informations</p>
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="padding:5px 0;color:#555;font-size:14px;width:130px;">Nom</td>
+                    <td style="padding:5px 0;color:#222;font-size:14px;font-weight:600;">{{ demande.clientNom }}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:5px 0;color:#555;font-size:14px;">Email</td>
+                    <td style="padding:5px 0;color:#222;font-size:14px;">{{ demande.clientEmail }}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:5px 0;color:#555;font-size:14px;">Téléphone</td>
+                    <td style="padding:5px 0;color:#222;font-size:14px;">{{ demande.clientTelephone }}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:5px 0;color:#555;font-size:14px;">Date demande</td>
+                    <td style="padding:5px 0;color:#222;font-size:14px;">{{ demande.dateDemande|date('d/m/Y à H:i') }}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:5px 0;color:#555;font-size:14px;">Référence</td>
+                    <td style="padding:5px 0;font-size:14px;font-weight:700;color:#6c3fc5;">#{{ demande.id }}</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+          <p style="color:#888;font-size:13px;margin:0;line-height:1.6;text-align:center;">
+            Vous recevrez un email dès que le partenaire aura traité votre demande.<br>
+            Conservez la référence <strong>#{{ demande.id }}</strong> pour tout suivi.
+          </p>
+
+        </td>
+      </tr>
+
+      <!-- FOOTER -->
+      <tr>
+        <td style="background:#f8f5ff;border-radius:0 0 12px 12px;padding:20px 40px;text-align:center;border-top:1px solid #e0d5f5;">
+          <p style="color:#9b59b6;font-size:13px;font-weight:700;margin:0 0 4px;">Nexora Activités</p>
+          <p style="color:#aaa;font-size:12px;margin:0;">Ceci est un email automatique, merci de ne pas y répondre.</p>
+        </td>
+      </tr>
+
+    </table>
+  </td></tr>
+</table>
+
+</body>
+</html>

@@ -8,7 +8,6 @@ use App\Entity\UtilisationCodePromo;
 use App\Repository\CodePromoRepository;
 use App\Repository\ProduitParentRepository;
 use App\Repository\ProduitVariantRepository;
-use App\Service\CommandeNotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -177,7 +176,7 @@ final class PanierController extends AbstractController
     // ─── COMMANDER ───────────────────────────────────────────────────────────
 
     #[Route('/commander', name: 'app_commander', methods: ['GET', 'POST'])]
-    public function commander(Request $request, EntityManagerInterface $em, CodePromoRepository $promoRepo, CommandeNotificationService $notifService): Response
+    public function commander(Request $request, EntityManagerInterface $em, CodePromoRepository $promoRepo): Response
     {
         $session = $request->getSession();
         $panier  = $session->get('panier', []);
@@ -228,15 +227,6 @@ final class PanierController extends AbstractController
             }
 
             $em->flush();
-
-            // Notifier chaque partenaire concerné par cette commande
-            $notifService->notifierPartenaires(
-                $panier,
-                $commande->getId(),
-                $request->request->get('nom', 'Client'),
-                $request->request->get('email', ''),
-                $totalFinal
-            );
 
             // Vider le panier
             $session->remove('panier');

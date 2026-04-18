@@ -74,11 +74,12 @@
                         <i class="bi bi-hourglass-split me-2"></i>En attente de réponse...
                     </span>
                     {% elseif demandeExistante.statut == 'ACCEPTEE' %}
-                        {% if demandeExistante.paiementEffectue == 0 %}
-                        <button class="btn btn-lg rounded-pill px-4 btn-pulse"
-                                style="background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff">
+                    {% if demandeExistante.paiementEffectue == 0 %}
+                        <a href="{{ path('app_paiement_activite_initier', {demandeId: demandeExistante.id}) }}"
+                           class="btn btn-lg rounded-pill px-4 btn-pulse"
+                           style="background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff">
                             <i class="bi bi-credit-card me-2"></i>Payer {{ activite.prix }} TND
-                        </button>
+                        </a>
                         {% else %}
                         <span class="btn btn-lg rounded-pill px-4 btn-success disabled">
                             <i class="bi bi-check-circle-fill me-2"></i>Payé ✓

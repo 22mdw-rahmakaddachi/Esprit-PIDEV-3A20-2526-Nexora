@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demande refusée</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f0f2f5;font-family:'Segoe UI',Arial,sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f2f5;padding:30px 0;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+      <!-- HEADER -->
+      <tr>
+        <td style="background:linear-gradient(135deg,#dc2626 0%,#ef4444 100%);border-radius:12px 12px 0 0;padding:35px 40px;text-align:center;">
+          <div style="font-size:52px;margin-bottom:10px;">❌</div>
+          <h1 style="color:#ffffff;margin:0;font-size:26px;font-weight:700;">Demande refusée</h1>
+          <p style="color:rgba(255,255,255,0.9);margin:8px 0 0;font-size:15px;">Votre demande n'a pas pu être acceptée</p>
+        </td>
+      </tr>
+
+      <!-- BODY -->
+      <tr>
+        <td style="background:#ffffff;padding:35px 40px;">
+
+          <p style="color:#444;font-size:16px;margin:0 0 8px;">Bonjour <strong style="color:#dc2626;">{{ demande.clientNom }}</strong>,</p>
+          <p style="color:#666;font-size:15px;margin:0 0 25px;line-height:1.6;">
+            Nous sommes désolés de vous informer que le partenaire a <strong style="color:#dc2626;">refusé</strong> votre demande de participation pour l'activité suivante.
+          </p>
+
+          <!-- ACTIVITE CARD -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;margin-bottom:20px;">
+            <tr>
+              <td style="padding:20px 25px;">
+                <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:1px;">🎯 Activité concernée</p>
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="padding:6px 0;color:#555;font-size:14px;width:130px;">Nom</td>
+                    <td style="padding:6px 0;color:#222;font-size:15px;font-weight:700;">{{ activite.nom }}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:6px 0;color:#555;font-size:14px;">Type</td>
+                    <td style="padding:6px 0;color:#222;font-size:14px;">{{ activite.type }}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:6px 0;color:#555;font-size:14px;">📍 Lieu</td>
+                    <td style="padding:6px 0;color:#222;font-size:14px;">{{ activite.lieu }}</td>
+                  </tr>
+                  {% if activite.avecDate and activite.dateActivite %}
+                  <tr>
+                    <td style="padding:6px 0;color:#555;font-size:14px;">📅 Date</td>
+                    <td style="padding:6px 0;color:#222;font-size:14px;">{{ activite.dateActivite|date('d/m/Y à H:i') }}</td>
+                  </tr>
+                  {% endif %}
+                  <tr>
+                    <td style="padding:6px 0;color:#555;font-size:14px;">💰 Prix</td>
+                    <td style="padding:6px 0;color:#222;font-size:14px;">{{ activite.prix }} TND</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:6px 0;color:#555;font-size:14px;">Référence</td>
+                    <td style="padding:6px 0;color:#dc2626;font-size:14px;font-weight:700;">#{{ demande.id }}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:6px 0;color:#555;font-size:14px;">Statut</td>
+                    <td style="padding:6px 0;">
+                      <span style="background:#fee2e2;color:#dc2626;font-size:13px;font-weight:700;padding:4px 12px;border-radius:20px;">❌ Refusée</span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+          <!-- SUGGESTION -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f5ff;border:1px solid #e0d5f5;border-radius:10px;margin-bottom:10px;">
+            <tr>
+              <td style="padding:18px 25px;text-align:center;">
+                <p style="margin:0 0 6px;color:#6c3fc5;font-size:14px;font-weight:700;">💡 Ne vous découragez pas !</p>
+                <p style="margin:0;color:#666;font-size:13px;line-height:1.6;">
+                  D'autres activités sont disponibles sur notre plateforme.<br>
+                  Explorez nos offres et trouvez l'activité qui vous correspond.
+                </p>
+              </td>
+            </tr>
+          </table>
+
+        </td>
+      </tr>
+
+      <!-- FOOTER -->
+      <tr>
+        <td style="background:#fef2f2;border-radius:0 0 12px 12px;padding:20px 40px;text-align:center;border-top:1px solid #fca5a5;">
+          <p style="color:#dc2626;font-size:13px;font-weight:700;margin:0 0 4px;">Nexora Activités</p>
+          <p style="color:#aaa;font-size:12px;margin:0;">Ceci est un email automatique, merci de ne pas y répondre.</p>
+        </td>
+      </tr>
+
+    </table>
+  </td></tr>
+</table>
+
+</body>
+</html>

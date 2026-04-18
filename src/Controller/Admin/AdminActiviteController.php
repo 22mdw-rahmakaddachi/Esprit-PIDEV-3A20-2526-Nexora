@@ -11,6 +11,7 @@ use App\Repository\PartenaireRepository;
 use App\Repository\ParticipationDemandeRepository;
 use App\Repository\ProduitParentRepository;
 use App\Repository\UsersRepository;
+use App\Service\ActivityEmailService;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -103,13 +104,20 @@ final class AdminActiviteController extends AbstractController
     public function new(Request $request, EntityManagerInterface $em, SluggerInterface $slugger, PartenaireRepository $partenaireRepo): Response
     {
         $errors = [];
+
+        $partenaire = $this->getPartenaire($partenaireRepo);
+        if (!$partenaire && !$this->isGranted('ROLE_ADMIN')) {
+            $this->addFlash('danger', '⚠️ Votre compte partenaire n\'est pas encore configuré. Contactez l\'administrateur.');
+            return $this->redirectToRoute('admin_activites');
+        }
+
         if ($request->isMethod('POST')) {
             $data   = $request->request->all();
             $errors = $this->validateData($data);
             if (empty($errors)) {
                 $activite = new Activite();
                 $this->fillActivite($activite, $data, $request, $slugger);
-                $partenaire = $this->getPartenaire($partenaireRepo);
+
                 $activite->setPartenaire($partenaire);
                 $activite->setPlacesDisponibles($activite->getNombrePlaces());
                 $activite->setDateCreation(new \DateTime());
@@ -198,25 +206,27 @@ final class AdminActiviteController extends AbstractController
     }
 
     #[Route('/demandes/{id}/accepter', name: 'admin_demande_accepter', methods: ['POST'])]
-    public function accepter(int $id, ParticipationDemandeRepository $repo, EntityManagerInterface $em, NotificationService $notif): Response
+    public function accepter(int $id, ParticipationDemandeRepository $repo, EntityManagerInterface $em, NotificationService $notif, ActivityEmailService $emailService): Response
     {
         $demande = $repo->find($id);
         if (!$demande) throw $this->createNotFoundException();
         $demande->setStatut(\App\Entity\ParticipationDemande::STATUT_ACCEPTEE);
         $em->flush();
         $notif->notifyAcceptation($demande);
+        $emailService->sendAcceptation($demande);
         $this->addFlash('success', '✅ Demande acceptée.');
         return $this->redirectToRoute('admin_demandes');
     }
 
     #[Route('/demandes/{id}/refuser', name: 'admin_demande_refuser', methods: ['POST'])]
-    public function refuser(int $id, ParticipationDemandeRepository $repo, EntityManagerInterface $em, NotificationService $notif): Response
+    public function refuser(int $id, ParticipationDemandeRepository $repo, EntityManagerInterface $em, NotificationService $notif, ActivityEmailService $emailService): Response
     {
         $demande = $repo->find($id);
         if (!$demande) throw $this->createNotFoundException();
         $demande->setStatut(\App\Entity\ParticipationDemande::STATUT_REFUSEE);
         $em->flush();
         $notif->notifyRefus($demande);
+        $emailService->sendRefus($demande);
         $this->addFlash('info', '❌ Demande refusée.');
         return $this->redirectToRoute('admin_demandes');
     }
