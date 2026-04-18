@@ -4,12 +4,10 @@ namespace App\Entity;
 
 use App\Repository\UsersRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UsersRepository::class)]
 #[ORM\Table(name: 'users')]
-class Users implements UserInterface, PasswordAuthenticatedUserInterface
+class Users
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -22,14 +20,14 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 50)]
     private string $nom = '';
 
-    #[ORM\Column(length: 50, unique: true)]
+    #[ORM\Column(length: 50)]
     private string $email = '';
 
     #[ORM\Column(type: 'integer')]
     private int $num = 0;
 
     #[ORM\Column(length: 50)]
-    private string $role = 'ROLE_USER';
+    private string $role = '';
 
     #[ORM\Column(length: 255)]
     private string $mdp = '';
@@ -54,27 +52,6 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $fingerId = null;
-
-    // ── UserInterface ────────────────────────────────────────────────────────
-
-    public function getUserIdentifier(): string
-    {
-        return $this->email;
-    }
-
-    public function getRoles(): array
-    {
-        return [$this->role ?: 'ROLE_USER'];
-    }
-
-    public function getPassword(): string
-    {
-        return $this->mdp;
-    }
-
-    public function eraseCredentials(): void {}
-
-    // ── Getters / Setters ────────────────────────────────────────────────────
 
     public function getId(): ?int
     {
@@ -223,4 +200,5 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         $this->fingerId = $fingerId;
         return $this;
     }
+
 }

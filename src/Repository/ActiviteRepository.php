@@ -16,7 +16,7 @@ class ActiviteRepository extends ServiceEntityRepository
     public function findByPartenaire(int $partenaireId): array
     {
         return $this->createQueryBuilder('a')
-            ->where('IDENTITY(a.partenaire) = :pid')
+            ->where('a.partenaire = :pid')
             ->setParameter('pid', $partenaireId)
             ->orderBy('a.dateCreation', 'DESC')
             ->getQuery()->getResult();

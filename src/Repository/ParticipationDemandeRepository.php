@@ -25,17 +25,16 @@ class ParticipationDemandeRepository extends ServiceEntityRepository
     public function findByActivite(int $activiteId): array
     {
         return $this->createQueryBuilder('d')
-            ->where('IDENTITY(d.activite) = :aid')
+            ->where('d.activite = :aid')
             ->setParameter('aid', $activiteId)
             ->orderBy('d.dateDemande', 'DESC')
             ->getQuery()->getResult();
     }
 
-    public function findExisting(int $activiteId, ?int $clientId): ?ParticipationDemande
+    public function findExisting(int $activiteId, int $clientId): ?ParticipationDemande
     {
-        if (!$clientId) return null;
         return $this->createQueryBuilder('d')
-            ->where('IDENTITY(d.activite) = :aid')
+            ->where('d.activite = :aid')
             ->andWhere('d.clientId = :cid')
             ->setParameter('aid', $activiteId)
             ->setParameter('cid', $clientId)

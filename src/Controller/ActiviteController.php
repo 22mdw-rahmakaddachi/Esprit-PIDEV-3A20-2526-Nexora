@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Entity\Users;
 use App\Repository\ActiviteRepository;
 use App\Repository\ParticipationDemandeRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -12,11 +11,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class ActiviteController extends AbstractController
 {
-    private function getCurrentClientId(): int
-    {
-        $user = $this->getUser();
-        return $user instanceof Users ? ($user->getId() ?? 0) : 0;
-    }
+    private function getClientId(): int { return 47; }
 
     #[Route('/activites', name: 'app_activites')]
     public function index(ActiviteRepository $repo, Request $request): Response
@@ -41,7 +36,7 @@ final class ActiviteController extends AbstractController
 
         return $this->render('activite/show.html.twig', [
             'activite'         => $activite,
-            'demandeExistante' => $demandeRepo->findExisting($id, $this->getCurrentClientId()),
+            'demandeExistante' => $demandeRepo->findExisting($id, $this->getClientId()),
         ]);
     }
 }

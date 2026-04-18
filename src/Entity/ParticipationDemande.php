@@ -24,8 +24,10 @@ class ParticipationDemande
     #[Assert\NotNull(message: 'L\'activité est obligatoire.')]
     private ?Activite $activite = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $clientId = null;
+    #[ORM\Column(type: 'integer')]
+    #[Assert\NotNull(message: 'L\'identifiant client est obligatoire.')]
+    #[Assert\Positive(message: 'L\'identifiant client doit être positif.')]
+    private int $clientId = 0;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Le nom du client est obligatoire.')]
@@ -58,8 +60,8 @@ class ParticipationDemande
     public function getActivite(): ?Activite { return $this->activite; }
     public function setActivite(?Activite $activite): static { $this->activite = $activite; return $this; }
 
-    public function getClientId(): ?int { return $this->clientId; }
-    public function setClientId(?int $clientId): static { $this->clientId = $clientId; return $this; }
+    public function getClientId(): int { return $this->clientId; }
+    public function setClientId(int $clientId): static { $this->clientId = $clientId; return $this; }
 
     public function getClientNom(): string { return $this->clientNom; }
     public function setClientNom(string $clientNom): static { $this->clientNom = $clientNom; return $this; }
