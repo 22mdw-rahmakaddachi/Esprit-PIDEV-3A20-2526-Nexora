@@ -1,0 +1,184 @@
+{% extends 'base.html.twig' %}
+{% block title %}Activités — TripShop{% endblock %}
+
+{% block body %}
+
+<div class="breadcrumb-section">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                    <li class="breadcrumb-item active">Activités</li>
+                </ol>
+            </nav>
+
+            {# ── ICÔNE MES ACTIVITÉS ── #}
+            <div class="d-flex align-items-center gap-2">
+                <a href="{{ path('app_mes_activites') }}"
+                   class="nav-icon-btn"
+                   title="Mes activités">
+                    <i class="bi bi-clock-history"></i>
+                    <span class="nav-icon-badge" id="badge-historique" style="display:none">0</span>
+                    <span class="nav-icon-tooltip">Mes activités</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+
+    {# FILTRES LIEU + TYPE #}
+    <div class="mb-4" data-aos="fade-down">
+        <form method="GET" action="{{ path('app_activites') }}" class="d-flex flex-wrap align-items-center gap-3">
+
+            {# Filtre Type #}
+            <div class="d-flex align-items-center gap-2">
+                <span class="fw-semibold small" style="color:var(--primary)">
+                    <i class="bi bi-funnel me-1"></i>Type :
+                </span>
+                <select name="type" onchange="this.form.submit()"
+                        class="form-select form-select-sm rounded-pill"
+                        style="min-width:180px;border-color:#ede5ff;color:var(--primary);font-size:0.88rem">
+                    <option value="">🌟 Tous les types</option>
+                    {% for t in ['Sport','Culture','Gastronomie','Aventure','Bien-être','Autre'] %}
+                    <option value="{{ t }}" {{ typeActif == t ? 'selected' : '' }}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {# Filtre Lieu #}
+            <div class="d-flex align-items-center gap-2">
+                <span class="fw-semibold small" style="color:var(--primary)">
+                    <i class="bi bi-geo-alt me-1"></i>Lieu :
+                </span>
+                <select name="lieu" onchange="this.form.submit()"
+                        class="form-select form-select-sm rounded-pill"
+                        style="min-width:200px;border-color:#ede5ff;color:var(--primary);font-size:0.88rem">
+                    <option value="">🌍 Tous les gouvernorats</option>
+                    {% for l in lieux %}
+                    <option value="{{ l }}" {{ lieuActif == l ? 'selected' : '' }}>📍 {{ l }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {# Bouton effacer si filtre actif #}
+            {% if typeActif or lieuActif %}
+            <a href="{{ path('app_activites') }}"
+               class="btn btn-sm rounded-pill px-3"
+               style="border:1.5px solid #ddd;color:#888;font-size:0.82rem">
+                <i class="bi bi-x me-1"></i>Effacer les filtres
+            </a>
+            {% endif %}
+
+        </form>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-right">
+        <h2 class="section-title mb-0">
+            {% if typeActif and lieuActif %}{{ typeActif }} à {{ lieuActif }}
+            {% elseif typeActif %}Activités : {{ typeActif }}
+            {% elseif lieuActif %}Activités à {{ lieuActif }}
+            {% else %}Toutes les activités{% endif %}
+        </h2>
+        <span class="badge rounded-pill px-3 py-2" style="background:#f0ebff;color:var(--primary)">
+            {{ activites|length }} activité(s)
+        </span>
+    </div>
+
+    <div class="row g-4">
+        {% for activite in activites %}
+        <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="{{ (loop.index0 % 3) * 100 }}">
+            <div class="activity-card card h-100">
+                <div class="img-wrap" style="height:200px;position:relative;overflow:hidden">
+                    {% if activite.images %}
+                        <img src="{{ activite.imageUrl }}"
+                             alt="{{ activite.nom }}"
+                             style="width:100%;height:100%;object-fit:cover"
+                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:5rem;background:linear-gradient(135deg,var(--primary-dark),var(--primary))">
+                            {% if activite.type == 'Sport' %}🏃{% elseif activite.type == 'Culture' %}🎭{% elseif activite.type == 'Gastronomie' %}🍽️{% else %}🌟{% endif %}
+                        </div>
+                    {% else %}
+                        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:5rem;background:linear-gradient(135deg,var(--primary-dark),var(--primary))">
+                            {% if activite.type == 'Sport' %}🏃{% elseif activite.type == 'Culture' %}🎭{% elseif activite.type == 'Gastronomie' %}🍽️{% else %}🌟{% endif %}
+                        </div>
+                    {% endif %}
+                    <span class="position-absolute top-0 start-0 m-2 badge"
+                          style="background:rgba(255,255,255,0.9);color:var(--primary);font-size:0.72rem">
+                        {{ activite.type }}
+                    </span>
+                    {% if activite.placesDisponibles == 0 %}
+                    <span class="position-absolute top-0 end-0 m-2 badge bg-danger">Complet</span>
+                    {% elseif activite.placesDisponibles <= 3 %}
+                    <span class="position-absolute top-0 end-0 m-2 badge-new">Dernières places</span>
+                    {% endif %}
+                </div>
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-2">{{ activite.nom }}</h5>
+                    <div class="d-flex flex-column gap-1 text-muted mb-3" style="font-size:0.85rem">
+                        <span><i class="bi bi-geo-alt me-2" style="color:var(--primary-light)"></i>{{ activite.lieu }}</span>
+                        <span><i class="bi bi-calendar me-2" style="color:var(--primary-light)"></i>
+                            {% if activite.avecDate == 1 %}
+                                {{ activite.dateActivite|date('d/m/Y') }}
+                            {% else %}
+                                <em>Date flexible</em>
+                            {% endif %}
+                        </span>
+                        <span><i class="bi bi-people me-2" style="color:var(--primary-light)"></i>{{ activite.placesDisponibles }} place(s) dispo</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="price">{{ activite.prix }} TND</span>
+                        <a href="{{ path('app_activite_show', {id: activite.id}) }}"
+                           class="btn btn-sm rounded-pill px-3"
+                           style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">
+                            Détails <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12" data-aos="fade-up">
+            <div class="text-center py-5 rounded-4" style="background:var(--white)">
+                <div style="font-size:4rem">📅</div>
+                <p class="mt-3 text-muted">Aucune activité disponible.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+(function () {
+    function updateBadge(id, count) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (count > 0) {
+            el.textContent = count > 99 ? '99+' : count;
+            el.style.display = 'block';
+        } else {
+            el.style.display = 'none';
+        }
+    }
+
+    function loadBadges() {
+        fetch('/api/badges')
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                if (!data) return;
+                updateBadge('badge-historique', data.mesActivites ?? 0);
+                updateBadge('badge-demandes',   data.demandes ?? 0);
+            })
+            .catch(() => {});
+    }
+
+    loadBadges();
+    setInterval(loadBadges, 30000);
+})();
+</script>
+{% endblock %}

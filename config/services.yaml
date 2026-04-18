@@ -1,0 +1,27 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    huggingface_token: ''
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    App\Service\ActivityEmailService:
+        arguments:
+            $mailerFrom: '%env(MAILER_FROM)%'
+
+    App\Controller\AiController:
+        arguments:
+            $huggingFaceToken: '%env(default:huggingface_token:HUGGINGFACE_TOKEN)%'

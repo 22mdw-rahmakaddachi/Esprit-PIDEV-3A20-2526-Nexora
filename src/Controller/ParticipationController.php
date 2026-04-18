@@ -1,0 +1,176 @@
+<?php
+
+namespace App\Controller;
+
+use App\Entity\ParticipationDemande;
+use App\Entity\Users;
+use App\Repository\ActiviteRepository;
+use App\Repository\NotificationRepository;
+use App\Repository\ParticipationDemandeRepository;
+use App\Repository\PartenaireRepository;
+use App\Service\ActivityEmailService;
+use App\Service\NotificationService;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+
+final class ParticipationController extends AbstractController
+{
+    /** Retourne le client connecté ou null */
+    private function getCurrentClient(): ?Users
+    {
+        $user = $this->getUser();
+        return $user instanceof Users ? $user : null;
+    }
+
+    /** Retourne l'ID du partenaire lié à l'utilisateur connecté, ou 0 */
+    private function getPartenaireId(PartenaireRepository $partenaireRepo): int
+    {
+        $user = $this->getUser();
+        if (!$user instanceof Users) return 0;
+        $partenaire = $partenaireRepo->findOneBy(['user' => $user]);
+        return $partenaire?->getId() ?? 0;
+    }
+
+    #[Route('/api/badges', name: 'api_badges')]
+    public function apiBadges(ParticipationDemandeRepository $demandeRepo, NotificationRepository $notifRepo, ActiviteRepository $activiteRepo, PartenaireRepository $partenaireRepo): JsonResponse
+    {
+        $client = $this->getCurrentClient();
+        $notifNonLues = $client ? $notifRepo->countUnread($client->getId(), 'CLIENT') : 0;
+
+        $partenaireId = $this->getPartenaireId($partenaireRepo);
+        $activites = $partenaireId ? $activiteRepo->findByPartenaire($partenaireId) : [];
+        $demandesEnAttente = 0;
+        foreach ($activites as $a) {
+            foreach ($demandeRepo->findByActivite($a->getId()) as $d) {
+                if ($d->getStatut() === 'EN_ATTENTE') $demandesEnAttente++;
+            }
+        }
+
+        return $this->json(['mesActivites' => $notifNonLues, 'demandes' => $demandesEnAttente]);
+    }
+
+    #[Route('/activites/{id}/inscrire', name: 'app_activite_inscrire', methods: ['POST'])]
+    public function inscrire(int $id, Request $request, ActiviteRepository $activiteRepo, ParticipationDemandeRepository $demandeRepo, EntityManagerInterface $em, NotificationService $notif, ActivityEmailService $emailService): Response
+    {
+        $activite = $activiteRepo->find($id);
+        if (!$activite) throw $this->createNotFoundException();
+
+        $client = $this->getCurrentClient();
+
+        // Récupérer les infos client : connecté ou depuis le formulaire
+        $clientId        = $client?->getId() ?? null;
+        $clientNom       = $client ? ($client->getPrenom() . ' ' . $client->getNom()) : $request->request->get('client_nom', '');
+        $clientEmail     = $client ? $client->getEmail() : $request->request->get('client_email', '');
+        $clientTelephone = $client ? (string)$client->getNum() : $request->request->get('client_telephone', '');
+
+        if ($clientId && $demandeRepo->findExisting($id, $clientId)) {
+            $this->addFlash('warning', 'Vous avez déjà une demande pour cette activité.');
+            return $this->redirectToRoute('app_activite_show', ['id' => $id]);
+        }
+
+        $demande = new ParticipationDemande();
+        $demande->setActivite($activite)
+                ->setClientId($clientId)
+                ->setClientNom($clientNom)
+                ->setClientEmail($clientEmail)
+                ->setClientTelephone($clientTelephone)
+                ->setStatut(ParticipationDemande::STATUT_ATTENTE)
+                ->setDateDemande(new \DateTime());
+
+        if (!$activite->getAvecDate()) {
+            $dateSouhaitee = $request->request->get('date_souhaitee');
+            if ($dateSouhaitee) {
+                $dt = new \DateTime($dateSouhaitee);
+                if ($dt <= new \DateTime()) {
+                    $this->addFlash('danger', 'La date choisie ne peut pas être dans le passé.');
+                    return $this->redirectToRoute('app_activite_show', ['id' => $id]);
+                }
+                $activite->setDateActivite($dt);
+            }
+        }
+
+        $em->persist($demande);
+        $em->flush();
+
+        $activite->setPlacesDisponibles(max(0, $activite->getPlacesDisponibles() - 1));
+        $em->flush();
+
+        // Notifier le partenaire via la relation ORM
+        $partenaire = $activite->getPartenaire();
+        if ($partenaire) {
+            $partenaireUser = $partenaire->getUser();
+            if ($partenaireUser) {
+                $notif->notifyNouvelleDemandePartenaire($demande, $partenaireUser->getId());
+            }
+        }
+
+        // Envoyer les emails
+        $emailService->sendConfirmationDemande($demande);
+        $emailService->sendNotificationPartenaire($demande);
+
+        $this->addFlash('success', '✅ Votre demande a été envoyée !');
+        return $this->redirectToRoute('app_mes_activites');
+    }
+
+    #[Route('/mes-activites', name: 'app_mes_activites')]
+    public function mesActivites(ParticipationDemandeRepository $demandeRepo, NotificationRepository $notifRepo): Response
+    {
+        $client = $this->getCurrentClient();
+        $clientId = $client?->getId();
+        return $this->render('participation/mes_activites.html.twig', [
+            'demandes'      => $clientId ? $demandeRepo->findByClient($clientId) : [],
+            'notifications' => $clientId ? $notifRepo->findByUser($clientId, 'CLIENT') : [],
+            'client'        => $client,
+        ]);
+    }
+
+    #[Route('/notifications/lire/{id}', name: 'app_notif_lire')]
+    public function lireNotif(int $id, NotificationRepository $repo, EntityManagerInterface $em): Response
+    {
+        $notif = $repo->find($id);
+        if ($notif) { $notif->setLue(true); $em->flush(); }
+        return $this->redirectToRoute('app_mes_activites');
+    }
+
+    #[Route('/partenaire/demandes', name: 'app_partenaire_demandes')]
+    public function partenaireDemandes(ParticipationDemandeRepository $demandeRepo, ActiviteRepository $activiteRepo, PartenaireRepository $partenaireRepo): Response
+    {
+        $partenaireId = $this->getPartenaireId($partenaireRepo);
+        $activites = $partenaireId ? $activiteRepo->findByPartenaire($partenaireId) : [];
+        $demandes = [];
+        foreach ($activites as $a) {
+            $demandes = array_merge($demandes, $demandeRepo->findByActivite($a->getId()));
+        }
+        return $this->render('participation/partenaire_demandes.html.twig', ['demandes' => $demandes]);
+    }
+
+    #[Route('/partenaire/demandes/{id}/accepter', name: 'app_demande_accepter', methods: ['POST'])]
+    public function accepter(int $id, ParticipationDemandeRepository $repo, EntityManagerInterface $em, NotificationService $notif, ActivityEmailService $emailService): Response
+    {
+        $demande = $repo->find($id);
+        if (!$demande) throw $this->createNotFoundException();
+        $demande->setStatut(ParticipationDemande::STATUT_ACCEPTEE);
+        $em->flush();
+        $notif->notifyAcceptation($demande);
+        $emailService->sendAcceptation($demande);
+        $this->addFlash('success', '✅ Demande acceptée.');
+        return $this->redirectToRoute('app_partenaire_demandes');
+    }
+
+    #[Route('/partenaire/demandes/{id}/refuser', name: 'app_demande_refuser', methods: ['POST'])]
+    public function refuser(int $id, ParticipationDemandeRepository $repo, EntityManagerInterface $em, NotificationService $notif, ActivityEmailService $emailService): Response
+    {
+        $demande = $repo->find($id);
+        if (!$demande) throw $this->createNotFoundException();
+        $demande->setStatut(ParticipationDemande::STATUT_REFUSEE);
+        $em->flush();
+        $notif->notifyRefus($demande);
+        $emailService->sendRefus($demande);
+        $this->addFlash('info', '❌ Demande refusée.');
+        return $this->redirectToRoute('app_partenaire_demandes');
+    }
+}

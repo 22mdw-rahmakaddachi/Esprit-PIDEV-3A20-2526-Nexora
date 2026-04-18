@@ -1,0 +1,101 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}{{ titre }}{% endblock %}
+{% block page_title %}{{ titre }}{% endblock %}
+
+{% block stylesheets %}
+<style>
+.field-error { color: #c0392b; font-size: 0.82rem; margin-top: 4px; }
+.field-error ul { margin: 0; padding-left: 16px; }
+.has-error .form-control, .has-error .form-select { border-color: #e74c3c; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1>{{ titre }}</h1>
+    <a href="{{ path('admin_promos') }}" class="btn btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-arrow-left me-1"></i>Retour
+    </a>
+</div>
+
+<div class="row justify-content-center">
+<div class="col-lg-7">
+<div class="form-card">
+
+    {# novalidate désactive la validation HTML5 pour afficher les erreurs Symfony #}
+    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+    <div class="row g-3">
+
+        <div class="col-md-6 {{ form.vars.submitted and form_errors(form.code) is not empty ? 'has-error' : '' }}">
+            {{ form_label(form.code, 'Code promo *') }}
+            {{ form_widget(form.code, {'attr': {'class': 'form-control', 'style': 'text-transform:uppercase'}}) }}
+            {% if form.vars.submitted %}<div class="field-error">{{ form_errors(form.code) }}</div>{% endif %}
+        </div>
+
+        <div class="col-md-6 {{ form.vars.submitted and form_errors(form.typeReduction) is not empty ? 'has-error' : '' }}">
+            {{ form_label(form.typeReduction, 'Type de réduction *') }}
+            {{ form_widget(form.typeReduction, {'attr': {'class': 'form-select', 'id': 'typeReduction'}}) }}
+            {% if form.vars.submitted %}<div class="field-error">{{ form_errors(form.typeReduction) }}</div>{% endif %}
+        </div>
+
+        <div class="col-md-6 {{ form.vars.submitted and form_errors(form.valeurReduction) is not empty ? 'has-error' : '' }}">
+            {{ form_label(form.valeurReduction, 'Valeur de la réduction *') }}
+            <div class="input-group">
+                {{ form_widget(form.valeurReduction, {'attr': {'class': 'form-control'}}) }}
+                <span class="input-group-text" id="unit-label">%</span>
+            </div>
+            {% if form.vars.submitted %}<div class="field-error">{{ form_errors(form.valeurReduction) }}</div>{% endif %}
+        </div>
+
+        <div class="col-md-6 {{ form.vars.submitted and form_errors(form.montantMinimum) is not empty ? 'has-error' : '' }}">
+            {{ form_label(form.montantMinimum, 'Montant minimum (TND)') }}
+            {{ form_widget(form.montantMinimum, {'attr': {'class': 'form-control', 'placeholder': 'Optionnel'}}) }}
+            {% if form.vars.submitted %}<div class="field-error">{{ form_errors(form.montantMinimum) }}</div>{% endif %}
+        </div>
+
+        <div class="col-md-6 {{ form.vars.submitted and form_errors(form.dateDebut) is not empty ? 'has-error' : '' }}">
+            {{ form_label(form.dateDebut, 'Date de début *') }}
+            {{ form_widget(form.dateDebut, {'attr': {'class': 'form-control'}}) }}
+            {% if form.vars.submitted %}<div class="field-error">{{ form_errors(form.dateDebut) }}</div>{% endif %}
+        </div>
+
+        <div class="col-md-6 {{ form.vars.submitted and form_errors(form.dateFin) is not empty ? 'has-error' : '' }}">
+            {{ form_label(form.dateFin, 'Date de fin *') }}
+            {{ form_widget(form.dateFin, {'attr': {'class': 'form-control'}}) }}
+            {% if form.vars.submitted %}<div class="field-error">{{ form_errors(form.dateFin) }}</div>{% endif %}
+        </div>
+
+        <div class="col-md-6 {{ form.vars.submitted and form_errors(form.limiteUtilisation) is not empty ? 'has-error' : '' }}">
+            {{ form_label(form.limiteUtilisation, 'Limite d\'utilisation') }}
+            {{ form_widget(form.limiteUtilisation, {'attr': {'class': 'form-control', 'placeholder': 'Illimité'}}) }}
+            {% if form.vars.submitted %}<div class="field-error">{{ form_errors(form.limiteUtilisation) }}</div>{% endif %}
+        </div>
+
+        <div class="col-12 {{ form.vars.submitted and form_errors(form.description) is not empty ? 'has-error' : '' }}">
+            {{ form_label(form.description, 'Description (optionnel)') }}
+            {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 2}}) }}
+            {% if form.vars.submitted %}<div class="field-error">{{ form_errors(form.description) }}</div>{% endif %}
+        </div>
+
+    </div>
+
+    <div class="mt-4 d-flex gap-3">
+        {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary-admin px-4'}}) }}
+        <a href="{{ path('admin_promos') }}" class="btn btn-outline-secondary rounded-pill px-4">Annuler</a>
+    </div>
+
+    {{ form_end(form) }}
+</div>
+</div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.getElementById('typeReduction').addEventListener('change', function() {
+    document.getElementById('unit-label').textContent = this.value === 'pourcentage' ? '%' : 'TND';
+});
+document.getElementById('unit-label').textContent = document.getElementById('typeReduction').value === 'pourcentage' ? '%' : 'TND';
+</script>
+{% endblock %}

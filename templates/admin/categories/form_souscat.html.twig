@@ -1,0 +1,118 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}{{ titre }}{% endblock %}
+{% block page_title %}{{ titre }}{% endblock %}
+
+{% block stylesheets %}
+<style>
+.upload-zone { border:2px dashed #c5b3e8; border-radius:12px; padding:28px 20px; text-align:center; cursor:pointer; transition:all 0.2s; background:#faf8ff; position:relative; }
+.upload-zone:hover, .upload-zone.dragover { border-color:var(--primary); background:#f0ebff; }
+.upload-zone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.img-preview-wrap { position:relative; border-radius:10px; overflow:hidden; }
+.img-preview-wrap img { width:100%; max-height:180px; object-fit:cover; display:block; }
+.btn-remove-img { position:absolute; top:8px; right:8px; background:rgba(231,76,60,0.9); color:#fff; border:none; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:0.8rem; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1>{{ titre }}</h1>
+    <a href="{{ path('admin_categories') }}" class="btn btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-arrow-left me-1"></i>Retour
+    </a>
+</div>
+
+<div class="row justify-content-center">
+<div class="col-lg-7">
+<form method="post" enctype="multipart/form-data">
+    <div class="form-card mb-4">
+        <h6 class="fw-bold mb-4" style="color:var(--primary-dark)">
+            <i class="bi bi-folder-fill me-2" style="color:var(--primary)"></i>Informations
+        </h6>
+        <div class="row g-3">
+            <div class="col-12">
+                <label class="form-label">Catégorie parente <span class="text-danger">*</span></label>
+                <select name="categorieId" class="form-select" required>
+                    <option value="">— Choisir une catégorie —</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}"
+                        {{ sousCategorie and sousCategorie.categorieId == cat.id ? 'selected' : '' }}
+                        {{ app.request.query.get('cat') == cat.id ? 'selected' : '' }}>
+                        {{ cat.nom }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12">
+                <label class="form-label">Nom de la sous-catégorie <span class="text-danger">*</span></label>
+                <input type="text" name="nom" class="form-control" required
+                       placeholder="ex: Chaussures de randonnée, Tentes..."
+                       value="{{ sousCategorie ? sousCategorie.nom : '' }}">
+            </div>
+            <div class="col-12">
+                <label class="form-label">Description</label>
+                <textarea name="description" class="form-control" rows="3"
+                          placeholder="Description courte...">{{ sousCategorie ? sousCategorie.description : '' }}</textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-card mb-4">
+        <h6 class="fw-bold mb-3" style="color:var(--primary-dark)">
+            <i class="bi bi-image-fill me-2" style="color:var(--primary)"></i>Image
+        </h6>
+
+        <div id="preview-wrap" class="{{ sousCategorie and sousCategorie.image ? '' : 'd-none' }} img-preview-wrap mb-3">
+            <img id="img-preview" src="{{ sousCategorie and sousCategorie.image ? '/uploads/sous_categorie/' ~ sousCategorie.image : '' }}" alt="">
+            <button type="button" class="btn-remove-img" id="btn-remove-img"><i class="bi bi-x"></i></button>
+        </div>
+
+        <div class="upload-zone" id="upload-zone" style="{{ sousCategorie and sousCategorie.image ? 'display:none' : '' }}">
+            <input type="file" name="image" id="input-image" accept="image/*">
+            <i class="bi bi-cloud-arrow-up-fill" style="font-size:2.5rem;color:var(--primary-light)"></i>
+            <div class="mt-2 fw-semibold small">Glissez une image ou cliquez</div>
+            <div class="text-muted" style="font-size:0.75rem">JPG, PNG, WebP · Max 5 Mo</div>
+        </div>
+        <input type="hidden" name="removeImage" id="remove-image-flag" value="0">
+    </div>
+
+    <div class="d-flex gap-3">
+        <button type="submit" class="btn btn-primary-admin px-4">
+            <i class="bi bi-check-lg me-1"></i>{{ sousCategorie ? 'Enregistrer' : 'Créer la sous-catégorie' }}
+        </button>
+        <a href="{{ path('admin_categories') }}" class="btn btn-outline-secondary rounded-pill px-4">Annuler</a>
+    </div>
+</form>
+</div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+const inputImage = document.getElementById('input-image');
+const uploadZone = document.getElementById('upload-zone');
+const previewWrap = document.getElementById('preview-wrap');
+const imgPreview = document.getElementById('img-preview');
+const btnRemove = document.getElementById('btn-remove-img');
+const removeFlag = document.getElementById('remove-image-flag');
+
+function showPreview(file) {
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = e => { imgPreview.src = e.target.result; previewWrap.classList.remove('d-none'); uploadZone.style.display = 'none'; removeFlag.value = '0'; };
+    reader.readAsDataURL(file);
+}
+inputImage.addEventListener('change', e => { if (e.target.files[0]) showPreview(e.target.files[0]); });
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', e => {
+    e.preventDefault(); uploadZone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) { const dt = new DataTransfer(); dt.items.add(file); inputImage.files = dt.files; showPreview(file); }
+});
+btnRemove.addEventListener('click', () => {
+    imgPreview.src = ''; inputImage.value = '';
+    previewWrap.classList.add('d-none'); uploadZone.style.display = '';
+    removeFlag.value = '1';
+});
+</script>
+{% endblock %}

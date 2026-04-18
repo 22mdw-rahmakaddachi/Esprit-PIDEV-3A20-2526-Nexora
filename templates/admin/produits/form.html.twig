@@ -1,0 +1,322 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}{{ titre }}{% endblock %}
+{% block page_title %}{{ titre }}{% endblock %}
+
+{% block stylesheets %}
+<style>
+.field-error { color: #c0392b; font-size: 0.82rem; margin-top: 4px; }
+.field-error ul { margin: 0; padding-left: 16px; }
+.has-error .form-control,
+.has-error .form-select { border-color: #e74c3c; }
+.upload-zone { border:2px dashed #c5b3e8; border-radius:12px; padding:28px 20px; text-align:center; cursor:pointer; transition:all 0.2s; background:#faf8ff; position:relative; }
+.upload-zone:hover, .upload-zone.dragover { border-color:var(--primary); background:#f0ebff; }
+.upload-zone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.img-preview-wrap { position:relative; border-radius:10px; overflow:hidden; }
+.img-preview-wrap img { width:100%; max-height:200px; object-fit:cover; display:block; }
+.btn-remove-img { position:absolute; top:8px; right:8px; background:rgba(231,76,60,0.9); color:#fff; border:none; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.variant-row { border:1px solid #e0d5f5; border-radius:12px; background:#faf8ff; }
+.variant-num { font-size:0.8rem; font-weight:700; color:var(--primary); background:#f0ebff; padding:3px 12px; border-radius:50px; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1>{{ titre }}</h1>
+    <a href="{{ path('admin_produits') }}" class="btn btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-arrow-left me-1"></i>Retour
+    </a>
+</div>
+
+{# ── Formulaire avec novalidate pour désactiver la validation HTML5 ── #}
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'enctype': 'multipart/form-data', 'id': 'form-produit'}}) }}
+
+<div class="row g-4">
+
+    {# ── COLONNE PRINCIPALE ── #}
+    <div class="col-lg-8">
+
+        {# Infos générales #}
+        <div class="form-card mb-4">
+            <h6 class="fw-bold mb-4" style="color:var(--primary-dark)">
+                <i class="bi bi-info-circle-fill me-2" style="color:var(--primary)"></i>Informations générales
+            </h6>
+            <div class="row g-3">
+
+                <div class="col-12 {{ form.vars.submitted and form_errors(form.nom) is not empty ? 'has-error' : '' }}">
+                    {{ form_label(form.nom, 'Nom du produit *') }}
+                    {{ form_widget(form.nom, {'attr': {'class': 'form-control'}}) }}
+                    {% if form.vars.submitted %}<div class="field-error">{{ form_errors(form.nom) }}</div>{% endif %}
+                </div>
+
+                <div class="col-md-6 {{ form.vars.submitted and form_errors(form.marque) is not empty ? 'has-error' : '' }}">
+                    {{ form_label(form.marque, 'Marque *') }}
+                    {{ form_widget(form.marque, {'attr': {'class': 'form-control'}}) }}
+                    {% if form.vars.submitted %}<div class="field-error">{{ form_errors(form.marque) }}</div>{% endif %}
+                </div>
+
+                <div class="col-md-6 {{ form.vars.submitted and form_errors(form.sousCategorie) is not empty ? 'has-error' : '' }}">
+                    {{ form_label(form.sousCategorie) }}
+                    {{ form_widget(form.sousCategorie, {'attr': {'class': 'form-select'}}) }}
+                    {% if form.vars.submitted %}<div class="field-error">{{ form_errors(form.sousCategorie) }}</div>{% endif %}
+                </div>
+
+                <div class="col-12 {{ form.vars.submitted and form_errors(form.descriptionCourte) is not empty ? 'has-error' : '' }}">
+                    {{ form_label(form.descriptionCourte, 'Description courte *') }}
+                    {{ form_widget(form.descriptionCourte, {'attr': {'class': 'form-control'}}) }}
+                    {% if form.vars.submitted %}<div class="field-error">{{ form_errors(form.descriptionCourte) }}</div>{% endif %}
+                </div>
+
+                <div class="col-12 {{ form.vars.submitted and form_errors(form.description) is not empty ? 'has-error' : '' }}">
+                    {{ form_label(form.description, 'Description complète *') }}
+                    {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 4}}) }}
+                    {% if form.vars.submitted %}<div class="field-error">{{ form_errors(form.description) }}</div>{% endif %}
+                </div>
+
+                <div class="col-md-6 {{ form.vars.submitted and form_errors(form.materiau) is not empty ? 'has-error' : '' }}">
+                    {{ form_label(form.materiau, 'Matériau *') }}
+                    {{ form_widget(form.materiau, {'attr': {'class': 'form-control'}}) }}
+                    {% if form.vars.submitted %}<div class="field-error">{{ form_errors(form.materiau) }}</div>{% endif %}
+                </div>
+
+                <div class="col-md-6 {{ form.vars.submitted and form_errors(form.poidsKg) is not empty ? 'has-error' : '' }}">
+                    {{ form_label(form.poidsKg, 'Poids (kg) *') }}
+                    {{ form_widget(form.poidsKg, {'attr': {'class': 'form-control'}}) }}
+                    {% if form.vars.submitted %}<div class="field-error">{{ form_errors(form.poidsKg) }}</div>{% endif %}
+                </div>
+
+                <div class="col-md-6 {{ form.vars.submitted and form_errors(form.dimensionsCm) is not empty ? 'has-error' : '' }}">
+                    {{ form_label(form.dimensionsCm) }}
+                    {{ form_widget(form.dimensionsCm, {'attr': {'class': 'form-control'}}) }}
+                    {% if form.vars.submitted %}<div class="field-error">{{ form_errors(form.dimensionsCm) }}</div>{% endif %}
+                </div>
+
+                <div class="col-md-6 {{ form.vars.submitted and form_errors(form.statut) is not empty ? 'has-error' : '' }}">
+                    {{ form_label(form.statut, 'Statut *') }}
+                    {{ form_widget(form.statut, {'attr': {'class': 'form-select'}}) }}
+                    {% if form.vars.submitted %}<div class="field-error">{{ form_errors(form.statut) }}</div>{% endif %}
+                </div>
+
+            </div>
+        </div>
+
+        {# Variantes #}
+        <div class="form-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h6 class="fw-bold mb-0" style="color:var(--primary-dark)">
+                        <i class="bi bi-layers-fill me-2" style="color:var(--primary)"></i>Variantes
+                    </h6>
+                    <div class="text-muted small mt-1">SKU, prix, stock et attributs par variante</div>
+                </div>
+                <button type="button" class="btn btn-primary-admin btn-sm" id="btn-add-variant">
+                    <i class="bi bi-plus-lg me-1"></i>Ajouter
+                </button>
+            </div>
+
+            <div id="variants-container">
+                {% if produit and produit.variants|length > 0 %}
+                    {% for v in produit.variants %}
+                    <div class="variant-row p-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom" style="border-color:#ede5ff!important">
+                            <span class="variant-num">Variante {{ loop.index }}</span>
+                            <button type="button" class="btn btn-danger-admin btn-sm btn-remove-variant">
+                                <i class="bi bi-trash me-1"></i>Supprimer
+                            </button>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-md-3">
+                                <label class="form-label">SKU *</label>
+                                <input type="text" name="variant_sku[]" class="form-control form-control-sm" required value="{{ v.sku }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Prix vente (TND) *</label>
+                                <input type="number" step="0.01" min="0" name="variant_prix_vente[]" class="form-control form-control-sm" required value="{{ v.prixVente }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Prix promo (TND)</label>
+                                <input type="number" step="0.01" min="0" name="variant_prix_promo[]" class="form-control form-control-sm" value="{{ v.prixPromo }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Stock *</label>
+                                <input type="number" min="0" name="variant_stock[]" class="form-control form-control-sm" required value="{{ v.quantiteStock }}">
+                            </div>
+                            {% for attribut in attributs %}
+                            <div class="col-md-4">
+                                <label class="form-label">{{ attribut.nom }}</label>
+                                <select name="variant_attribut[{{ loop.parent.loop.index0 }}][{{ attribut.id }}]" class="form-select form-select-sm">
+                                    <option value="">— Choisir —</option>
+                                    {% for opt in attribut.options %}
+                                    <option value="{{ opt.id }}"
+                                        {% for vo in v.options %}{% if vo.optionVariation and vo.optionVariation.id == opt.id %}selected{% endif %}{% endfor %}>
+                                        {{ opt.valeur }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div id="no-variant-msg" class="{{ produit and produit.variants|length > 0 ? 'd-none' : '' }} text-center py-4 rounded-3" style="background:#f9f7ff;border:2px dashed #e0d5f5">
+                <i class="bi bi-layers" style="font-size:2rem;color:#c5b3e8"></i>
+                <p class="text-muted small mt-2 mb-0">Aucune variante. Cliquez sur "Ajouter".</p>
+            </div>
+        </div>
+
+    </div>
+
+    {# ── COLONNE LATÉRALE ── #}
+    <div class="col-lg-4">
+
+        {# Upload image #}
+        <div class="form-card mb-4">
+            <h6 class="fw-bold mb-3" style="color:var(--primary-dark)">
+                <i class="bi bi-image-fill me-2" style="color:var(--primary)"></i>Image principale
+            </h6>
+
+            <div id="preview-wrap" class="{{ produit and produit.imagePrincipale ? '' : 'd-none' }} img-preview-wrap mb-3">
+                <img id="img-preview" src="{{ produit and produit.imagePrincipale ? '/uploads/produits/' ~ produit.imagePrincipale : '' }}" alt="">
+                <button type="button" class="btn-remove-img" id="btn-remove-img"><i class="bi bi-x"></i></button>
+            </div>
+
+            <div class="upload-zone" id="upload-zone" style="{{ produit and produit.imagePrincipale ? 'display:none' : '' }}">
+                {{ form_widget(form.imagePrincipale) }}
+                <i class="bi bi-cloud-arrow-up-fill" style="font-size:2.5rem;color:var(--primary-light)"></i>
+                <div class="mt-2 fw-semibold small">Glissez une image ou cliquez</div>
+                <div class="text-muted" style="font-size:0.75rem">JPG, PNG, WebP · Max 5 Mo</div>
+            </div>
+            <div class="field-error mt-2">{% if form.vars.submitted %}{{ form_errors(form.imagePrincipale) }}{% endif %}</div>
+            <input type="hidden" name="removeImage" id="remove-image-flag" value="0">
+        </div>
+
+        {# Rappel #}
+        <div class="form-card" style="background:#f9f7ff;border-color:#e0d5f5">
+            <h6 class="fw-bold mb-2" style="color:var(--primary-dark)"><i class="bi bi-lightbulb me-2"></i>Rappel</h6>
+            <ul class="small text-muted mb-0 ps-3">
+                <li class="mb-1">Nom : 3 à 200 caractères, obligatoire</li>
+                <li class="mb-1">Description courte : max 255 caractères</li>
+                <li class="mb-1">Poids : nombre positif</li>
+                <li>Image : JPG/PNG/WebP, max 5 Mo</li>
+            </ul>
+        </div>
+
+    </div>
+</div>
+
+<div class="mt-4 d-flex gap-3">
+    {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary-admin px-5'}}) }}
+    <a href="{{ path('admin_produits') }}" class="btn btn-outline-secondary rounded-pill px-4">Annuler</a>
+</div>
+
+{{ form_end(form) }}
+{% endblock %}
+
+{% block javascripts %}
+<script>
+const ATTRIBUTS = {{ attributs|map(a => {
+    id: a.id,
+    nom: a.nom,
+    options: a.options|map(o => {id: o.id, valeur: o.valeur})
+})|json_encode|raw }};
+
+let variantCount = document.querySelectorAll('.variant-row').length;
+
+// ── Upload image ──
+const inputImage   = document.querySelector('#upload-zone input[type=file]');
+const uploadZone   = document.getElementById('upload-zone');
+const previewWrap  = document.getElementById('preview-wrap');
+const imgPreview   = document.getElementById('img-preview');
+const btnRemoveImg = document.getElementById('btn-remove-img');
+const removeFlag   = document.getElementById('remove-image-flag');
+
+function showPreview(file) {
+    if (!file || !file.type.startsWith('image/')) return;
+    if (file.size > 5 * 1024 * 1024) { alert('Image trop lourde (max 5 Mo).'); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+        imgPreview.src = e.target.result;
+        previewWrap.classList.remove('d-none');
+        uploadZone.style.display = 'none';
+        removeFlag.value = '0';
+    };
+    reader.readAsDataURL(file);
+}
+
+if (inputImage) {
+    inputImage.addEventListener('change', e => { if (e.target.files[0]) showPreview(e.target.files[0]); });
+}
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', e => {
+    e.preventDefault(); uploadZone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file && inputImage) { const dt = new DataTransfer(); dt.items.add(file); inputImage.files = dt.files; showPreview(file); }
+});
+btnRemoveImg.addEventListener('click', () => {
+    imgPreview.src = ''; if (inputImage) inputImage.value = '';
+    previewWrap.classList.add('d-none'); uploadZone.style.display = '';
+    removeFlag.value = '1';
+});
+
+// ── Variantes ──
+function buildAttributsHtml(idx) {
+    return ATTRIBUTS.map(a => `
+        <div class="col-md-4">
+            <label class="form-label">${a.nom}</label>
+            <select name="variant_attribut[${idx}][${a.id}]" class="form-select form-select-sm">
+                <option value="">— Choisir —</option>
+                ${a.options.map(o => `<option value="${o.id}">${o.valeur}</option>`).join('')}
+            </select>
+        </div>`).join('');
+}
+
+function buildVariantRow(idx) {
+    return `<div class="variant-row p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom" style="border-color:#ede5ff!important">
+            <span class="variant-num">Variante ${idx + 1}</span>
+            <button type="button" class="btn btn-danger-admin btn-sm btn-remove-variant"><i class="bi bi-trash me-1"></i>Supprimer</button>
+        </div>
+        <div class="row g-2">
+            <div class="col-md-3">
+                <label class="form-label">SKU *</label>
+                <input type="text" name="variant_sku[]" class="form-control form-control-sm" required placeholder="ex: PROD-L-ROUGE">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Prix vente (TND) *</label>
+                <input type="number" step="0.01" min="0" name="variant_prix_vente[]" class="form-control form-control-sm" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Prix promo (TND)</label>
+                <input type="number" step="0.01" min="0" name="variant_prix_promo[]" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Stock *</label>
+                <input type="number" min="0" name="variant_stock[]" class="form-control form-control-sm" required value="0">
+            </div>
+            ${buildAttributsHtml(idx)}
+        </div>
+    </div>`;
+}
+
+document.getElementById('btn-add-variant').addEventListener('click', () => {
+    const container = document.getElementById('variants-container');
+    container.insertAdjacentHTML('beforeend', buildVariantRow(variantCount++));
+    document.getElementById('no-variant-msg').classList.add('d-none');
+    bindRemove();
+    container.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+});
+
+function bindRemove() {
+    document.querySelectorAll('.btn-remove-variant').forEach(btn => {
+        btn.onclick = function() {
+            this.closest('.variant-row').remove();
+            if (!document.querySelector('.variant-row')) document.getElementById('no-variant-msg').classList.remove('d-none');
+        };
+    });
+}
+bindRemove();
+</script>
+{% endblock %}
