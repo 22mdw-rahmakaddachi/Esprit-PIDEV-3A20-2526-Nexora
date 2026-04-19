@@ -1,0 +1,242 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}Avis — {{ activite.nom }}{% endblock %}
+{% block page_title %}Avis — {{ activite.nom }}{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1><i class="bi bi-chat-square-text-fill me-2"></i>{{ activite.nom }}</h1>
+    <div class="d-flex gap-2">
+        <a href="{{ path('admin_avis_activites') }}" class="btn btn-sm rounded-pill px-3"
+           style="border:1.5px solid var(--primary);color:var(--primary)">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </a>
+    </div>
+</div>
+
+{# STATS #}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card text-center">
+            <div class="stat-num" id="stat-total">{{ total }}</div>
+            <div class="stat-label">Total avis</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card text-center">
+            <div class="stat-num" style="color:#f39c12">
+                {% if moyenne > 0 %}
+                    {{ moyenne }}<i class="bi bi-star-fill" style="font-size:1.2rem"></i>
+                {% else %}
+                    —
+                {% endif %}
+            </div>
+            <div class="stat-label">Note moyenne</div>
+        </div>
+    </div>
+</div>
+
+{# BARRE RECHERCHE + TRI + FILTRE #}
+<div class="admin-table mb-3 p-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-5">
+            <label class="form-label small fw-semibold text-muted mb-1">
+                <i class="bi bi-search me-1"></i>Recherche
+            </label>
+            <input type="text" id="search-input" class="form-control form-control-sm"
+                   placeholder="Auteur ou commentaire…">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold text-muted mb-1">
+                <i class="bi bi-star me-1"></i>Filtrer par note
+            </label>
+            <select id="filter-note" class="form-select form-select-sm">
+                <option value="">Toutes les notes</option>
+                <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+                <option value="4">⭐⭐⭐⭐ (4)</option>
+                <option value="3">⭐⭐⭐ (3)</option>
+                <option value="2">⭐⭐ (2)</option>
+                <option value="1">⭐ (1)</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold text-muted mb-1">
+                <i class="bi bi-sort-down me-1"></i>Trier par
+            </label>
+            <select id="sort-select" class="form-select form-select-sm">
+                <option value="date-desc">Date (récent → ancien)</option>
+                <option value="date-asc">Date (ancien → récent)</option>
+                <option value="note-desc">Note (haute → basse)</option>
+                <option value="note-asc">Note (basse → haute)</option>
+                <option value="auteur-asc">Auteur (A → Z)</option>
+                <option value="auteur-desc">Auteur (Z → A)</option>
+            </select>
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+            <button id="reset-filters" class="btn btn-sm w-100" title="Réinitialiser"
+                    style="border:1.5px solid #ccc;color:#888;border-radius:8px">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+{# TABLE #}
+<div class="admin-table">
+    <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color:#ede5ff!important">
+        <h6 class="mb-0 fw-bold" style="color:var(--primary-dark)">
+            <i class="bi bi-list-ul me-2"></i>Liste des avis
+            (<span id="count-visible">{{ total }}</span>
+            {% if total > 0 %}<span id="count-total-label"> / {{ total }}</span>{% endif %})
+        </h6>
+    </div>
+    <table class="table" id="avis-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Auteur</th>
+                <th>Note</th>
+                <th>Commentaire</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="avis-tbody">
+            {% for a in avis %}
+            <tr class="avis-row"
+                data-auteur="{{ a.auteur|lower }}"
+                data-commentaire="{{ a.commentaire|lower }}"
+                data-note="{{ a.note }}"
+                data-date="{{ a.createdAt|date('Y-m-d H:i:s') }}">
+                <td class="text-muted small">{{ a.id }}</td>
+                <td class="fw-semibold">{{ a.auteur }}</td>
+                <td>
+                    <span style="color:#f39c12;font-size:0.9rem">
+                        {% for i in 1..5 %}
+                            <i class="bi bi-star{{ i <= a.note ? '-fill' : '' }}"></i>
+                        {% endfor %}
+                    </span>
+                    <span class="ms-1 small text-muted">({{ a.note }}/5)</span>
+                </td>
+                <td style="max-width:280px">
+                    <span class="text-truncate d-inline-block" style="max-width:260px" title="{{ a.commentaire }}">
+                        {{ a.commentaire|length > 80 ? a.commentaire|slice(0,80) ~ '…' : a.commentaire }}
+                    </span>
+                </td>
+                <td class="small text-muted">{{ a.createdAt|date('d/m/Y H:i') }}</td>
+                <td>
+                    <div class="d-flex gap-1">
+                        <a href="{{ path('admin_avis_show', {id: a.id}) }}" class="btn btn-edit-admin" title="Voir">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <form method="POST" action="{{ path('admin_avis_delete', {id: a.id}) }}" class="d-inline"
+                              onsubmit="return confirm('Supprimer cet avis ?')">
+                            <button type="submit" class="btn btn-danger-admin" title="Supprimer">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr id="empty-row">
+                <td colspan="6" class="text-center py-5 text-muted">
+                    <div style="font-size:3rem">💬</div>
+                    <p class="mt-2">Aucun avis pour cette activité.</p>
+                    <a href="{{ path('admin_avis_new', {activiteId: activite.id}) }}" class="btn btn-primary-admin mt-2">
+                        <i class="bi bi-plus-lg me-1"></i>Ajouter le premier avis
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {# Message aucun résultat après filtrage #}
+    <div id="no-results" class="text-center py-5 text-muted d-none">
+        <div style="font-size:2.5rem">🔍</div>
+        <p class="mt-2">Aucun avis ne correspond à votre recherche.</p>
+        <button id="reset-filters-2" class="btn btn-sm mt-1"
+                style="border:1.5px solid var(--primary);color:var(--primary);border-radius:8px">
+            <i class="bi bi-x-circle me-1"></i>Réinitialiser les filtres
+        </button>
+    </div>
+</div>
+
+<script>
+(function () {
+    const searchInput  = document.getElementById('search-input');
+    const filterNote   = document.getElementById('filter-note');
+    const sortSelect   = document.getElementById('sort-select');
+    const tbody        = document.getElementById('avis-tbody');
+    const noResults    = document.getElementById('no-results');
+    const countVisible = document.getElementById('count-visible');
+
+    function getRows() {
+        return Array.from(tbody.querySelectorAll('tr.avis-row'));
+    }
+
+    function applyFiltersAndSort() {
+        const search = searchInput.value.toLowerCase().trim();
+        const note   = filterNote.value;
+        const sort   = sortSelect.value;
+
+        let rows = getRows();
+
+        // --- Filtrage ---
+        rows.forEach(row => {
+            const matchSearch = !search ||
+                row.dataset.auteur.includes(search) ||
+                row.dataset.commentaire.includes(search);
+            const matchNote = !note || row.dataset.note === note;
+            row.style.display = (matchSearch && matchNote) ? '' : 'none';
+        });
+
+        // --- Tri (sur les lignes visibles) ---
+        const visible = rows.filter(r => r.style.display !== 'none');
+
+        visible.sort((a, b) => {
+            switch (sort) {
+                case 'date-desc': return b.dataset.date.localeCompare(a.dataset.date);
+                case 'date-asc':  return a.dataset.date.localeCompare(b.dataset.date);
+                case 'note-desc': return parseInt(b.dataset.note) - parseInt(a.dataset.note);
+                case 'note-asc':  return parseInt(a.dataset.note) - parseInt(b.dataset.note);
+                case 'auteur-asc':  return a.dataset.auteur.localeCompare(b.dataset.auteur);
+                case 'auteur-desc': return b.dataset.auteur.localeCompare(a.dataset.auteur);
+                default: return 0;
+            }
+        });
+
+        // Réordonner le DOM
+        visible.forEach(row => tbody.appendChild(row));
+
+        // Compteur
+        const visibleCount = visible.length;
+        countVisible.textContent = visibleCount;
+
+        // Message aucun résultat
+        noResults.classList.toggle('d-none', visibleCount > 0);
+    }
+
+    function resetFilters() {
+        searchInput.value = '';
+        filterNote.value  = '';
+        sortSelect.value  = 'date-desc';
+        applyFiltersAndSort();
+    }
+
+    // Recherche live avec debounce
+    let debounceTimer;
+    searchInput.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(applyFiltersAndSort, 200);
+    });
+
+    filterNote.addEventListener('change', applyFiltersAndSort);
+    sortSelect.addEventListener('change', applyFiltersAndSort);
+
+    document.getElementById('reset-filters').addEventListener('click', resetFilters);
+    const reset2 = document.getElementById('reset-filters-2');
+    if (reset2) reset2.addEventListener('click', resetFilters);
+})();
+</script>
+{% endblock %}

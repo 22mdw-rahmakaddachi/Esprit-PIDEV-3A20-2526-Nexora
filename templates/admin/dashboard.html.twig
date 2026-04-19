@@ -1,0 +1,139 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block body %}
+
+{# STAT CARDS #}
+<div class="row g-4 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-num">{{ totalActivites }}</div>
+                    <div class="stat-label">Mes activités</div>
+                </div>
+                <div class="stat-icon" style="background:#f0ebff;color:var(--primary)">
+                    <i class="bi bi-calendar-event-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-num">{{ totalReservations }}</div>
+                    <div class="stat-label">Réservations</div>
+                </div>
+                <div class="stat-icon" style="background:#d1f2eb;color:#1a7a4a">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-num">{{ placesDisponibles }}</div>
+                    <div class="stat-label">Places disponibles</div>
+                </div>
+                <div class="stat-icon" style="background:#fff3cd;color:#856404">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-num">{{ demandesEnAttente }}</div>
+                    <div class="stat-label">Demandes en attente</div>
+                </div>
+                <div class="stat-icon" style="background:#fde8e8;color:#c0392b">
+                    <i class="bi bi-bell-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    {# DERNIÈRES ACTIVITÉS #}
+    <div class="col-lg-7">
+        <div class="admin-table">
+            <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color:#ede5ff!important">
+                <h6 class="mb-0 fw-bold" style="color:var(--primary-dark)">
+                    <i class="bi bi-calendar-event me-2"></i>Mes dernières activités
+                </h6>
+                <a href="{{ path('admin_activites') }}" class="btn btn-primary-admin btn-sm">Voir tout</a>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Activité</th>
+                        <th>Type</th>
+                        <th>Places</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in activites %}
+                    <tr>
+                        <td class="fw-semibold">{{ a.nom }}</td>
+                        <td><span class="badge" style="background:#f0ebff;color:var(--primary)">{{ a.type }}</span></td>
+                        <td>{{ a.places_disponibles }}/{{ a.nombre_places }}</td>
+                        <td>
+                            {% if a.places_disponibles == 0 %}
+                            <span class="status-badge badge-complet">Complet</span>
+                            {% elseif a.date_activite < date() %}
+                            <span class="status-badge badge-passe">Passée</span>
+                            {% else %}
+                            <span class="status-badge badge-actif">Active</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" class="text-center text-muted py-4">Aucune activité</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# DERNIÈRES DEMANDES #}
+    <div class="col-lg-5">
+        <div class="admin-table">
+            <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color:#ede5ff!important">
+                <h6 class="mb-0 fw-bold" style="color:var(--primary-dark)">
+                    <i class="bi bi-people me-2"></i>Dernières demandes
+                </h6>
+                <a href="{{ path('app_partenaire_demandes') }}" class="btn btn-primary-admin btn-sm">Voir tout</a>
+            </div>
+            <div class="p-3 d-flex flex-column gap-2">
+                {% for d in demandes %}
+                <div class="d-flex justify-content-between align-items-center p-2 rounded-3" style="background:#faf8ff">
+                    <div>
+                        <div class="fw-semibold small">{{ d.clientNom }}</div>
+                        <div class="text-muted" style="font-size:0.78rem">{{ d.activite.nom }}</div>
+                    </div>
+                    {% if d.statut == 'EN_ATTENTE' %}
+                    <span class="status-badge badge-attente">En attente</span>
+                    {% elseif d.statut == 'ACCEPTEE' %}
+                    <span class="status-badge badge-actif">Acceptée</span>
+                    {% else %}
+                    <span class="status-badge badge-complet">Refusée</span>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-3 small">Aucune demande</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

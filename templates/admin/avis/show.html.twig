@@ -1,0 +1,63 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}Avis de {{ avis.auteur }}{% endblock %}
+{% block page_title %}Détail de l'avis{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1><i class="bi bi-chat-square-quote me-2"></i>Avis de {{ avis.auteur }}</h1>
+    <div class="d-flex gap-2">
+        <a href="{{ path('admin_avis_list', {activiteId: avis.activiteId}) }}"
+           class="btn btn-sm rounded-pill px-3" style="border:1.5px solid var(--primary);color:var(--primary)">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="form-card">
+
+            <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom" style="border-color:#f0ebff!important">
+                <div class="stat-icon" style="background:#f0ebff;color:var(--primary)">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-5" style="color:var(--primary-dark)">{{ avis.auteur }}</div>
+                    <div class="text-muted small">{{ avis.createdAt|date('d/m/Y à H:i') }}</div>
+                </div>
+                <div class="ms-auto">
+                    <span style="color:#f39c12;font-size:1.2rem">
+                        {% for i in 1..5 %}
+                            <i class="bi bi-star{{ i <= avis.note ? '-fill' : '' }}"></i>
+                        {% endfor %}
+                    </span>
+                    <div class="text-center small text-muted">{{ avis.note }}/5</div>
+                </div>
+            </div>
+
+            {% if activite %}
+            <div class="d-flex align-items-center gap-2 mb-4 p-2 rounded-3" style="background:#f9f7ff">
+                <i class="bi bi-calendar-event text-muted"></i>
+                <span class="small text-muted">Activité :</span>
+                <span class="fw-semibold small" style="color:var(--primary-dark)">{{ activite.nom }}</span>
+            </div>
+            {% endif %}
+
+            <div class="p-3 rounded-3" style="background:#faf8ff;border:1px solid #ede5ff">
+                <div class="text-muted small mb-2"><i class="bi bi-chat-left-text me-1"></i>Commentaire</div>
+                <p class="mb-0" style="line-height:1.7">{{ avis.commentaire }}</p>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <form method="POST" action="{{ path('admin_avis_delete', {id: avis.id}) }}"
+                      onsubmit="return confirm('Supprimer cet avis ?')">
+                    <button type="submit" class="btn btn-danger-admin px-3">
+                        <i class="bi bi-trash me-1"></i>Supprimer
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

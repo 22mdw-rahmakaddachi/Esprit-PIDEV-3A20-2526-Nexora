@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+{% block title %}Connexion — TripShop{% endblock %}
+
+{% block body %}
+<div class="container py-5" style="max-width:460px">
+    <div class="text-center mb-4">
+        <h2 style="font-family:'Playfair Display',serif;color:var(--primary-dark)">
+            <i class="bi bi-person-circle me-2"></i>Connexion
+        </h2>
+        <p class="text-muted small">Accédez à votre espace TripShop</p>
+    </div>
+
+    {% if error %}
+        <div class="alert alert-danger rounded-3">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error.messageKey|trans(error.messageData, 'security') }}
+        </div>
+    {% endif %}
+
+    <div class="form-card">
+        <form method="POST" action="{{ path('app_login') }}">
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <div class="input-group">
+                    <span class="input-group-text" style="background:#f9f7ff;border-color:#ddd">
+                        <i class="bi bi-envelope" style="color:var(--primary)"></i>
+                    </span>
+                    <input type="email" name="_username" class="form-control"
+                           value="{{ last_username }}" placeholder="votre@email.com" required autofocus>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Mot de passe</label>
+                <div class="input-group">
+                    <span class="input-group-text" style="background:#f9f7ff;border-color:#ddd">
+                        <i class="bi bi-lock" style="color:var(--primary)"></i>
+                    </span>
+                    <input type="password" name="_password" class="form-control"
+                           placeholder="Votre mot de passe" required>
+                </div>
+            </div>
+
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+            <button type="submit" class="btn btn-primary-admin w-100 py-2">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
+            </button>
+        </form>
+
+        <hr class="my-4" style="border-color:#ede5ff">
+
+        <p class="text-center text-muted small mb-0">
+            Pas encore de compte ?
+            <a href="{{ path('app_register') }}" style="color:var(--primary);font-weight:600">
+                Créer un compte
+            </a>
+        </p>
+    </div>
+</div>
+
+<style>
+.form-card { background:#fff;border-radius:16px;padding:32px;box-shadow:0 4px 24px rgba(108,63,197,0.10);border:1px solid #ede5ff; }
+.form-label { font-weight:600;font-size:0.85rem;color:var(--primary-dark); }
+.form-control { border-color:#ddd;border-radius:0 10px 10px 0;font-size:0.88rem;padding:10px 14px; }
+.form-control:focus { border-color:var(--primary-light);box-shadow:0 0 0 3px rgba(108,63,197,0.12); }
+.input-group-text { border-radius:10px 0 0 10px;border-color:#ddd; }
+.btn-primary-admin { background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border:none;border-radius:10px;font-weight:600;font-size:0.9rem;transition:opacity .2s,transform .2s; }
+.btn-primary-admin:hover { opacity:.9;transform:translateY(-1px);color:#fff; }
+</style>
+{% endblock %}

@@ -1,0 +1,350 @@
+﻿{% extends 'base.html.twig' %}
+{% block title %}Avis & Commentaires — TripShop{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+<style>
+.field-error { border-color:#e74c3c!important;box-shadow:0 0 0 3px rgba(231,76,60,0.12)!important; }
+.error-msg { display:none;color:#e74c3c;font-size:0.78rem;margin-top:4px;padding-left:4px; }
+.error-msg.show { display:block; }
+.img-preview-wrap { position:relative;display:inline-block;margin-top:8px; }
+.img-preview-wrap img { max-height:140px;border-radius:10px;border:1px solid #ede5ff; }
+.remove-img { position:absolute;top:-8px;right:-8px;background:#e74c3c;color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:0.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center; }
+.avis-image { width:100%;max-height:200px;object-fit:cover;border-radius:0 0 16px 16px;display:block; }
+
+/* Widget étoiles */
+.star-rating-wrap { display:flex;flex-direction:column;gap:4px; }
+.star-rating { display:inline-flex;gap:3px;background:#f0ebff;border-radius:50px;padding:6px 10px; }
+.star { font-size:1.4rem;cursor:pointer;color:#ddd;transition:color .15s,transform .15s;line-height:1;user-select:none; }
+.star.active { color:#f39c12; }
+.star:hover { transform:scale(1.2); }
+.star-label { font-size:0.75rem;color:var(--primary);font-weight:600;padding-left:4px; }
+
+/* ── SWIPER AVIS ── */
+.avis-swiper-section { margin-bottom: 56px; }
+.avis-swiper-header {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
+}
+.swiper-avis { padding: 8px 4px 48px !important; }
+.swiper-avis .swiper-slide { height: auto; }
+
+.avis-card {
+    background: var(--card-bg, #fff);
+    border-radius: 20px;
+    box-shadow: 0 4px 24px rgba(108,63,197,0.10);
+    border: 1px solid var(--border, #ede5ff);
+    overflow: hidden;
+    height: 100%;
+    display: flex; flex-direction: column;
+    transition: transform .3s, box-shadow .3s;
+}
+.avis-card:hover { transform: translateY(-6px); box-shadow: 0 12px 36px rgba(108,63,197,0.18); }
+.avis-card-body { padding: 24px; flex: 1; display: flex; flex-direction: column; }
+.avis-stars { color: #f39c12; font-size: 1rem; margin-bottom: 12px; }
+.avis-quote {
+    font-size: 0.9rem; line-height: 1.75; color: var(--text-muted, #666);
+    flex: 1; font-style: italic;
+}
+.avis-quote::before { content: '"'; font-size: 1.4rem; color: var(--primary); line-height: 0; vertical-align: -6px; margin-right: 2px; }
+.avis-quote::after  { content: '"'; font-size: 1.4rem; color: var(--primary); line-height: 0; vertical-align: -6px; margin-left: 2px; }
+.avis-footer {
+    display: flex; align-items: center; gap: 10px;
+    margin-top: 16px; padding-top: 14px;
+    border-top: 1px solid var(--border, #f0ebff);
+}
+.avis-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: #fff; font-weight: 700; font-size: 0.85rem;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+/* Navigation Swiper custom */
+.swiper-nav-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--card-bg, #fff);
+    border: 1.5px solid var(--border, #ede5ff);
+    color: var(--primary); font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all .2s; flex-shrink: 0;
+}
+.swiper-nav-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.swiper-nav-btn.swiper-button-disabled { opacity: .35; cursor: not-allowed; }
+
+/* Pagination bullets */
+.swiper-pagination-bullet { background: var(--primary-light) !important; opacity: .5; }
+.swiper-pagination-bullet-active { background: var(--primary) !important; opacity: 1; }
+
+/* ── DARK MODE ── */
+[data-theme="dark"] .avis-card { background: var(--card-bg); border-color: var(--border); }
+[data-theme="dark"] .avis-quote { color: var(--text-muted); }
+[data-theme="dark"] .avis-footer { border-color: var(--border); }
+[data-theme="dark"] .star-rating { background: #221f33; }
+[data-theme="dark"] .card { background: var(--card-bg) !important; border-color: var(--border) !important; }
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select { background: var(--input-bg); color: var(--text); border-color: var(--border); }
+[data-theme="dark"] .breadcrumb-section { background: var(--card-bg); border-color: var(--border); }
+[data-theme="dark"] .text-muted { color: var(--text-muted) !important; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="breadcrumb-section">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+        <li class="breadcrumb-item active">Avis &amp; Commentaires</li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<div class="container py-5">
+
+  <div class="text-center mb-5" data-aos="fade-down"><h1 class="section-title d-inline-block"><i class="bi bi-chat-square-quote me-2" style="color:var(--primary)"></i>Avis &amp; Commentaires</h1><p class="text-muted mt-3">Découvrez ce que nos clients pensent de nos activités.</p></div>
+
+  {# FORMULAIRE #}
+  <div class="mb-5" data-aos="fade-up">
+    <div class="card border-0 rounded-4 p-4" style="background:var(--card-bg,#fff);box-shadow:0 4px 20px rgba(108,63,197,0.09);border:1px solid var(--border,#ede5ff)!important">
+      <h5 class="fw-bold mb-4" style="color:var(--primary-dark)">
+        <i class="bi bi-plus-circle-fill me-2" style="color:var(--primary)"></i>Laisser un avis
+      </h5>
+      <form id="avis-form" method="POST" action="{{ path('app_avis_new_public') }}" enctype="multipart/form-data" novalidate>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold" style="color:var(--primary-dark)">Activité <span class="text-danger">*</span></label>
+            <select name="activite_id" id="avis-activite" class="form-select form-select-sm" style="border-color:#ddd;border-radius:10px">
+              <option value="">Choisir une activité…</option>
+              {% for act in allActivites %}<option value="{{ act.id }}">{{ act.nom }}</option>{% endfor %}
+            </select>
+            <div class="error-msg" id="err-activite"><i class="bi bi-exclamation-circle me-1"></i>Veuillez choisir une activité.</div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small fw-semibold" style="color:var(--primary-dark)">Votre nom <span class="text-danger">*</span></label>
+            {% if app.user %}
+              <input type="text" class="form-control form-control-sm" value="{{ app.user.fullName }}" readonly style="background:#f9f7ff;border-radius:10px;border-color:#ddd;font-weight:600;color:var(--primary-dark);cursor:not-allowed">
+              <input type="hidden" name="auteur" value="{{ app.user.fullName }}">
+            {% else %}
+              <input type="text" name="auteur" id="avis-auteur" class="form-control form-control-sm" placeholder="Votre nom" style="border-radius:10px;border-color:#ddd">
+              <div class="error-msg" id="err-auteur"><i class="bi bi-exclamation-circle me-1"></i>Le nom est obligatoire (min. 2 caractères).</div>
+            {% endif %}
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small fw-semibold" style="color:var(--primary-dark)">Note <span class="text-danger">*</span></label>
+            <div class="star-rating-wrap">
+              <div class="star-rating" id="star-rating">
+                <span class="star active" data-value="1">★</span>
+                <span class="star active" data-value="2">★</span>
+                <span class="star active" data-value="3">★</span>
+                <span class="star active" data-value="4">★</span>
+                <span class="star active" data-value="5">★</span>
+              </div>
+              <div class="star-label" id="star-label">Excellent</div>
+            </div>
+            <input type="hidden" name="note" id="avis-note" value="5">
+          </div>
+          <div class="col-md-3 d-flex align-items-end">
+            <button type="button" onclick="soumettreAvis()" class="btn w-100 fw-semibold"
+                    style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border-radius:10px;font-size:0.88rem">
+              <i class="bi bi-send me-1"></i>Publier mon avis
+            </button>
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold mb-1" style="color:var(--primary-dark)">Commentaire <span class="text-danger">*</span></label>
+            <textarea name="commentaire" id="avis-commentaire" class="form-control form-control-sm" rows="3"
+                      placeholder="Partagez votre expérience (min. 10 caractères)…" style="border-radius:10px;border-color:#ddd;resize:none"></textarea>
+            <div class="error-msg" id="err-commentaire"><i class="bi bi-exclamation-circle me-1"></i>Le commentaire doit contenir au moins 10 caractères.</div>
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold" style="color:var(--primary-dark)"><i class="bi bi-image me-1"></i>Photo (optionnel)</label>
+            <div class="d-flex align-items-center gap-3">
+              <label for="avis-image-input" class="btn btn-sm rounded-pill px-3" style="border:1.5px solid #ede5ff;color:var(--primary);cursor:pointer;font-size:0.82rem;margin:0">
+                <i class="bi bi-upload me-1"></i>Choisir une image
+              </label>
+              <span id="avis-img-name" class="text-muted small">Aucun fichier</span>
+            </div>
+            <input type="file" name="image" id="avis-image-input" accept="image/*" style="display:none" onchange="previewAvisImage(this)">
+            <div id="avis-img-preview"></div>
+            <div class="text-muted" style="font-size:0.75rem;margin-top:4px">JPG, PNG, GIF, WEBP — max 5 Mo</div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {# ── CAROUSELS SWIPER PAR ACTIVITÉ ── #}
+  {% for activite in activites %}
+  {% if activite.avis|length > 0 %}
+  <div class="avis-swiper-section" data-aos="fade-up">
+
+    <div class="avis-swiper-header">
+      <div class="d-flex align-items-center gap-3">
+        <div style="width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:1.4rem">
+          {% if activite.type == 'Sport' %}🏃{% elseif activite.type == 'Culture' %}🎭{% elseif activite.type == 'Gastronomie' %}🍽️{% elseif activite.type == 'Aventure' %}🧗{% else %}🌟{% endif %}
+        </div>
+        <div>
+          <h5 class="mb-0 fw-bold" style="color:var(--primary-dark)">{{ activite.nom }}</h5>
+          <div class="d-flex align-items-center gap-2 mt-1">
+            <span class="badge" style="background:#f0ebff;color:var(--primary);font-size:0.72rem">{{ activite.type }}</span>
+            <span style="color:#f39c12;font-size:0.82rem">
+              {% for i in 1..5 %}<i class="bi bi-star{{ i <= activite.moyenne|round ? '-fill' : '' }}"></i>{% endfor %}
+            </span>
+            <span class="text-muted small">{{ activite.moyenne }}/5 · {{ activite.avis|length }} avis</span>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button class="swiper-nav-btn swiper-prev-{{ loop.index }}" aria-label="Précédent">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        <button class="swiper-nav-btn swiper-next-{{ loop.index }}" aria-label="Suivant">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+        <a href="{{ path('app_activite_show', {id: activite.id}) }}" class="btn btn-sm rounded-pill px-3 ms-1"
+           style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">
+          <i class="bi bi-calendar-check me-1"></i>Voir
+        </a>
+      </div>
+    </div>
+
+    <div class="swiper swiper-avis" id="swiper-avis-{{ loop.index }}">
+      <div class="swiper-wrapper">
+        {% for avis in activite.avis %}
+        <div class="swiper-slide">
+          <div class="avis-card">
+            <div class="avis-card-body">
+              <div class="avis-stars">
+                {% for i in 1..5 %}<i class="bi bi-star{{ i <= avis.note ? '-fill' : '' }}"></i>{% endfor %}
+                <span class="ms-1 small text-muted">({{ avis.note }}/5)</span>
+              </div>
+              <p class="avis-quote">{{ avis.commentaire|length > 150 ? avis.commentaire|slice(0,150) ~ '…' : avis.commentaire }}</p>
+              <div class="avis-footer">
+                <div class="avis-avatar">{{ avis.auteur|slice(0,1)|upper }}</div>
+                <div>
+                  <div class="fw-semibold small" style="color:var(--primary-dark)">{{ avis.auteur }}</div>
+                  <div class="text-muted" style="font-size:0.72rem">{{ avis.createdAt|date('d/m/Y') }}</div>
+                </div>
+              </div>
+            </div>
+            {% if avis.image %}
+            <img src="/uploads/avis/{{ avis.image }}" alt="photo avis" class="avis-image">
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="swiper-pagination"></div>
+    </div>
+
+  </div>
+  <hr style="border-color:var(--border,#ede5ff);margin:40px 0">
+  {% endif %}
+  {% else %}
+  <div class="text-center py-5 text-muted" data-aos="fade-up">
+    <div style="font-size:4rem">💬</div>
+    <p class="mt-3">Aucun avis pour le moment.</p>
+    <a href="{{ path('app_activites') }}" class="btn rounded-pill px-4 mt-2"
+       style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">
+      <i class="bi bi-calendar-event me-2"></i>Voir les activités
+    </a>
+  </div>
+  {% endfor %}
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+// ── INIT SWIPERS AVIS ──
+document.addEventListener('DOMContentLoaded', () => {
+    {% for activite in activites %}
+    {% if activite.avis|length > 0 %}
+    new Swiper('#swiper-avis-{{ loop.index }}', {
+        slidesPerView: 1,
+        spaceBetween: 20,
+        grabCursor: true,
+        loop: {{ activite.avis|length > 3 ? 'true' : 'false' }},
+        autoplay: { delay: 4500, disableOnInteraction: false, pauseOnMouseEnter: true },
+        pagination: { el: '#swiper-avis-{{ loop.index }} .swiper-pagination', clickable: true },
+        navigation: {
+            prevEl: '.swiper-prev-{{ loop.index }}',
+            nextEl: '.swiper-next-{{ loop.index }}',
+        },
+        breakpoints: {
+            576:  { slidesPerView: 1.4 },
+            768:  { slidesPerView: 2 },
+            1024: { slidesPerView: 3 },
+        },
+        effect: 'slide',
+    });
+    {% endif %}
+    {% endfor %}
+});
+
+// ── PREVIEW IMAGE ──
+function previewAvisImage(input) {
+    const preview = document.getElementById('avis-img-preview');
+    const nameEl  = document.getElementById('avis-img-name');
+    preview.innerHTML = '';
+    if (!input.files || !input.files[0]) { nameEl.textContent = 'Aucun fichier'; return; }
+    const file = input.files[0];
+    if (file.size > 5 * 1024 * 1024) { alert('Image trop lourde (max 5 Mo).'); input.value = ''; nameEl.textContent = 'Aucun fichier'; return; }
+    nameEl.textContent = file.name;
+    const reader = new FileReader();
+    reader.onload = e => {
+        preview.innerHTML = `<div class="img-preview-wrap"><img src="${e.target.result}" alt="preview"><button type="button" class="remove-img" onclick="removeAvisImage()">&#x2715;</button></div>`;
+    };
+    reader.readAsDataURL(file);
+}
+function removeAvisImage() {
+    document.getElementById('avis-image-input').value = '';
+    document.getElementById('avis-img-preview').innerHTML = '';
+    document.getElementById('avis-img-name').textContent = 'Aucun fichier';
+}
+
+// ── ÉTOILES ──
+(function() {
+    const labels = {1:'Très mauvais',2:'Mauvais',3:'Moyen',4:'Bien',5:'Excellent'};
+    const stars = document.querySelectorAll('#star-rating .star');
+    const input = document.getElementById('avis-note');
+    const label = document.getElementById('star-label');
+    let current = 5;
+    function paint(v) { stars.forEach(s => s.classList.toggle('active', parseInt(s.dataset.value) <= v)); if(label) label.textContent = labels[v]||''; }
+    stars.forEach(s => {
+        s.addEventListener('click', () => { current = parseInt(s.dataset.value); input.value = current; paint(current); });
+        s.addEventListener('mouseenter', () => paint(parseInt(s.dataset.value)));
+        s.addEventListener('mouseleave', () => paint(current));
+    });
+    paint(current);
+})();
+
+// ── VALIDATION ──
+function setError(id, errId, show) {
+    const f = document.getElementById(id), e = document.getElementById(errId);
+    if (f) f.classList.toggle('field-error', show);
+    if (e) e.classList.toggle('show', show);
+}
+function soumettreAvis() {
+    const activite = document.getElementById('avis-activite');
+    const auteurEl = document.getElementById('avis-auteur');
+    const commentaire = document.getElementById('avis-commentaire');
+    let valid = true;
+    if (!activite.value) { setError('avis-activite','err-activite',true); valid=false; } else { setError('avis-activite','err-activite',false); }
+    if (auteurEl && auteurEl.type !== 'hidden') {
+        if (auteurEl.value.trim().length < 2) { setError('avis-auteur','err-auteur',true); valid=false; } else { setError('avis-auteur','err-auteur',false); }
+    }
+    if (commentaire.value.trim().length < 10) { setError('avis-commentaire','err-commentaire',true); valid=false; } else { setError('avis-commentaire','err-commentaire',false); }
+    if (!valid) return;
+    document.getElementById('avis-form').submit();
+}
+['avis-activite','avis-auteur','avis-commentaire'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.addEventListener('input', () => el.classList.remove('field-error')); el.addEventListener('change', () => el.classList.remove('field-error')); }
+});
+
+// Correction automatique
+if (window.SpellCheck) SpellCheck.attach('avis-commentaire', 'fr');
+
+</script>
+{% endblock %}
