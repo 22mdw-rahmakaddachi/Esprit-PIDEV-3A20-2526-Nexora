@@ -84,6 +84,9 @@ class Destination
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private bool $reminderSent = false;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $programme = null;
+
     public function __construct()
     {
         $this->destinationImages = new ArrayCollection();
@@ -285,4 +288,7 @@ class Destination
 
     public function isReminderSent(): bool { return $this->reminderSent; }
     public function setReminderSent(bool $reminderSent): static { $this->reminderSent = $reminderSent; return $this; }
+
+    public function getProgramme(): ?string { return $this->programme; }
+    public function setProgramme(?string $programme): static { $this->programme = $programme; return $this; }
 }
