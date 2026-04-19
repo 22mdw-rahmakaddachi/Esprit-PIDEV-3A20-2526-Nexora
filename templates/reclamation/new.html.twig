@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+{% block title %}Nouvelle réclamation{% endblock %}
+
+{% block body %}
+<section class="py-5">
+    <div class="container" style="max-width:640px">
+
+        <div class="mb-4">
+            <a href="{{ path('app_mes_reclamations') }}" class="text-decoration-none small" style="color:var(--primary)">
+                <i class="bi bi-arrow-left me-1"></i>Retour à mes réclamations
+            </a>
+        </div>
+
+        <div class="p-4 rounded-4" style="background:#fff;border:1px solid #ede5ff;box-shadow:0 4px 20px rgba(108,63,197,0.08)">
+            <h4 class="mb-4 fw-bold" style="color:var(--primary-dark)">
+                <i class="bi bi-exclamation-triangle-fill me-2" style="color:#e67e22"></i>Soumettre une réclamation
+            </h4>
+
+            <form method="post" action="{{ path('app_reclamation_new') }}">
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="color:var(--primary-dark)">
+                        Activité concernée <span class="text-danger">*</span>
+                    </label>
+                    {% if activites is not empty %}
+                    <select name="activite_id" class="form-select" required>
+                        <option value="">— Choisir une activité —</option>
+                        {% for a in activites %}
+                        <option value="{{ a.id }}" {{ preselectedActiviteId == a.id ? 'selected' : '' }}>
+                            {{ a.nom }} ({{ a.lieu }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text text-muted">Le partenaire responsable sera notifié par email.</div>
+                    {% else %}
+                    <div class="alert alert-warning py-2 small">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        Vous n'avez pas encore participé à une activité.
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold" style="color:var(--primary-dark)">
+                        Description <span class="text-danger">*</span>
+                    </label>
+                    <textarea name="description" class="form-control" rows="5"
+                              placeholder="Décrivez votre problème en détail..." required></textarea>
+                </div>
+
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn flex-grow-1 fw-bold" {% if activites is empty %}disabled{% endif %}
+                            style="background:linear-gradient(135deg,#e67e22,#d35400);color:#fff;border:none;border-radius:10px;padding:12px">
+                        <i class="bi bi-send-fill me-2"></i>Envoyer la réclamation
+                    </button>
+                    <a href="{{ path('app_mes_reclamations') }}" class="btn btn-outline-secondary rounded-3 px-4">
+                        Annuler
+                    </a>
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

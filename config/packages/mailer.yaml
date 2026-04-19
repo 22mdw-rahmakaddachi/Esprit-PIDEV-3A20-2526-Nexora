@@ -1,3 +1,7 @@
 framework:
     mailer:
         dsn: '%env(MAILER_DSN)%'
+        envelope:
+            sender: 'anoir5502@gmail.com'
+        headers:
+            from: 'Nexora <anoir5502@gmail.com>'

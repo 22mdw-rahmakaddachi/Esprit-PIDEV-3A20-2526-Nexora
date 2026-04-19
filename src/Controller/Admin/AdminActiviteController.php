@@ -8,6 +8,7 @@ use App\Repository\ActiviteRepository;
 use App\Repository\ParticipationDemandeRepository;
 use App\Repository\NotificationRepository;
 use App\Repository\PartenaireRepository;
+use App\Repository\ReclamationRepository;
 use App\Repository\UsersRepository;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -20,12 +21,26 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 #[Route('/admin')]
 final class AdminActiviteController extends AbstractController
 {
-    /** Retourne le partenaire lié à l'utilisateur connecté, ou null */
-    private function getPartenaire(PartenaireRepository $repo): ?Partenaire
+    /** Retourne le partenaire lié à l'utilisateur connecté, ou le crée si absent */
+    private function getPartenaire(PartenaireRepository $repo, ?EntityManagerInterface $em = null): ?Partenaire
     {
         $user = $this->getUser();
         if (!$user) return null;
-        return $repo->findOneBy(['user' => $user]);
+
+        $partenaire = $repo->findOneBy(['user' => $user]);
+
+        // Créer automatiquement si absent et qu'on a un EntityManager
+        if (!$partenaire && $em) {
+            $partenaire = new Partenaire();
+            $partenaire->setUser($user);
+            $partenaire->setNomEntreprise($user->getPrenom() . ' ' . $user->getNom());
+            $partenaire->setStatut('actif');
+            $partenaire->setDateInscription(new \DateTime());
+            $em->persist($partenaire);
+            $em->flush();
+        }
+
+        return $partenaire;
     }
 
     /** Retourne l'ID du partenaire connecté, ou 0 */
@@ -34,13 +49,18 @@ final class AdminActiviteController extends AbstractController
         return $this->getPartenaire($repo)?->getId() ?? 0;
     }
     #[Route('/dashboard', name: 'admin_dashboard')]
-    public function dashboard(ActiviteRepository $activiteRepo, ParticipationDemandeRepository $demandeRepo, UsersRepository $usersRepo, PartenaireRepository $partenaireRepo): Response
+    public function dashboard(ActiviteRepository $activiteRepo, ParticipationDemandeRepository $demandeRepo, UsersRepository $usersRepo, PartenaireRepository $partenaireRepo, ReclamationRepository $reclamationRepo): Response
     {
         if ($this->isGranted('ROLE_ADMIN')) {
             $activites = $activiteRepo->findBy([], ['dateCreation' => 'DESC']);
+            $reclamations = $reclamationRepo->findBy([], ['dateCreation' => 'DESC'], 5);
+            $partenairesZoneRouge = $reclamationRepo->findPartenairesEnZoneRouge(3);
         } else {
             $partenaireId = $this->getPartenaireId($partenaireRepo);
             $activites = $partenaireId ? $activiteRepo->findByPartenaire($partenaireId) : [];
+            $reclamations = $partenaireId ? $reclamationRepo->findByPartenaire($partenaireId) : [];
+            $reclamations = array_slice($reclamations, 0, 5);
+            $partenairesZoneRouge = [];
         }
         $totalPlaces = array_sum(array_map(fn($a) => $a->getNombrePlaces(), $activites));
         $placesDisponibles = array_sum(array_map(fn($a) => $a->getPlacesDisponibles(), $activites));
@@ -60,8 +80,26 @@ final class AdminActiviteController extends AbstractController
             'demandesEnAttente' => $demandesEnAttente,
             'activites'         => array_slice($activites, 0, 5),
             'demandes'          => array_slice($demandes, 0, 5),
-            'users'             => $this->isGranted('ROLE_ADMIN') ? $usersRepo->findBy([], ['id' => 'DESC'], 5) : [],
+            'reclamations'           => $reclamations,
+            'partenairesZoneRouge'   => $partenairesZoneRouge,
+            'tousPartenaires'        => $this->isGranted('ROLE_ADMIN') ? $reclamationRepo->findTousPartenairesAvecReclamations() : [],
+            'users'                  => $this->isGranted('ROLE_ADMIN') ? $usersRepo->findBy([], ['id' => 'DESC'], 5) : [],
         ]);
+    }
+
+    #[Route('/reclamations/{id}/statut', name: 'admin_reclamation_statut', methods: ['POST'])]
+    public function updateStatutReclamation(int $id, Request $request, ReclamationRepository $repo, EntityManagerInterface $em): Response
+    {
+        $reclamation = $repo->find($id);
+        if ($reclamation) {
+            $statut = $request->request->get('statut');
+            if (in_array($statut, ['EN_ATTENTE', 'EN_COURS', 'RESOLUE'])) {
+                $reclamation->setStatut($statut);
+                $em->flush();
+                $this->addFlash('success', '✅ Statut mis à jour.');
+            }
+        }
+        return $this->redirectToRoute('admin_reclamations');
     }
 
     #[Route('/activites', name: 'admin_activites')]
@@ -92,7 +130,7 @@ final class AdminActiviteController extends AbstractController
                 $activite = new Activite();
                 $this->fillActivite($activite, $data, $request, $slugger);
 
-                $partenaire = $this->getPartenaire($partenaireRepo);
+                $partenaire = $this->getPartenaire($partenaireRepo, $em);
                 $activite->setPartenaire($partenaire);
                 $activite->setPlacesDisponibles($activite->getNombrePlaces());
                 $activite->setDateCreation(new \DateTime());

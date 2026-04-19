@@ -4,7 +4,7 @@
 
 {% block body %}
 
-{# STAT CARDS #}
+{# ── STAT CARDS ── #}
 <div class="row g-4 mb-4">
     <div class="col-6 col-xl-3">
         <div class="stat-card">
@@ -59,6 +59,58 @@
         </div>
     </div>
 </div>
+
+{# ── ZONE ROUGE PARTENAIRES (admin uniquement) ── #}
+{% if is_granted('ROLE_ADMIN') and partenairesZoneRouge is not empty %}
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="admin-table" style="border:2px solid #e74c3c">
+            <div class="p-3 border-bottom d-flex justify-content-between align-items-center"
+                 style="background:linear-gradient(135deg,#fde8e8,#fff5f5);border-color:#e74c3c!important">
+                <h6 class="mb-0 fw-bold" style="color:#c0392b">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                    🚨 Partenaires en zone rouge
+                    <span class="badge rounded-pill ms-2" style="background:#e74c3c;color:#fff;font-size:0.75rem">
+                        {{ partenairesZoneRouge|length }}
+                    </span>
+                </h6>
+                <span class="small text-muted">Plus de 3 réclamations reçues</span>
+            </div>
+            <div class="p-3">
+                <div class="row g-3">
+                    {% for p in partenairesZoneRouge %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="p-3 rounded-3 d-flex align-items-center gap-3"
+                             style="background:#fde8e8;border:1px solid #f5b7b1">
+                            <div class="flex-shrink-0 rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                                 style="width:48px;height:48px;background:#e74c3c;color:#fff;font-size:1.1rem">
+                                {{ p.prenom|first|upper }}
+                            </div>
+                            <div class="flex-grow-1 min-width-0">
+                                <div class="fw-bold" style="color:#c0392b">
+                                    {{ p.nom_entreprise ?: (p.prenom ~ ' ' ~ p.nom) }}
+                                </div>
+                                <div class="small text-muted text-truncate">{{ p.email }}</div>
+                                <div class="mt-1">
+                                    <span class="badge rounded-pill" style="background:#e74c3c;color:#fff;font-size:0.72rem">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                        {{ p.nb_reclamations }} réclamations
+                                    </span>
+                                </div>
+                            </div>
+                            <a href="{{ path('admin_reclamations') }}" class="btn btn-sm flex-shrink-0"
+                               style="background:#e74c3c;color:#fff;border:none;border-radius:8px;font-size:0.78rem">
+                                Voir
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 {# ── ACTIVITÉS & DEMANDES ── #}
 <div class="row g-4">
@@ -207,10 +259,8 @@
     </div>
 </div>
 
-{# ── UTILISATEURS (admin uniquement) ── #}
-{% if is_granted('ROLE_ADMIN') %}
-<hr style="border-color:#ede5ff;margin:32px 0">
-<div class="row g-4">
+{# ── GESTION UTILISATEURS ── #}
+<hr style="border-color:#ede5ff;margin:32px 0"><div class="row g-4">
     <div class="col-12">
         <div class="admin-table">
             <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color:#ede5ff!important">
@@ -273,6 +323,5 @@
         </div>
     </div>
 </div>
-{% endif %}
 
 {% endblock %}

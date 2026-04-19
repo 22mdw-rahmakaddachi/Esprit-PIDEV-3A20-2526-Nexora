@@ -1,0 +1,438 @@
+{% extends 'base.html.twig' %}
+{% block title %}Tableau des vols — Nexora{% endblock %}
+
+{% block stylesheets %}
+<style>
+/* ── HERO ── */
+.vols-hero {
+    background: linear-gradient(135deg, #0a0f2c 0%, #1a237e 40%, #1565c0 100%);
+    padding: 50px 0 35px;
+    position: relative;
+    overflow: hidden;
+}
+.vols-hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
+}
+.stat-glass {
+    background: rgba(255,255,255,0.08); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 14px;
+    padding: 18px 22px; color: #fff; text-decoration: none;
+    transition: transform .2s, background .2s; display: block;
+}
+.stat-glass:hover { background: rgba(255,255,255,0.15); transform: translateY(-3px); color: #fff; }
+.stat-glass.active { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.5); }
+.stat-num { font-size: 2rem; font-weight: 800; line-height: 1; }
+.stat-lbl { font-size: 0.78rem; opacity: .7; text-transform: uppercase; letter-spacing: 1px; margin-top: 3px; }
+
+/* ── FILTRES ── */
+.filter-pill {
+    padding: 7px 18px; border-radius: 50px; font-size: 0.82rem; font-weight: 600;
+    border: 2px solid #e0e7ff; background: #f0f4ff; color: #3949ab;
+    text-decoration: none; transition: all .2s;
+}
+.filter-pill:hover { background: #e0e7ff; color: #3949ab; }
+.filter-pill.active { background: linear-gradient(135deg,#3949ab,#1565c0); color: #fff; border-color: transparent; }
+.search-input {
+    border: 2px solid #e0e7ff; border-radius: 50px;
+    padding: 8px 18px 8px 38px; font-size: 0.88rem;
+    outline: none; transition: border-color .2s; min-width: 220px;
+}
+.search-input:focus { border-color: #3949ab; }
+
+/* ── LISTE VOLS style Tunisair ── */
+.vol-list { background: #fff; border-radius: 4px; overflow: hidden; }
+
+.vol-row {
+    display: grid;
+    grid-template-columns: 160px 1fr 140px 1fr;
+    align-items: center;
+    padding: 20px 28px;
+    border-bottom: 1px solid #e8edf2;
+    cursor: pointer;
+    transition: background .15s;
+    gap: 24px;
+}
+.vol-row:last-child { border-bottom: none; }
+.vol-row:nth-child(even) { background: #f0f5fb; }
+.vol-row:nth-child(odd)  { background: #fff; }
+.vol-row:hover { background: #e8f0fe !important; }
+.vol-row:hover .vol-numero-badge {
+    background: #0d3f7a;
+    box-shadow: 0 2px 8px rgba(26,86,160,0.4);
+}
+.vol-row::after {
+    content: '';
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity .2s;
+}
+.vol-row {
+    position: relative;
+}
+
+/* Colonne 1 — Numéro + statut */
+.vol-numero-badge {
+    display: inline-block;
+    background: #1a56a0;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 4px 10px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+.vol-statut-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+.vol-statut-line svg { width: 20px; height: 20px; }
+.s-atterri   { color: #4caf50; }
+.s-en-vol    { color: #1565c0; }
+.s-retard    { color: #f57f17; }
+.s-programme { color: #7b1fa2; }
+
+/* Colonnes 2 & 4 — Heures + ville */
+.vol-times { }
+.t-prog { font-size: 1.25rem; font-weight: 800; color: #1a237e; line-height: 1; }
+.t-lbl  { font-size: 0.7rem; color: #90a4ae; margin: 2px 0 4px; }
+.t-est  { font-size: 1rem; font-weight: 700; color: #e67e22; line-height: 1; }
+.t-est-lbl { font-size: 0.7rem; color: #90a4ae; margin-top: 2px; }
+.vol-ville  { margin-top: 12px; font-size: 1rem; font-weight: 600; color: #2d3748; }
+.vol-ville .iata { color: #a0aec0; font-weight: 400; }
+
+/* Colonne 3 — Piste */
+.vol-track {
+    position: relative;
+    height: 36px;
+    display: flex;
+    align-items: center;
+}
+.track-line {
+    position: absolute;
+    left: 6px; right: 6px;
+    top: 50%; transform: translateY(-50%);
+    height: 2px;
+    background: #4caf50;
+}
+.track-dot {
+    position: absolute;
+    left: 2px; top: 50%; transform: translateY(-50%);
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2.5px solid #4caf50;
+    z-index: 2;
+}
+.track-plane {
+    position: absolute;
+    top: 50%; transform: translateY(-50%);
+    z-index: 3;
+    animation: glide 3s ease-in-out infinite;
+}
+@keyframes glide {
+    0%   { left: 15%; }
+    50%  { left: 55%; }
+    100% { left: 15%; }
+}
+.track-arrow {
+    position: absolute;
+    right: 0; top: 50%; transform: translateY(-50%);
+    z-index: 2;
+}
+
+/* Bouton actualiser */
+.btn-refresh {
+    background: linear-gradient(135deg,#00b09b,#096ead);
+    color: #fff; border: none; border-radius: 12px;
+    padding: 11px 26px; font-weight: 700; font-size: 0.9rem;
+    transition: opacity .2s, transform .2s; cursor: pointer;
+}
+.btn-refresh:hover { opacity: .9; transform: translateY(-2px); color: #fff; }
+
+.empty-vols { padding: 60px 20px; text-align: center; color: #90a4ae; }
+.empty-vols i { font-size: 4rem; opacity: .2; display: block; margin-bottom: 16px; }
+
+@keyframes pulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50%      { opacity:.5; transform:scale(.7); }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+
+{# ── HERO ── #}
+<div class="vols-hero">
+    <div class="container position-relative" style="z-index:1">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-5">
+            <div>
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    <div style="width:46px;height:46px;background:rgba(255,255,255,0.15);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.4rem">✈️</div>
+                    <div>
+                        <h1 class="text-white mb-0 fw-bold" style="font-size:1.7rem">Tableau des vols Tunisair</h1>
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            <span style="width:7px;height:7px;background:#4caf50;border-radius:50%;display:inline-block;animation:pulse 1.5s infinite"></span>
+                            <span style="color:rgba(255,255,255,.65);font-size:0.78rem">
+                                {% if lastUpdate %}Mis à jour le {{ lastUpdate|date('d/m/Y à H:i') }}{% else %}Aucune donnée{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-refresh" onclick="actualiserVols()" id="btn-actualiser">
+                <i class="bi bi-arrow-clockwise me-2"></i>Actualiser les vols
+            </button>
+        </div>
+        <div class="row g-3">
+            <div class="col-6 col-md-3">
+                <a href="{{ path('app_vols') }}" class="stat-glass {{ not statutActif ? 'active' : '' }}">
+                    <div class="stat-num">{{ total }}</div><div class="stat-lbl">🌍 Total</div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a href="{{ path('app_vols', {statut: 'En vol'}) }}" class="stat-glass {{ statutActif == 'En vol' ? 'active' : '' }}">
+                    <div class="stat-num" style="color:#81d4fa">{{ stats.en_vol }}</div><div class="stat-lbl">✈️ En vol</div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a href="{{ path('app_vols', {statut: 'Retard'}) }}" class="stat-glass {{ statutActif == 'Retard' ? 'active' : '' }}">
+                    <div class="stat-num" style="color:#ffcc80">{{ stats.retard }}</div><div class="stat-lbl">⚠️ Retard</div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a href="{{ path('app_vols', {statut: 'Programmé'}) }}" class="stat-glass {{ statutActif == 'Programmé' ? 'active' : '' }}">
+                    <div class="stat-num" style="color:#ce93d8">{{ stats.programme }}</div><div class="stat-lbl">📅 Programmé</div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ── TUNISAIR INFO ── #}
+<section style="background:#fff;border-bottom:1px solid #e0e7f0">
+    <div class="container py-4">
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-3">
+                <div class="rounded-3 p-4 text-center" style="background:linear-gradient(135deg,#0a0f2c,#1a237e)">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Tunisair_logo.svg/320px-Tunisair_logo.svg.png"
+                         alt="Tunisair" style="max-width:160px;width:100%;filter:brightness(0) invert(1)"
+                         onerror="this.outerHTML='<div style=\'color:#fff;font-size:1.5rem;font-weight:800\'>✈️ TUNISAIR</div>'">
+                    <p class="text-white opacity-75 small mt-3 mb-0">Compagnie nationale — Fondée en 1948</p>
+                </div>
+            </div>
+            <div class="col-lg-9">
+                <h4 class="fw-bold mb-2" style="color:#0a0f2c">Tunisair — La compagnie nationale tunisienne</h4>
+                <p class="text-muted mb-3" style="font-size:0.9rem;line-height:1.8">
+                    Fondée en <strong>1948</strong>, Tunisair opère vers plus de <strong>50 destinations</strong> depuis son hub de <strong>Tunis-Carthage</strong>.
+                    Flotte d'Airbus A319, A320 et A330.
+                </p>
+                <div class="d-flex gap-3 flex-wrap">
+                    {% for s in [['50+','Destinations','#e3f2fd','#1565c0'],['60+','Appareils','#e8f5e9','#2e7d32'],['1948','Fondée','#fff8e1','#f57f17'],['TUN','Code IATA','#ede7f6','#4527a0']] %}
+                    <div class="text-center px-3 py-2 rounded-3" style="background:{{ s[2] }};min-width:70px">
+                        <div class="fw-bold" style="color:{{ s[3] }};font-size:1.1rem">{{ s[0] }}</div>
+                        <div style="font-size:0.7rem;color:{{ s[3] }}">{{ s[1] }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# ── SECTION VOLS ── #}
+<section class="py-4" style="background:#edf2f7;min-height:60vh">
+    <div class="container">
+
+        {# Filtres + recherche #}
+        <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
+            <div class="position-relative">
+                <i class="bi bi-search position-absolute" style="left:13px;top:50%;transform:translateY(-50%);color:#90a4ae;font-size:0.85rem"></i>
+                <input type="text" id="search-live" class="search-input"
+                       placeholder="N° vol, ville, code..." autocomplete="off" value="{{ search }}">
+            </div>
+            <a href="{{ path('app_vols') }}"                         class="filter-pill {{ not statutActif ? 'active' : '' }}">Tous ({{ total }})</a>
+            <a href="{{ path('app_vols', {statut: 'En vol'}) }}"     class="filter-pill {{ statutActif == 'En vol'    ? 'active' : '' }}">✈️ En vol ({{ stats.en_vol }})</a>
+            <a href="{{ path('app_vols', {statut: 'Atterri'}) }}"    class="filter-pill {{ statutActif == 'Atterri'   ? 'active' : '' }}">🛬 Atterri ({{ stats.atterri }})</a>
+            <a href="{{ path('app_vols', {statut: 'Retard'}) }}"     class="filter-pill {{ statutActif == 'Retard'    ? 'active' : '' }}">⚠️ Retard ({{ stats.retard }})</a>
+            <a href="{{ path('app_vols', {statut: 'Programmé'}) }}"  class="filter-pill {{ statutActif == 'Programmé' ? 'active' : '' }}">📅 Programmé ({{ stats.programme }})</a>
+        </div>
+
+        {# Mapping aéroports #}
+        {% set AP = {
+            'YUL': 'Montréal',    'TUN': 'Tunis',       'IST': 'Istanbul',
+            'MIR': 'Monastir',    'NCE': 'Nice',         'ALG': 'Alger',
+            'DSS': 'Dakar',       'ABJ': 'Abidjan',      'LYS': 'Lyon',
+            'NKC': 'Nouakchott',  'DJE': 'Djerba',       'MAD': 'Madrid',
+            'ORY': 'Paris Orly',  'VIE': 'Vienne',       'MRS': 'Marseille',
+            'GVA': 'Genève',      'CMN': 'Casablanca',   'ORN': 'Oran',
+            'JED': 'Djeddah',     'FRA': 'Francfort',    'FCO': 'Rome',
+            'LGW': 'Londres',     'CAI': 'Le Caire',     'MXP': 'Milan',
+            'BRU': 'Bruxelles'
+        } %}
+
+        {# Liste #}
+        <div class="vol-list" style="border:1px solid #d0d9e3">
+            {% for vol in vols %}
+            {% set dc = vol.depart|replace({'(': '', ')': ''}) %}
+            {% set ac = vol.arrivee|replace({'(': '', ')': ''}) %}
+            {% set depCity = AP[dc] ?? dc %}
+            {% set arrCity = AP[ac] ?? ac %}
+
+            <div class="vol-row"
+                 data-search="{{ vol.numero|lower }} {{ dc|lower }} {{ ac|lower }} {{ depCity|lower }} {{ arrCity|lower }} {{ vol.statut|lower }}"
+                 onclick="window.open('https://www.skyscanner.fr/transport/vols/{{ dc }}/{{ ac }}/{{ "now"|date("Ymd") }}/?adults=1&children=0&adultsv2=1&cabinclass=economy&currency=TND&locale=fr-FR&market=TN&origin={{ dc }}&destination={{ ac }}', '_blank')"
+                 title="Réserver {{ vol.numero }} {{ depCity }} → {{ arrCity }} sur Skyscanner ↗">
+
+                {# COL 1 : Numéro + statut #}
+                <div>
+                    <div class="vol-numero-badge">{{ vol.numero }}</div>
+                    <div class="vol-statut-line
+                        {% if vol.statut == 'En vol' %}s-en-vol
+                        {% elseif vol.statut == 'Retard' %}s-retard
+                        {% elseif vol.statut == 'Programmé' %}s-programme
+                        {% else %}s-atterri{% endif %}">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+                        </svg>
+                        Vol {{ vol.statut|lower }}
+                    </div>
+                </div>
+
+                {# COL 2 : Départ #}
+                <div class="vol-times">
+                    <div class="t-prog">{{ vol.heureDepart ?? '—' }}</div>
+                    <div class="t-lbl">Départ programmé</div>
+                    <div class="t-est">{{ vol.heureDepart ?? '—' }}</div>
+                    <div class="t-est-lbl">Départ estimé</div>
+                    <div class="vol-ville">{{ depCity }} <span class="iata">({{ dc }})</span></div>
+                </div>
+
+                {# COL 3 : Piste animée #}
+                <div class="vol-track">
+                    <div class="track-line"></div>
+                    <div class="track-dot"></div>
+                    <div class="track-plane">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="#4caf50">
+                            <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+                        </svg>
+                    </div>
+                    <div class="track-arrow">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#4caf50"><path d="M8 5v14l11-7z"/></svg>
+                    </div>
+                </div>
+
+                {# COL 4 : Arrivée #}
+                <div class="vol-times text-end">
+                    <div class="t-prog">{{ vol.heureArrivee ?? '—' }}</div>
+                    <div class="t-lbl">Arrivée programmée</div>
+                    <div class="t-est">{{ vol.heureArrivee ?? '—' }}</div>
+                    <div class="t-est-lbl">Arrivée estimée</div>
+                    <div class="vol-ville">{{ arrCity }} <span class="iata">({{ ac }})</span></div>
+                </div>
+
+            </div>
+            {% else %}
+            <div class="empty-vols">
+                <i class="bi bi-airplane"></i>
+                <p class="fw-semibold mb-1" style="color:#546e7a">Aucun vol trouvé</p>
+                <p class="small mb-3">Cliquez sur "Actualiser les vols" pour charger les données.</p>
+                <button onclick="actualiserVols()" class="btn-refresh">
+                    <i class="bi bi-arrow-clockwise me-2"></i>Actualiser maintenant
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if vols|length > 0 %}
+        <div class="text-center mt-3 text-muted small" id="vol-counter">
+            {{ vols|length }} vol{{ vols|length > 1 ? 's' : '' }} affiché{{ vols|length > 1 ? 's' : '' }}
+            {% if statutActif %} — <a href="{{ path('app_vols') }}" style="color:#3949ab">Réinitialiser</a>{% endif %}
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+
+{# Toast #}
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+    <div id="toast-vols" class="toast align-items-center border-0 rounded-3 shadow" role="alert">
+        <div class="d-flex">
+            <div class="toast-body fw-semibold" id="toast-msg" style="font-size:0.88rem"></div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+// ── Recherche dynamique ──
+const searchInput = document.getElementById('search-live');
+const rows        = document.querySelectorAll('.vol-row[data-search]');
+const counter     = document.getElementById('vol-counter');
+const totalVols   = rows.length;
+
+if (searchInput) {
+    searchInput.addEventListener('input', function () {
+        const q = this.value.trim().toLowerCase();
+        let visible = 0;
+        rows.forEach(row => {
+            const match = !q || row.dataset.search.includes(q);
+            row.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+        if (counter) {
+            if (!q) {
+                counter.innerHTML = totalVols + ' vol' + (totalVols > 1 ? 's' : '') + ' affiché' + (totalVols > 1 ? 's' : '');
+            } else if (visible === 0) {
+                counter.innerHTML = '<span style="color:#e74c3c">Aucun vol pour "<strong>' + q + '</strong>" — <a href="javascript:void(0)" onclick="clearSearch()" style="color:#3949ab">Effacer</a></span>';
+            } else {
+                counter.innerHTML = '<strong style="color:#3949ab">' + visible + '</strong> vol' + (visible > 1 ? 's' : '') +
+                    ' pour "<strong>' + q + '</strong>" — <a href="javascript:void(0)" onclick="clearSearch()" style="color:#3949ab">Effacer</a>';
+            }
+        }
+    });
+    searchInput.focus();
+}
+
+function clearSearch() {
+    searchInput.value = '';
+    searchInput.dispatchEvent(new Event('input'));
+    searchInput.focus();
+}
+
+// ── Actualiser ──
+function actualiserVols() {
+    const btn = document.getElementById('btn-actualiser');
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" style="width:14px;height:14px"></span>Chargement...';
+    btn.disabled = true;
+    fetch('{{ path('app_vols_actualiser') }}', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            const el = document.getElementById('toast-vols');
+            const msg = document.getElementById('toast-msg');
+            el.style.background = data.success ? '#e8f5e9' : '#fde8e8';
+            el.style.color      = data.success ? '#2e7d32' : '#c62828';
+            msg.textContent     = (data.success ? '✅ ' : '❌ ') + data.message;
+            new bootstrap.Toast(el, { delay: 3000 }).show();
+            if (data.success) setTimeout(() => location.reload(), 1500);
+            else { btn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Actualiser les vols'; btn.disabled = false; }
+        })
+        .catch(() => {
+            btn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Actualiser les vols';
+            btn.disabled = false;
+        });
+}
+</script>
+{% endblock %}

@@ -132,6 +132,15 @@
                    class="btn btn-outline-secondary btn-lg rounded-pill px-4">
                     <i class="bi bi-arrow-left me-2"></i>Retour
                 </a>
+
+                {# Bouton réclamation si l'utilisateur a participé à cette activité #}
+                {% if demandeExistante %}
+                <a href="{{ path('app_reclamation_new') }}?activite_id={{ activite.id }}"
+                   class="btn btn-lg rounded-pill px-4"
+                   style="border:1.5px solid #e67e22;color:#e67e22;background:transparent">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Faire une réclamation
+                </a>
+                {% endif %}
             </div>
         </div>
     </div>
