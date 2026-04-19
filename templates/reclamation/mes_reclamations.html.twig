@@ -1,0 +1,72 @@
+{% extends 'base.html.twig' %}
+{% block title %}Mes réclamations{% endblock %}
+
+{% block body %}
+<div class="breadcrumb-section">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('app_mes_activites') }}">Mes activités</a></li>
+                <li class="breadcrumb-item active">Mes réclamations</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container py-5" style="max-width:800px">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="section-title mb-0">Mes réclamations</h2>
+        <a href="{{ path('app_mes_activites') }}" class="btn btn-sm rounded-pill px-3"
+           style="border:1.5px solid var(--primary);color:var(--primary)">
+            <i class="bi bi-arrow-left me-1"></i>Mes activités
+        </a>
+    </div>
+
+    {% if reclamations is empty %}
+    <div class="text-center py-5 rounded-4" style="background:#fff;border:2px dashed #ede5ff">
+        <div style="font-size:4rem">✅</div>
+        <h5 class="mt-3" style="color:var(--primary)">Aucune réclamation</h5>
+        <p class="text-muted">Vous n'avez soumis aucune réclamation pour le moment.</p>
+        <a href="{{ path('app_mes_activites') }}" class="btn rounded-pill px-4 mt-2"
+           style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">
+            Voir mes activités
+        </a>
+    </div>
+    {% else %}
+    <div class="d-flex flex-column gap-3">
+        {% for r in reclamations %}
+        <div class="p-4 rounded-4 bg-white shadow-sm"
+             style="border-left:4px solid {% if r.statut == 'TRAITEE' %}#27ae60{% else %}#e67e22{% endif %}">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                <div class="flex-grow-1">
+                    <div class="fw-bold mb-1" style="color:var(--primary-dark)">
+                        <i class="bi bi-calendar-event me-1" style="color:var(--primary)"></i>
+                        {{ r.activite ? r.activite.nom : '—' }}
+                    </div>
+                    <div class="text-muted small mb-2">
+                        <i class="bi bi-clock me-1"></i>
+                        {{ r.dateCreation ? r.dateCreation|date('d/m/Y à H:i') : '—' }}
+                    </div>
+                    <div class="p-3 rounded-3 small" style="background:#f9f7ff;color:#444;line-height:1.6">
+                        {{ r.description|nl2br }}
+                    </div>
+                </div>
+                <div class="flex-shrink-0">
+                    {% if r.statut == 'TRAITEE' %}
+                    <span class="badge rounded-pill px-3 py-2" style="background:#d1f2eb;color:#1a7a4a;font-size:0.82rem">
+                        <i class="bi bi-check-circle-fill me-1"></i>Traitée
+                    </span>
+                    {% else %}
+                    <span class="badge rounded-pill px-3 py-2" style="background:#fff3cd;color:#856404;font-size:0.82rem">
+                        <i class="bi bi-hourglass-split me-1"></i>En attente
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

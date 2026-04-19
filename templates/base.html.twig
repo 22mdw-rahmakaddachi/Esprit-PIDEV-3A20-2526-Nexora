@@ -625,12 +625,25 @@
                             <i class="bi bi-calendar-event-fill me-1"></i>Activités
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'offres' in app.request.get('_route') %}active{% endif %}"
+                           href="{{ path('app_offres') }}">
+                            🌍 Offres
+                        </a>
+                    </li>
                 </ul>
                 <div class="d-flex align-items-center gap-2">
-                    <a href="#" class="btn btn-cart btn-pulse">
+                    <a href="{{ path('app_panier') }}" class="btn btn-cart btn-pulse position-relative">
                         <i class="bi bi-cart3 me-1"></i>Panier
+                        <span id="badge-panier" class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
+                              style="background:#e74c3c;font-size:0.65rem;display:none">0</span>
                     </a>
                     {% if app.user %}
+                        <a href="{{ path('app_mes_reclamations') }}" class="btn btn-sm rounded-pill px-3"
+                           style="border:1.5px solid #e67e22;color:#e67e22"
+                           title="Mes réclamations">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Réclamations
+                        </a>
                         <a href="{{ path('app_profile') }}" class="btn btn-sm rounded-pill px-3"
                            style="border:1.5px solid var(--primary);color:var(--primary)">
                             <i class="bi bi-person-circle me-1"></i>{{ app.user.prenom }}

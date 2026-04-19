@@ -1,0 +1,340 @@
+{% extends 'base.html.twig' %}
+{% block title %}Offres de destinations{% endblock %}
+
+{% block stylesheets %}
+<style>
+.offres-hero {
+    background: linear-gradient(135deg, #0a2342 0%, #1a4a7a 50%, #0d6efd 100%);
+    padding: 55px 0 40px;
+    position: relative;
+    overflow: hidden;
+}
+.offres-hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='40' cy='40' r='30'/%3E%3C/g%3E%3C/svg%3E");
+}
+.offre-card {
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(13,27,100,0.08);
+    border: 1px solid #e8ecff;
+    transition: transform .25s, box-shadow .25s;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.offre-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 40px rgba(13,27,100,0.16);
+}
+.offre-img {
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4.5rem;
+    position: relative;
+}
+.offre-pays-badge {
+    position: absolute;
+    top: 12px; left: 12px;
+    background: rgba(255,255,255,0.92);
+    color: #1a237e;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 50px;
+    backdrop-filter: blur(4px);
+}
+.offre-body { padding: 20px; flex: 1; }
+.offre-titre {
+    font-weight: 800;
+    font-size: 1rem;
+    color: #0a2342;
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+.offre-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+.offre-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: #546e7a;
+}
+.offre-meta-item i { color: #3949ab; width: 14px; }
+.offre-desc {
+    background: #f0f4ff;
+    border-left: 3px solid #3949ab;
+    border-radius: 0 8px 8px 0;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    color: #3949ab;
+    font-weight: 500;
+}
+.offre-footer {
+    padding: 0 20px 20px;
+}
+.btn-offre {
+    display: block;
+    width: 100%;
+    padding: 11px;
+    background: linear-gradient(135deg, #1a4a7a, #0d6efd);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    text-align: center;
+    text-decoration: none;
+    transition: opacity .2s;
+}
+.btn-offre:hover { opacity: .9; color: #fff; }
+
+.filter-tag {
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border: 2px solid #e0e7ff;
+    background: #f0f4ff;
+    color: #3949ab;
+    text-decoration: none;
+    transition: all .2s;
+}
+.filter-tag:hover { background: #e0e7ff; color: #3949ab; }
+.filter-tag.active { background: linear-gradient(135deg,#1a4a7a,#0d6efd); color: #fff; border-color: transparent; }
+
+.search-box {
+    border: 2px solid #e0e7ff;
+    border-radius: 50px;
+    padding: 9px 18px 9px 40px;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color .2s;
+    min-width: 240px;
+}
+.search-box:focus { border-color: #3949ab; }
+
+.btn-sync {
+    background: linear-gradient(135deg, #00b09b, #096ead);
+    color: #fff; border: none; border-radius: 12px;
+    padding: 10px 24px; font-weight: 700; font-size: 0.88rem;
+    transition: opacity .2s, transform .2s; cursor: pointer;
+}
+.btn-sync:hover { opacity: .9; transform: translateY(-2px); color: #fff; }
+</style>
+{% endblock %}
+
+{% block body %}
+
+{# HERO #}
+<div class="offres-hero">
+    <div class="container position-relative" style="z-index:1">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+            <div>
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    <div style="width:46px;height:46px;background:rgba(255,255,255,0.15);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.5rem">🌍</div>
+                    <div>
+                        <h1 class="text-white mb-0 fw-bold" style="font-size:1.7rem">Offres de destinations</h1>
+                        <p class="mb-0" style="color:rgba(255,255,255,.65);font-size:0.82rem">
+                            {{ total }} offre{{ total > 1 ? 's' : '' }} disponible{{ total > 1 ? 's' : '' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-sync" onclick="syncOffres()" id="btn-sync">
+                <i class="bi bi-arrow-clockwise me-2"></i>Actualiser les offres
+            </button>
+        </div>
+
+        {# Stats pays #}
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{{ path('app_offres') }}" class="filter-tag {{ not pays ? 'active' : '' }}" style="background:rgba(255,255,255,0.15);color:#fff;border-color:rgba(255,255,255,0.3)">
+                Tous ({{ total }})
+            </a>
+            {% for p in paysList %}
+            <a href="{{ path('app_offres', {pays: p}) }}"
+               class="filter-tag {{ pays == p ? 'active' : '' }}"
+               style="{{ pays != p ? 'background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2)' : '' }}">
+                {{ p }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{# CONTENU #}
+<section class="py-5" style="background:#f4f7fb;min-height:60vh">
+    <div class="container">
+
+        {# Recherche #}
+        <div class="d-flex gap-3 mb-4 align-items-center flex-wrap">
+            <div class="position-relative">
+                <i class="bi bi-search position-absolute" style="left:14px;top:50%;transform:translateY(-50%);color:#90a4ae;font-size:0.85rem"></i>
+                <input type="text" id="search-live" class="search-box"
+                       placeholder="Rechercher une offre..." autocomplete="off" value="{{ search }}">
+            </div>
+            {% if search or pays %}
+            <a href="{{ path('app_offres') }}" class="text-muted small text-decoration-none">
+                <i class="bi bi-x-circle me-1"></i>Réinitialiser
+            </a>
+            {% endif %}
+        </div>
+
+        {# Grille offres #}
+        <div class="row g-4" id="offres-grid">
+            {% for offre in offres %}
+            <div class="col-md-6 col-lg-4" data-search="{{ offre.titre|lower }} {{ offre.pays|lower }} {{ offre.description|lower }}"
+                 data-aos="fade-up" data-aos-delay="{{ loop.index * 60 }}">
+                <div class="offre-card" onclick="window.open('{{ offre.lien }}', '_blank')">
+
+                    <div class="offre-img" style="position:relative;overflow:hidden;{% if not offre.imageUrl %}background:linear-gradient(135deg,
+                        {% if loop.index % 5 == 1 %}#1a237e,#3949ab
+                        {% elseif loop.index % 5 == 2 %}#004d40,#00897b
+                        {% elseif loop.index % 5 == 3 %}#bf360c,#e64a19
+                        {% elseif loop.index % 5 == 4 %}#4a148c,#7b1fa2
+                        {% else %}#0d47a1,#1565c0{% endif %}{% endif %}">
+
+                        {% if offre.imageUrl %}
+                            <img src="{{ offre.imageUrl }}"
+                                 alt="{{ offre.titre }}"
+                                 style="width:100%;height:100%;object-fit:cover;display:block"
+                                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <span style="display:none;font-size:3.5rem;width:100%;height:100%;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a237e,#3949ab)">✈️</span>
+                        {% else %}
+                            <span style="font-size:3.5rem">
+                                {% if 'Istanbul' in offre.titre or 'Turquie' in (offre.pays ?? '') %}🕌
+                                {% elseif 'Egypte' in offre.titre or 'Égypte' in (offre.pays ?? '') %}🏛️
+                                {% elseif 'Bali' in offre.titre or 'Malaisie' in (offre.pays ?? '') %}🌴
+                                {% elseif 'Thaïlande' in offre.titre %}🐘
+                                {% elseif 'Bresil' in offre.titre or 'Brésil' in (offre.pays ?? '') %}🌎
+                                {% elseif 'croisière' in (offre.description ?? '')|lower or 'MSC' in offre.titre %}🚢
+                                {% elseif 'Algerie' in offre.titre or 'Algérie' in (offre.pays ?? '') %}🇩🇿
+                                {% elseif 'Antalya' in offre.titre %}🏖️
+                                {% else %}✈️{% endif %}
+                            </span>
+                        {% endif %}
+
+                        {% if offre.pays %}
+                        <span class="offre-pays-badge">📍 {{ offre.pays }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="offre-body">
+                        <h6 class="offre-titre">{{ offre.titre }}</h6>
+                        <div class="offre-meta">
+                            {% if offre.duree %}
+                            <div class="offre-meta-item">
+                                <i class="bi bi-clock-fill"></i>{{ offre.duree }}
+                            </div>
+                            {% endif %}
+                            {% if offre.date %}
+                            <div class="offre-meta-item">
+                                <i class="bi bi-calendar-event-fill"></i>{{ offre.date }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% if offre.description %}
+                        <div class="offre-desc">
+                            <i class="bi bi-check-circle-fill me-1"></i>{{ offre.description }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="offre-footer">
+                        <a href="{{ offre.lien }}" target="_blank" class="btn-offre"
+                           onclick="event.stopPropagation()">
+                            <i class="bi bi-globe me-2"></i>Voir et réserver
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center py-5 text-muted">
+                <i class="bi bi-globe" style="font-size:3.5rem;opacity:.2;display:block;margin-bottom:16px"></i>
+                <p class="fw-semibold mb-1">Aucune offre disponible</p>
+                <p class="small mb-3">Cliquez sur "Actualiser les offres" pour charger les données.</p>
+                <button onclick="syncOffres()" class="btn-sync">
+                    <i class="bi bi-arrow-clockwise me-2"></i>Actualiser maintenant
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-4 text-muted small" id="offre-counter">
+            {{ offres|length }} offre{{ offres|length > 1 ? 's' : '' }} affichée{{ offres|length > 1 ? 's' : '' }}
+        </div>
+
+    </div>
+</section>
+
+{# Toast #}
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+    <div id="toast-offre" class="toast align-items-center border-0 rounded-3 shadow" role="alert">
+        <div class="d-flex">
+            <div class="toast-body fw-semibold" id="toast-msg" style="font-size:0.88rem"></div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+// ── Recherche dynamique ──
+const searchInput = document.getElementById('search-live');
+const cards       = document.querySelectorAll('#offres-grid [data-search]');
+const counter     = document.getElementById('offre-counter');
+const total       = cards.length;
+
+if (searchInput) {
+    searchInput.addEventListener('input', function () {
+        const q = this.value.trim().toLowerCase();
+        let v = 0;
+        cards.forEach(c => {
+            const match = !q || c.dataset.search.includes(q);
+            c.style.display = match ? '' : 'none';
+            if (match) v++;
+        });
+        if (counter) {
+            counter.textContent = v + ' offre' + (v > 1 ? 's' : '') + ' affichée' + (v > 1 ? 's' : '');
+        }
+    });
+    searchInput.focus();
+}
+
+// ── Actualiser depuis JSON ──
+function syncOffres() {
+    const btn = document.getElementById('btn-sync');
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" style="width:14px;height:14px"></span>Scraping en cours...';
+    btn.disabled = true;
+    fetch('{{ path('app_offres_actualiser') }}', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            const el  = document.getElementById('toast-offre');
+            const msg = document.getElementById('toast-msg');
+            el.style.background = data.success ? '#e8f5e9' : '#fde8e8';
+            el.style.color      = data.success ? '#2e7d32' : '#c62828';
+            msg.textContent     = (data.success ? '✅ ' : '❌ ') + data.message;
+            new bootstrap.Toast(el, { delay: 3000 }).show();
+            if (data.success) setTimeout(() => location.reload(), 1500);
+            else { btn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Actualiser les offres'; btn.disabled = false; }
+        })
+        .catch(() => {
+            btn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Actualiser les offres';
+            btn.disabled = false;
+        });
+}
+</script>
+{% endblock %}

@@ -45,6 +45,26 @@
         </div>
 
         <hr style="border-color:#ede5ff;margin:20px 0">
+
+        {# ── CONNEXION PAR VISAGE ── #}
+        <div class="text-center mb-3">
+            <a href="{{ path('login_face_page') }}"
+               class="btn w-100 rounded-pill fw-semibold"
+               style="background:linear-gradient(135deg,#1a237e,#3949ab);color:#fff;padding:11px;border:none">
+                <i class="bi bi-camera-fill me-2"></i>Se connecter avec la reconnaissance faciale
+            </a>
+        </div>
+
+        {# ── CONNEXION PAR EMPREINTE ── #}
+        <div class="text-center mb-3">
+            <a href="{{ path('fingerprint_login_page') }}"
+               class="btn w-100 rounded-pill fw-semibold"
+               style="background:linear-gradient(135deg,#004d40,#00897b);color:#fff;padding:11px;border:none">
+                <i class="bi bi-fingerprint me-2"></i>Se connecter avec l'empreinte digitale
+            </a>
+        </div>
+
+        <hr style="border-color:#ede5ff;margin:20px 0">
         <p class="text-center text-muted small mb-0">
             Pas encore de compte ?
             <a href="{{ path('app_register') }}" style="color:var(--primary);font-weight:600">Créer un compte</a>

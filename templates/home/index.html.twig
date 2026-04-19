@@ -53,6 +53,31 @@
                         <i class="bi bi-calendar-event me-2"></i>Nos activités
                     </a>
                 </div>
+
+                {# ── BARRE AI ── #}
+                <div class="mt-4" data-aos="fade-up" data-aos-delay="300">
+                    <div style="background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.25);border-radius:50px;padding:6px 6px 6px 20px;display:flex;align-items:center;gap:10px;max-width:480px">
+                        <span style="font-size:1rem;opacity:0.8">🤖</span>
+                        <input id="ai-bar-input" type="text"
+                               placeholder="Que cherchez-vous ? activités, produits, offres..."
+                               autocomplete="off"
+                               style="flex:1;background:none;border:none;outline:none;color:#fff;font-size:0.88rem;min-width:0"
+                               onkeydown="if(event.key==='Enter') askAIBar()"
+                               onfocus="document.getElementById('ai-bar-result').style.display='block'">
+                        {# Bouton microphone #}
+                        <button id="ai-mic-btn" onclick="toggleMic()" title="Parler"
+                                style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .2s;flex-shrink:0">
+                            🎤
+                        </button>
+                        <button onclick="askAIBar()" id="ai-bar-btn"
+                                style="background:#fff;color:var(--primary);border:none;border-radius:50px;padding:8px 20px;font-weight:700;font-size:0.82rem;cursor:pointer;white-space:nowrap;transition:opacity .2s">
+                            Demander
+                        </button>
+                    </div>
+                    <div id="ai-bar-result"
+                         style="display:none;margin-top:10px;background:rgba(255,255,255,0.95);border-radius:16px;padding:14px 18px;max-width:480px;color:#333;font-size:0.88rem;line-height:1.6;box-shadow:0 8px 24px rgba(0,0,0,0.15)">
+                    </div>
+                </div>
             </div>
             <div class="col-lg-6 d-none d-lg-flex justify-content-end gap-3 mt-4 mt-lg-0">
                 {% for item in [['🏕️','Camping'],['🏃','Sport'],['🎭','Culture'],['🍽️','Gastro']] %}
@@ -162,6 +187,151 @@
     </div>
 </section>
 
+{# OFFRES DESTINATIONS #}
+{% if offres is not empty %}
+<hr class="divider">
+<section class="py-5" style="background:var(--white)">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4" data-aos="fade-right">
+            <div>
+                <h2 class="section-title mb-1">🌍 Offres de destinations</h2>
+                <p class="text-muted small mb-0">{{ offresTotal }} offres disponibles</p>
+            </div>
+            <a href="{{ path('app_offres') }}" class="text-decoration-none fw-semibold" style="color:var(--primary)">
+                Voir toutes les offres <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        <div class="row g-4">
+            {% for offre in offres %}
+            <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="{{ loop.index * 80 }}">
+                <div class="activity-card card h-100" style="cursor:pointer"
+                     onclick="window.open('{{ offre.lien }}', '_blank')">
+                    <div class="img-wrap" style="height:160px;{% if offre.imageUrl %}padding:0;overflow:hidden{% else %}background:linear-gradient(135deg,var(--primary-dark),var(--accent)){% endif %}">
+                        {% if offre.imageUrl %}
+                            <img src="{{ offre.imageUrl }}" alt="{{ offre.titre }}"
+                                 style="width:100%;height:100%;object-fit:cover"
+                                 onerror="this.style.display='none';this.closest('.img-wrap').style.background='linear-gradient(135deg,var(--primary-dark),var(--accent))'">
+                        {% else %}
+                            <span style="font-size:3rem">
+                                {% if 'Istanbul' in offre.titre or 'Turquie' in offre.pays %}🕌
+                                {% elseif 'Egypte' in offre.titre or 'Égypte' in offre.pays %}🏛️
+                                {% elseif 'Bali' in offre.titre or 'Malaisie' in offre.pays %}🌴
+                                {% elseif 'Thaïlande' in offre.titre %}🐘
+                                {% elseif 'Bresil' in offre.titre or 'Brésil' in offre.pays %}🌎
+                                {% elseif 'croisière' in offre.description|lower or 'MSC' in offre.titre %}🚢
+                                {% elseif 'Algerie' in offre.titre or 'Algérie' in offre.pays %}🇩🇿
+                                {% elseif 'Antalya' in offre.titre %}🏖️
+                                {% else %}✈️{% endif %}
+                            </span>
+                        {% endif %}
+                        {% if offre.pays %}
+                        <span class="position-absolute top-0 start-0 m-2 badge bg-white"
+                              style="color:var(--primary);font-size:0.72rem">{{ offre.pays }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body p-3">
+                        <h6 class="card-title fw-bold mb-2">{{ offre.titre }}</h6>
+                        {% if offre.duree %}
+                        <div class="text-muted small mb-1">
+                            <i class="bi bi-clock me-1"></i>{{ offre.duree }}
+                        </div>
+                        {% endif %}
+                        {% if offre.date %}
+                        <div class="text-muted small mb-1">
+                            <i class="bi bi-calendar me-1"></i>{{ offre.date }}
+                        </div>
+                        {% endif %}
+                        {% if offre.description %}
+                        <div class="small mt-2 px-2 py-1 rounded-2" style="background:#f0ebff;color:var(--primary)">
+                            <i class="bi bi-check-circle me-1"></i>{{ offre.description }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer bg-transparent border-0 p-3 pt-0">
+                        <a href="{{ offre.lien }}" target="_blank" class="btn-activity btn w-100"
+                           onclick="event.stopPropagation()">
+                            <i class="bi bi-globe me-1"></i>Voir l'offre
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{# MES ACTIVITÉS (si connecté) #}
+{% if app.user and mesActivites is not empty %}
+<hr class="divider">
+<section class="py-5" style="background:var(--bg)">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4" data-aos="fade-right">
+            <h2 class="section-title mb-0">
+                <i class="bi bi-person-check-fill me-2" style="color:var(--primary)"></i>Mes activités
+            </h2>
+            <a href="{{ path('app_mes_activites') }}" class="text-decoration-none fw-semibold" style="color:var(--primary)">
+                Voir tout <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        <div class="row g-4">
+            {% for item in mesActivites %}
+            {% set a = item.activite %}
+            <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="{{ loop.index * 80 }}">
+                <div class="activity-card card h-100 position-relative">
+                    {# Badge statut #}
+                    <span class="position-absolute top-0 end-0 m-2 badge rounded-pill"
+                          style="z-index:2;font-size:0.72rem;
+                          {% if item.statut == 'ACCEPTEE' %}background:#d1f2eb;color:#1a7a4a
+                          {% elseif item.statut == 'REFUSEE' %}background:#fde8e8;color:#c0392b
+                          {% else %}background:#fff3cd;color:#856404{% endif %}">
+                        {% if item.statut == 'ACCEPTEE' %}✅ Acceptée
+                        {% elseif item.statut == 'REFUSEE' %}❌ Refusée
+                        {% else %}⏳ En attente{% endif %}
+                    </span>
+                    <div class="img-wrap">
+                        {% if a.images %}
+                            <img src="{{ a.getImageUrl() }}" alt="{{ a.nom }}"
+                                 style="width:100%;height:100%;object-fit:cover">
+                        {% else %}
+                            <span style="font-size:4rem">
+                                {% if a.type == 'Sport' %}🏃
+                                {% elseif a.type == 'Culture' %}🎭
+                                {% elseif a.type == 'Gastronomie' %}🍽️
+                                {% else %}🌟{% endif %}
+                            </span>
+                        {% endif %}
+                        <span class="position-absolute top-0 start-0 m-2 badge bg-white"
+                              style="color:var(--primary);font-size:0.72rem">{{ a.type }}</span>
+                    </div>
+                    <div class="card-body p-3">
+                        <h6 class="card-title">{{ a.nom }}</h6>
+                        <div class="text-muted small mb-1">
+                            <i class="bi bi-geo-alt me-1"></i>{{ a.lieu }}
+                        </div>
+                        <div class="text-muted small mb-1">
+                            <i class="bi bi-calendar me-1"></i>
+                            {% if a.avecDate %}
+                                {{ a.dateActivite|date('d/m/Y') }}
+                            {% else %}
+                                Date flexible
+                            {% endif %}
+                        </div>
+                        <div class="price mt-1">{{ a.prix }} TND</div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 p-3 pt-0">
+                        <a href="{{ path('app_activite_show', {id: a.id}) }}" class="btn-activity btn">
+                            <i class="bi bi-eye me-1"></i>Voir l'activité
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
 {# CTA BANNER #}
 <section class="py-5" data-aos="zoom-in">
     <div class="container">
@@ -188,8 +358,124 @@
         from { transform: translateX(0); }
         to   { transform: translateX(120vw); }
     }
+    @keyframes mic-pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(231,76,60,0.5); }
+        50%       { box-shadow: 0 0 0 8px rgba(231,76,60,0); }
+    }
 </style>
 <script>
+// -- Reconnaissance vocale --
+let recognition = null;
+let isListening  = false;
+
+function toggleMic() {
+    const SpeechAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechAPI) {
+        alert('Reconnaissance vocale non support�e. Utilisez Chrome ou Edge.');
+        return;
+    }
+    if (isListening) { recognition.stop(); return; }
+
+    recognition = new SpeechAPI();
+    recognition.lang           = 'fr-FR';
+    recognition.continuous     = false;
+    recognition.interimResults = true;
+
+    const micBtn = document.getElementById('ai-mic-btn');
+    const input  = document.getElementById('ai-bar-input');
+
+    recognition.onstart = () => {
+        isListening = true;
+        micBtn.textContent       = '??';
+        micBtn.style.background  = 'rgba(231,76,60,0.5)';
+        micBtn.style.animation   = 'mic-pulse 1s infinite';
+        input.placeholder        = '?? Parlez maintenant...';
+        input.value              = '';
+    };
+
+    recognition.onresult = (e) => {
+        let t = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) t += e.results[i][0].transcript;
+        input.value = t;
+    };
+
+    recognition.onend = () => {
+        isListening              = false;
+        micBtn.textContent       = '??';
+        micBtn.style.background  = 'rgba(255,255,255,0.15)';
+        micBtn.style.animation   = '';
+        input.placeholder        = 'Que cherchez-vous ? activit�s, produits, offres...';
+        if (input.value.trim()) askAIBar();
+    };
+
+    recognition.onerror = (e) => {
+        isListening              = false;
+        micBtn.textContent       = '??';
+        micBtn.style.background  = 'rgba(255,255,255,0.15)';
+        micBtn.style.animation   = '';
+        if (e.error !== 'no-speech') {
+            input.placeholder = '? ' + e.error;
+            setTimeout(() => { input.placeholder = 'Que cherchez-vous ?'; }, 3000);
+        }
+    };
+
+    recognition.start();
+}
+
+// -- Barre AI --
+function askAIBar() {
+    const input  = document.getElementById('ai-bar-input');
+    const result = document.getElementById('ai-bar-result');
+    const btn    = document.getElementById('ai-bar-btn');
+    const q      = input.value.trim();
+    if (!q) return;
+
+    result.style.display = 'block';
+    result.innerHTML     = '<span style="color:#888;font-style:italic">? Recherche en cours...</span>';
+    btn.textContent      = '...';
+    btn.disabled         = true;
+
+    fetch('/ai/search', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ question: q })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.redirect) {
+            result.innerHTML = '<span style="color:#6c3fc5;font-weight:600">Redirection...</span>';
+            const loader = document.getElementById('loading-screen');
+            if (loader) { loader.classList.remove('hide'); document.body.classList.remove('loaded'); }
+            window.location.href = data.redirect;
+        } else if (data.type === 'hors_sujet') {
+            result.innerHTML = '<div style="padding:4px 0"><div style="font-weight:700;color:#c0392b;margin-bottom:6px;font-size:0.92rem">🚫 Besoin non disponible</div><div style="color:#555;font-size:0.84rem;margin-bottom:10px">Nexora propose des activites, produits outdoor et offres de voyages.</div><div style="display:flex;gap:8px;flex-wrap:wrap"><a href="/activites" style="padding:5px 14px;background:#f0ebff;color:#6c3fc5;border-radius:50px;font-size:0.78rem;font-weight:600;text-decoration:none">Activites</a><a href="/boutique" style="padding:5px 14px;background:#f0ebff;color:#6c3fc5;border-radius:50px;font-size:0.78rem;font-weight:600;text-decoration:none">Boutique</a><a href="/offres" style="padding:5px 14px;background:#f0ebff;color:#6c3fc5;border-radius:50px;font-size:0.78rem;font-weight:600;text-decoration:none">Offres</a></div></div>';
+            btn.textContent = 'Demander';
+            btn.disabled    = false;
+        } else {
+            result.innerHTML = 'Nexora AI : ' + data.message;
+            btn.textContent  = 'Demander';
+            btn.disabled     = false;
+        }
+    })
+    .catch(() => {
+        result.innerHTML = 'Erreur de connexion.';
+        btn.textContent  = 'Demander';
+        btn.disabled     = false;
+    });
+}
+
+// Fermer r�sultat en cliquant ailleurs
+document.addEventListener('click', function(e) {
+    const bar    = document.getElementById('ai-bar-input');
+    const result = document.getElementById('ai-bar-result');
+    const mic    = document.getElementById('ai-mic-btn');
+    const btn    = document.getElementById('ai-bar-btn');
+    if (bar && result && !bar.contains(e.target) && !result.contains(e.target)
+        && e.target !== mic && e.target !== btn) {
+        result.style.display = 'none';
+    }
+});
+</script>
 (function () {
     const plane  = document.getElementById('plane');
     const canvas = document.getElementById('trail-canvas');

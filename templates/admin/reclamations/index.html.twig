@@ -1,0 +1,206 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}Réclamations{% endblock %}
+{% block page_title %}Réclamations{% endblock %}
+
+{% block body %}
+
+{# ── PAGE PRINCIPALE : tableau partenaires ── #}
+{% if not nomPartenaire %}
+
+<div class="page-header mb-4">
+    <h1>
+        <i class="bi bi-exclamation-triangle-fill me-2" style="color:#e67e22"></i>
+        Réclamations par partenaire
+    </h1>
+</div>
+
+<div class="admin-table">
+    <table class="table mb-0">
+        <thead>
+            <tr>
+                <th>Partenaire</th>
+                <th>Email</th>
+                <th>Réclamations</th>
+                <th>Statut</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in (tousPartenaires ?? []) %}
+            {% set nb = p.nb_reclamations %}
+            <tr style="{% if nb > 3 %}background:#fff5f5{% elseif nb > 0 %}background:#fffbf0{% else %}background:#f0fff4{% endif %}">
+                <td class="fw-semibold">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
+                             style="width:38px;height:38px;font-size:0.95rem;
+                             {% if nb > 3 %}background:#fde8e8;color:#c0392b
+                             {% elseif nb > 0 %}background:#fff3cd;color:#856404
+                             {% else %}background:#d1f2eb;color:#1a7a4a{% endif %}">
+                            {{ p.prenom|first|upper }}
+                        </div>
+                        <div>
+                            <div>{{ p.nom_entreprise ?: (p.prenom ~ ' ' ~ p.nom) }}</div>
+                            <div class="text-muted" style="font-size:0.75rem">{{ p.prenom }} {{ p.nom }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="small text-muted">{{ p.email }}</td>
+                <td>
+                    <span class="fw-bold" style="font-size:1.15rem;
+                        {% if nb > 3 %}color:#c0392b
+                        {% elseif nb > 0 %}color:#e67e22
+                        {% else %}color:#1a7a4a{% endif %}">
+                        {{ nb }}
+                    </span>
+                </td>
+                <td>
+                    {% if nb > 3 %}
+                        <span class="status-badge" style="background:#fde8e8;color:#c0392b">🔴 Zone rouge</span>
+                    {% elseif nb > 0 %}
+                        <span class="status-badge" style="background:#fff3cd;color:#856404">🟠 À surveiller</span>
+                    {% else %}
+                        <span class="status-badge" style="background:#d1f2eb;color:#1a7a4a">🟢 Aucune</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if nb > 0 and p.partenaire_id > 0 %}
+                    <a href="{{ path('admin_reclamations_partenaire', {partenaireId: p.partenaire_id}) }}"
+                       class="btn btn-sm rounded-2"
+                       style="{% if nb > 3 %}background:#fde8e8;color:#c0392b{% else %}background:#fff3cd;color:#856404{% endif %};border:none;font-size:0.82rem">
+                        <i class="bi bi-eye me-1"></i>Voir ({{ nb }})
+                    </a>
+                    {% else %}
+                    <span class="text-muted small">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="text-center text-muted py-5">
+                    <i class="bi bi-people" style="font-size:2.5rem;opacity:0.2"></i>
+                    <p class="mt-2 mb-0">Aucun partenaire</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{# ── PAGE FILTRÉE : réclamations d'un partenaire ── #}
+{% else %}
+
+<div class="page-header mb-4">
+    <h1>
+        <i class="bi bi-exclamation-triangle-fill me-2" style="color:#e67e22"></i>
+        Réclamations — {{ nomPartenaire }}
+    </h1>
+    <div class="d-flex gap-2 align-items-center">
+        <span class="badge rounded-pill px-3 py-2" style="background:#fff3cd;color:#856404;font-size:0.85rem">
+            {{ reclamations|length }} réclamation{{ reclamations|length > 1 ? 's' : '' }}
+        </span>
+        <a href="{{ path('admin_reclamations') }}" class="btn btn-edit-admin btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </a>
+    </div>
+</div>
+
+<div class="admin-table">
+    <table class="table mb-0">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Client</th>
+                <th>Activité</th>
+                <th>Description</th>
+                <th>Date</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for r in reclamations %}
+            <tr>
+                <td class="text-muted small">{{ r.id }}</td>
+                <td>
+                    <div class="fw-semibold small">{{ r.client ? r.client.prenom ~ ' ' ~ r.client.nom : 'Anonyme' }}</div>
+                    <div class="text-muted" style="font-size:0.75rem">{{ r.client ? r.client.email : '' }}</div>
+                </td>
+                <td class="fw-semibold small">{{ r.activite ? r.activite.nom : '—' }}</td>
+                <td style="max-width:250px">
+                    <span class="small text-muted" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">
+                        {{ r.description }}
+                    </span>
+                    <a href="#" class="small" style="color:var(--primary)"
+                       data-bs-toggle="modal" data-bs-target="#modalDesc{{ r.id }}">Voir tout</a>
+                    <div class="modal fade" id="modalDesc{{ r.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content" style="border-radius:16px;border:none">
+                                <div class="modal-header border-0">
+                                    <h6 class="modal-title fw-bold" style="color:var(--primary-dark)">
+                                        Réclamation #{{ r.id }} — {{ r.activite ? r.activite.nom : '' }}
+                                    </h6>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="text-muted small mb-2">
+                                        <i class="bi bi-person me-1"></i>{{ r.client ? r.client.prenom ~ ' ' ~ r.client.nom : 'Anonyme' }}
+                                        — {{ r.dateCreation ? r.dateCreation|date('d/m/Y H:i') : '' }}
+                                    </p>
+                                    <div class="p-3 rounded-3" style="background:#fff3cd;border-left:4px solid #e67e22">
+                                        {{ r.description|nl2br }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td class="small text-muted">{{ r.dateCreation ? r.dateCreation|date('d/m/Y') : '—' }}</td>
+                <td>
+                    {% if r.statut == 'EN_ATTENTE' %}
+                        <span class="status-badge badge-attente">En attente</span>
+                    {% elseif r.statut == 'TRAITEE' %}
+                        <span class="status-badge badge-actif">Traitée</span>
+                    {% else %}
+                        <span class="status-badge badge-complet">{{ r.statut }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="d-flex flex-column gap-1">
+                        {% if r.statut == 'EN_ATTENTE' %}
+                        <form method="post" action="{{ path('admin_reclamation_traiter', {id: r.id}) }}">
+                            <input type="hidden" name="statut" value="TRAITEE">
+                            <div class="mb-1">
+                                <textarea name="reponse" class="form-control form-control-sm" rows="2"
+                                          placeholder="Réponse au client (optionnel)..."
+                                          style="font-size:0.8rem;min-width:200px"></textarea>
+                            </div>
+                            <button class="btn btn-sm w-100" style="background:#d1f2eb;color:#1a7a4a;border:none;border-radius:8px;font-size:0.82rem">
+                                <i class="bi bi-check-circle-fill me-1"></i>Marquer traitée &amp; notifier
+                            </button>
+                        </form>
+                        {% endif %}
+                        {% if is_granted('ROLE_ADMIN') %}
+                        <form method="post" action="{{ path('admin_reclamation_supprimer', {id: r.id}) }}"
+                              onsubmit="return confirm('Supprimer cette réclamation ?');">
+                            <button class="btn btn-sm w-100" style="background:#fde8e8;color:#c0392b;border:none;border-radius:8px;font-size:0.82rem">
+                                <i class="bi bi-trash-fill me-1"></i>Supprimer
+                            </button>
+                        </form>
+                        {% endif %}                    </div>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="7" class="text-center text-muted py-5">
+                    <i class="bi bi-check-circle" style="font-size:2.5rem;opacity:0.2"></i>
+                    <p class="mt-2 mb-0">Aucune réclamation</p>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endif %}
+
+{% endblock %}

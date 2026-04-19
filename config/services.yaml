@@ -1,8 +1,3 @@
-# This file is the entry point to configure your own services.
-# Files in the packages/ subdirectory configure your dependencies.
-
-# Put parameters here that don't need to change on each machine where the app is deployed
-# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     huggingface_token: ''
     flouci_mode_test: 'true'
@@ -21,6 +16,7 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+<<<<<<< HEAD
     App\Service\ActivityEmailService:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
@@ -34,3 +30,16 @@ services:
             $publicKey:  '%env(default:flouci_public_key:FLOUCI_PUBLIC_KEY)%'
             $privateKey: '%env(default:flouci_private_key:FLOUCI_PRIVATE_KEY)%'
             $modeTest:   '%env(default:flouci_mode_test:FLOUCI_MODE_TEST)%'
+=======
+    App\Service\AIService:
+        arguments:
+            $huggingfaceApiKey: '%env(HUGGINGFACE_API_KEY)%'
+
+    App\Service\FaceRecognitionService:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    App\Service\FingerprintBridgeService:
+        arguments:
+            $bridgeUrl: '%env(FINGERPRINT_BRIDGE_URL)%'
+>>>>>>> user

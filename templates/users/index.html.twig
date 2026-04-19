@@ -49,6 +49,22 @@
                                 <i class="bi bi-trash-fill me-1"></i>Supprimer
                             </button>
                         </form>
+
+                        {# Bouton Enregistrer le visage #}
+                        <button class="btn btn-sm"
+                                style="background:#e8f4fd;color:#1565c0;border:none;border-radius:8px;font-size:0.82rem"
+                                onclick="openFaceModal({{ user.id }}, '{{ user.prenom }} {{ user.nom }}')"
+                                title="Enregistrer le visage de {{ user.prenom }}">
+                            <i class="bi bi-camera-fill me-1"></i>Visage
+                        </button>
+
+                        {# Bouton Enregistrer l'empreinte #}
+                        <button class="btn btn-sm"
+                                style="background:#e8f5e9;color:#2e7d32;border:none;border-radius:8px;font-size:0.82rem"
+                                onclick="openFingerModal({{ user.id }}, '{{ user.prenom }} {{ user.nom }}')"
+                                title="Enregistrer l'empreinte de {{ user.prenom }}">
+                            <i class="bi bi-fingerprint me-1"></i>Empreinte
+                        </button>
                     </div>
                 </td>
             </tr>
@@ -63,4 +79,373 @@
         </tbody>
     </table>
 </div>
+<<<<<<< HEAD
+=======
+
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+
+{# ── MODAL ENREGISTREMENT EMPREINTE ── #}
+<div class="modal fade" id="fingerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+        <div class="modal-content" style="border-radius:20px;border:none">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color:#1b5e20">
+                    <i class="bi bi-fingerprint me-2" style="color:#2e7d32"></i>
+                    Empreinte de <span id="finger-modal-name"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="cancelFingerEnroll()"></button>
+            </div>
+            <div class="modal-body text-center px-4 pb-4">
+
+                {# Icône principale #}
+                <div id="fmg-icon" style="font-size:5rem;margin:16px 0;transition:all .3s">🖐️</div>
+
+                {# Message principal #}
+                <div id="fmg-title" class="fw-bold mb-1" style="font-size:1.1rem;color:#1b5e20">
+                    Prêt à enregistrer
+                </div>
+                <div id="fmg-subtitle" class="text-muted mb-3" style="font-size:0.88rem">
+                    Cliquez sur Démarrer pour commencer
+                </div>
+
+                {# Barre de progression par étapes #}
+                <div class="d-flex gap-2 justify-content-center mb-4">
+                    <div id="fmg-step1" style="height:6px;width:80px;border-radius:3px;background:#e0e0e0;transition:background .4s"></div>
+                    <div id="fmg-step2" style="height:6px;width:80px;border-radius:3px;background:#e0e0e0;transition:background .4s"></div>
+                    <div id="fmg-step3" style="height:6px;width:80px;border-radius:3px;background:#e0e0e0;transition:background .4s"></div>
+                </div>
+
+                {# Bouton principal #}
+                <button id="fmg-btn" class="btn w-100 fw-bold rounded-pill"
+                        style="background:linear-gradient(135deg,#2e7d32,#4caf50);color:#fff;border:none;padding:13px;font-size:0.95rem"
+                        onclick="startFingerEnroll()">
+                    <i class="bi bi-fingerprint me-2"></i>Démarrer l'enregistrement
+                </button>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ── MODAL ENREGISTREMENT VISAGE ── #}
+<div class="modal fade" id="faceModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:460px">
+        <div class="modal-content" style="border-radius:20px;border:none">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color:#1a237e">
+                    <i class="bi bi-camera-fill me-2" style="color:#1565c0"></i>
+                    Visage de <span id="modal-user-name"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="stopFaceCamera()"></button>
+            </div>
+            <div class="modal-body">
+                <div style="position:relative;border-radius:14px;overflow:hidden;background:#0a0f2c;aspect-ratio:4/3;margin-bottom:14px">
+                    <video id="face-video" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;transform:scaleX(-1)"></video>
+                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
+                        <div id="face-frame-modal" style="width:180px;height:220px;border:3px solid rgba(255,255,255,0.5);border-radius:50% 50% 45% 45%;box-shadow:0 0 0 2000px rgba(0,0,0,0.35)"></div>
+                    </div>
+                    <div id="face-status-modal" style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.7);color:#fff;padding:8px 14px;font-size:0.8rem;text-align:center">
+                        Initialisation...
+                    </div>
+                </div>
+                <div id="face-result-modal" style="display:none;margin-bottom:12px;padding:12px 14px;border-radius:10px;font-size:0.85rem"></div>
+                <button id="face-capture-btn" class="btn w-100 fw-bold" disabled
+                        style="background:linear-gradient(135deg,#1a237e,#3949ab);color:#fff;border:none;border-radius:10px;padding:11px"
+                        onclick="captureFaceAdmin()">
+                    <i class="bi bi-camera-fill me-2"></i>Capturer et enregistrer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// ── Gestion du modal empreinte ──
+let currentFingerUserId = null;
+let fingerEnrolling = false;
+
+function fmg(id) { return document.getElementById(id); }
+
+function setStep(step) {
+    const colors = ['#e0e0e0','#e0e0e0','#e0e0e0'];
+    for (let i = 0; i < step; i++) colors[i] = '#4caf50';
+    fmg('fmg-step1').style.background = colors[0];
+    fmg('fmg-step2').style.background = colors[1];
+    fmg('fmg-step3').style.background = colors[2];
+}
+
+function setUI(icon, title, subtitle, btnText, btnColor, btnDisabled, iconAnim) {
+    fmg('fmg-icon').textContent      = icon;
+    fmg('fmg-icon').style.animation  = iconAnim || '';
+    fmg('fmg-title').textContent     = title;
+    fmg('fmg-subtitle').textContent  = subtitle;
+    fmg('fmg-btn').innerHTML         = btnText;
+    fmg('fmg-btn').style.background  = btnColor;
+    fmg('fmg-btn').disabled          = btnDisabled;
+}
+
+function openFingerModal(userId, userName) {
+    currentFingerUserId = userId;
+    fmg('finger-modal-name').textContent = userName;
+    // Reset
+    setStep(0);
+    setUI('🖐️', 'Prêt à enregistrer', 'Cliquez sur Démarrer pour commencer',
+          '<i class="bi bi-fingerprint me-2"></i>Démarrer l\'enregistrement',
+          'linear-gradient(135deg,#2e7d32,#4caf50)', false, '');
+    fmg('fmg-btn').onclick = startFingerEnroll;
+    fingerEnrolling = false;
+    new bootstrap.Modal(fmg('fingerModal')).show();
+}
+
+async function startFingerEnroll() {
+    if (fingerEnrolling) return;
+    fingerEnrolling = true;
+
+    try { await fetch('/api/fingerprint/bridge/start', { method: 'POST' }); } catch {}
+    await new Promise(r => setTimeout(r, 1500));
+
+    setStep(1);
+    setUI('\uD83D\uDC46', 'Posez votre doigt', '1\u00e8re capture \u2014 placez votre doigt sur le lecteur',
+          '<span class="spinner-border spinner-border-sm me-2" style="width:14px;height:14px"></span>En attente...',
+          'linear-gradient(135deg,#1565c0,#1976d2)', true, 'pulse-fp 1s infinite');
+
+    const pollInterval = setInterval(async () => {
+        try {
+            const r = await fetch('/api/fingerprint/enroll/status');
+            const d = await r.json();
+            if (d.step === 2) {
+                clearInterval(pollInterval);
+                setStep(2);
+                setUI('\u261D\uFE0F', 'Reposez le m\u00eame doigt', '2\u00e8me capture \u2014 replacez votre doigt sur le lecteur',
+                      '<span class="spinner-border spinner-border-sm me-2" style="width:14px;height:14px"></span>En attente...',
+                      'linear-gradient(135deg,#1565c0,#1976d2)', true, 'pulse-fp 1s infinite');
+            }
+        } catch {}
+    }, 800);
+
+    try {
+        const response = await fetch('/api/fingerprint/bridge/enroll', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: currentFingerUserId }),
+            signal: AbortSignal.timeout(150000)  // 2.5 minutes
+        });
+        clearInterval(pollInterval);
+
+        // Lire la réponse comme texte d'abord pour déboguer
+        const text = await response.text();
+        let data;
+        try { data = JSON.parse(text); }
+        catch(e) {
+            setStep(0);
+            setUI('\u274C', 'Erreur serveur', text.substring(0, 100),
+                  '<i class="bi bi-fingerprint me-2"></i>R\u00e9essayer',
+                  'linear-gradient(135deg,#c0392b,#e74c3c)', false, '');
+            fmg('fmg-btn').onclick = () => { fingerEnrolling = false; startFingerEnroll(); };
+            return;
+        }
+
+        if (data.already_exists) {
+            setStep(0);
+            setUI('\u26A0\uFE0F', 'Doigt d\u00e9j\u00e0 enregistr\u00e9', 'Ce doigt est d\u00e9j\u00e0 associ\u00e9 \u00e0 un compte',
+                  '<i class="bi bi-fingerprint me-2"></i>Essayer un autre doigt',
+                  'linear-gradient(135deg,#e67e22,#f39c12)', false, '');
+            fmg('fmg-btn').onclick = () => { fingerEnrolling = false; startFingerEnroll(); };
+            return;
+        }
+        if (!data.success) {
+            setStep(0);
+            // Message spécial si port occupé
+            const msg = data.message || 'Veuillez r\u00e9essayer';
+            const isPortBusy = msg.toLowerCase().includes('occupe') || msg.toLowerCase().includes('arduino ide');
+            setUI(isPortBusy ? '\uD83D\uDD12' : '\u274C',
+                  isPortBusy ? 'Arduino IDE ouvert' : '\u00C9chec',
+                  isPortBusy ? 'Fermez l\'Arduino IDE puis r\u00e9essayez' : msg,
+                  '<i class="bi bi-fingerprint me-2"></i>R\u00e9essayer',
+                  'linear-gradient(135deg,#c0392b,#e74c3c)', false, '');
+            fmg('fmg-btn').onclick = () => { fingerEnrolling = false; startFingerEnroll(); };
+            return;
+        }
+
+        setStep(2);
+        setUI('\u23F3', 'Enregistrement...', 'Sauvegarde de votre empreinte',
+              '<span class="spinner-border spinner-border-sm me-2" style="width:14px;height:14px"></span>Enregistrement...',
+              'linear-gradient(135deg,#2e7d32,#4caf50)', true, '');
+
+        await fetch('/api/fingerprint/enroll_success', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: currentFingerUserId, finger_id: data.finger_id })
+        });
+
+        setStep(3);
+        setUI('\u2705', 'Votre doigt est enregistr\u00e9 avec succ\u00e8s !',
+              'Vous pouvez maintenant vous connecter avec votre empreinte',
+              '<i class="bi bi-check-circle-fill me-2"></i>Termin\u00e9',
+              'linear-gradient(135deg,#1a7a4a,#2e7d32)', false, '');
+        fmg('fmg-btn').onclick = () => bootstrap.Modal.getInstance(fmg('fingerModal')).hide();
+
+    } catch (err) {
+        clearInterval(pollInterval);
+        setStep(0);
+        setUI('\uD83D\uDD0C', 'Lecteur non disponible', 'V\u00e9rifiez que le lecteur est bien connect\u00e9',
+              '<i class="bi bi-fingerprint me-2"></i>R\u00e9essayer',
+              'linear-gradient(135deg,#c0392b,#e74c3c)', false, '');
+        fmg('fmg-btn').onclick = () => { fingerEnrolling = false; startFingerEnroll(); };
+    }
+}
+function cancelFingerEnroll() { fingerEnrolling = false; }
+async function startBridge() {}
+async function checkFingerReader() {}
+
+// ── Gestion du modal visage ──
+let faceStream = null;
+let currentUserId = null;
+
+async function openFaceModal(userId, userName) {
+    currentUserId = userId;
+    document.getElementById('modal-user-name').textContent = userName;
+    document.getElementById('face-result-modal').style.display = 'none';
+    document.getElementById('face-frame-modal').style.borderColor = 'rgba(255,255,255,0.5)';
+    const btn = document.getElementById('face-capture-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-camera-fill me-2"></i>Capturer et enregistrer';
+    btn.style.background = 'linear-gradient(135deg,#1a237e,#3949ab)';
+
+    new bootstrap.Modal(document.getElementById('faceModal')).show();
+
+    try {
+        faceStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+        const video = document.getElementById('face-video');
+        video.srcObject = faceStream;
+        video.onloadedmetadata = () => {
+            document.getElementById('face-status-modal').textContent = '✅ Positionnez le visage dans le cadre';
+            btn.disabled = false;
+        };
+    } catch (err) {
+        document.getElementById('face-status-modal').textContent = '❌ Caméra non accessible : ' + err.message;
+    }
+}
+
+function stopFaceCamera() {
+    if (faceStream) { faceStream.getTracks().forEach(t => t.stop()); faceStream = null; }
+}
+
+document.getElementById('faceModal').addEventListener('hidden.bs.modal', stopFaceCamera);
+
+async function captureFaceAdmin() {
+    const btn    = document.getElementById('face-capture-btn');
+    const result = document.getElementById('face-result-modal');
+    const video  = document.getElementById('face-video');
+    const frame  = document.getElementById('face-frame-modal');
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" style="width:14px;height:14px"></span>Analyse...';
+
+    const canvas = document.createElement('canvas');
+    canvas.width  = video.videoWidth  || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(async (blob) => {
+        const formData = new FormData();
+        formData.append('face_image', blob, 'face.jpg');
+
+        try {
+            const response = await fetch('/admin/users/' + currentUserId + '/register-face', {
+                method: 'POST',
+                body: formData
+            });
+            
+            // Lire la réponse comme texte d'abord pour déboguer
+            const text = await response.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                // La réponse n'est pas du JSON — afficher l'erreur PHP
+                result.style.cssText = 'display:block;background:#fde8e8;border:1px solid #f5b7b1;border-radius:10px;padding:12px 14px;font-size:0.78rem;max-height:200px;overflow:auto';
+                result.innerHTML = '<strong style="color:#c0392b">Erreur serveur :</strong><br><pre style="font-size:0.72rem;white-space:pre-wrap">' + text.substring(0, 500) + '</pre>';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-camera-fill me-2"></i>Réessayer';
+                return;
+            }
+            result.style.display = 'block';
+            if (data.success) {
+                frame.style.borderColor = '#4caf50';
+                result.style.cssText = 'display:block;background:#d1f2eb;border:1px solid #a9dfbf;border-radius:10px;padding:12px 14px;font-size:0.85rem';
+                result.innerHTML = '<i class="bi bi-check-circle-fill me-2" style="color:#1a7a4a"></i><strong>Visage enregistré avec succès !</strong>';
+                document.getElementById('face-status-modal').textContent = '✅ Enregistrement réussi';
+                btn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Enregistré !';
+                btn.style.background = '#1a7a4a';
+            } else {
+                frame.style.borderColor = '#e74c3c';
+                result.style.cssText = 'display:block;background:#fde8e8;border:1px solid #f5b7b1;border-radius:10px;padding:12px 14px;font-size:0.85rem';
+                result.innerHTML = '<i class="bi bi-x-circle-fill me-2" style="color:#c0392b"></i>' + data.message;
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-camera-fill me-2"></i>Réessayer';
+            }
+        } catch (err) {
+            result.style.cssText = 'display:block;background:#fde8e8;border:1px solid #f5b7b1;border-radius:10px;padding:12px 14px;font-size:0.85rem';
+            result.innerHTML = '❌ Erreur réseau.';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-camera-fill me-2"></i>Réessayer';
+        }
+    }, 'image/jpeg', 0.9);
+}
+// Init pie chart à l'ouverture du modal
+let chartInstance = null;
+document.getElementById('statsModal').addEventListener('shown.bs.modal', () => {
+    const ctx = document.getElementById('roleChart');
+    if (!ctx) return;
+    if (chartInstance) { chartInstance.destroy(); }
+    chartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Admins', 'Partenaires', 'Utilisateurs'],
+            datasets: [{
+                data: [
+                    {{ stats['ROLE_ADMIN'] ?? 0 }},
+                    {{ stats['ROLE_PARTENAIRE'] ?? 0 }},
+                    {{ stats['ROLE_USER'] ?? 0 }}
+                ],
+                backgroundColor: ['#c0392b', '#e67e22', '#1a7a4a'],
+                borderColor: ['#fff','#fff','#fff'],
+                borderWidth: 3,
+                hoverOffset: 12
+            }]
+        },
+        options: {
+            responsive: true,
+            cutout: '55%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: c => ` ${c.label} : ${c.parsed} (${Math.round(c.parsed / [{{ stats['ROLE_ADMIN'] ?? 0 }}, {{ stats['ROLE_PARTENAIRE'] ?? 0 }}, {{ stats['ROLE_USER'] ?? 0 }}].reduce((a,b)=>a+b,0) * 100)}%)`
+                    }
+                }
+            },
+            animation: { animateRotate: true, duration: 900 }
+        }
+    });
+});
+
+// Recherche dynamique debounce 300ms
+const input = document.getElementById('search-input');
+if (input) {
+    let timer;
+    input.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => document.getElementById('search-form').submit(), 300);
+    });
+}
+</script>
+>>>>>>> user
 {% endblock %}

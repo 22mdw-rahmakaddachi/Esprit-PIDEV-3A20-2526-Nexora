@@ -1,0 +1,128 @@
+{% extends 'base.html.twig' %}
+{% block title %}Connexion par empreinte — Nexora{% endblock %}
+
+{% block body %}
+<div class="d-flex align-items-center justify-content-center" style="min-height:80vh;padding:40px 0">
+    <div class="w-100" style="max-width:420px;margin:auto" data-aos="fade-up">
+
+        <div class="text-center mb-4">
+            <div style="width:64px;height:64px;background:linear-gradient(135deg,#1a237e,#3949ab);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 14px">
+                🖐️
+            </div>
+            <h2 style="font-family:'Playfair Display',serif;color:#1a237e">Connexion par empreinte</h2>
+            <p class="text-muted small">Posez votre doigt sur le lecteur puis cliquez Scanner</p>
+        </div>
+
+        <div class="p-4 rounded-4 bg-white shadow-sm" style="border:1px solid #e8ecff">
+
+            {# Indicateur lecteur #}
+            <div class="text-center mb-4">
+                <div id="finger-icon" style="font-size:5rem;transition:all .3s">🖐️</div>
+                <div id="finger-status" class="mt-2 fw-semibold" style="color:#546e7a;font-size:0.9rem">
+                    Prêt à scanner
+                </div>
+            </div>
+
+            {# Barre de progression #}
+            <div style="height:6px;background:#e8ecff;border-radius:3px;margin-bottom:20px;overflow:hidden">
+                <div id="finger-progress" style="height:100%;width:0%;background:linear-gradient(90deg,#1a237e,#3949ab);border-radius:3px;transition:width .5s ease"></div>
+            </div>
+
+            {# Résultat #}
+            <div id="finger-result" style="display:none;margin-bottom:16px;padding:14px;border-radius:12px;font-size:0.88rem"></div>
+
+            {# Bouton #}
+            <button id="btn-finger" class="btn w-100 fw-bold rounded-pill"
+                    style="background:linear-gradient(135deg,#1a237e,#3949ab);color:#fff;border:none;padding:13px"
+                    onclick="scanFingerprint()">
+                <i class="bi bi-fingerprint me-2"></i>Scanner mon empreinte
+            </button>
+
+            <div class="text-center mt-3 d-flex justify-content-center gap-3">
+                <a href="{{ path('app_login') }}" class="text-muted small text-decoration-none">
+                    <i class="bi bi-key me-1"></i>Mot de passe
+                </a>
+                <span class="text-muted small">·</span>
+                <a href="{{ path('login_face_page') }}" class="text-muted small text-decoration-none">
+                    <i class="bi bi-camera me-1"></i>Visage
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+const icon     = document.getElementById('finger-icon');
+const status   = document.getElementById('finger-status');
+const progress = document.getElementById('finger-progress');
+const result   = document.getElementById('finger-result');
+const btn      = document.getElementById('btn-finger');
+
+async function scanFingerprint() {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" style="width:14px;height:14px"></span>Lecture en cours...';
+    icon.textContent = '👆';
+    icon.style.animation = 'pulse-fp 1s infinite';
+    status.textContent = 'Posez votre doigt sur le lecteur...';
+    status.style.color = '#1565c0';
+    progress.style.width = '30%';
+    result.style.display = 'none';
+
+    try {
+        const response = await fetch('{{ path('api_fingerprint_login') }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        });
+        const data = await response.json();
+
+        progress.style.width = '100%';
+
+        if (data.success) {
+            icon.textContent = '✅';
+            icon.style.animation = '';
+            status.textContent = data.message;
+            status.style.color = '#1a7a4a';
+            result.style.cssText = 'display:block;background:#d1f2eb;border:1px solid #a9dfbf;border-radius:12px;padding:14px;font-size:0.88rem';
+            result.innerHTML = '<strong style="color:#1a7a4a">✅ ' + data.message + '</strong><br><span class="text-muted small">Redirection en cours...</span>';
+            setTimeout(() => { window.location.href = data.redirect; }, 1200);
+        } else {
+            icon.textContent = '❌';
+            icon.style.animation = '';
+            status.textContent = data.message;
+            status.style.color = '#c0392b';
+            progress.style.background = '#e74c3c';
+            result.style.cssText = 'display:block;background:#fde8e8;border:1px solid #f5b7b1;border-radius:12px;padding:14px;font-size:0.88rem';
+            result.innerHTML = '<strong style="color:#c0392b">❌ ' + data.message + '</strong>';
+            setTimeout(() => {
+                icon.textContent = '🖐️';
+                status.textContent = 'Prêt à scanner';
+                status.style.color = '#546e7a';
+                progress.style.width = '0%';
+                progress.style.background = 'linear-gradient(90deg,#1a237e,#3949ab)';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-fingerprint me-2"></i>Réessayer';
+            }, 3000);
+        }
+    } catch (err) {
+        icon.textContent = '⚠️';
+        icon.style.animation = '';
+        status.textContent = 'Lecteur non disponible';
+        status.style.color = '#e67e22';
+        result.style.cssText = 'display:block;background:#fff3cd;border:1px solid #f0c040;border-radius:12px;padding:14px;font-size:0.88rem';
+        result.innerHTML = '⚠️ Le lecteur d\'empreinte n\'est pas connecté ou le bridge n\'est pas démarré.';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-fingerprint me-2"></i>Réessayer';
+        progress.style.width = '0%';
+    }
+}
+</script>
+<style>
+@keyframes pulse-fp {
+    0%,100% { transform: scale(1); }
+    50%      { transform: scale(1.15); }
+}
+</style>
+{% endblock %}
