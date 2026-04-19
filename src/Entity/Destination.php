@@ -3,10 +3,13 @@
 namespace App\Entity;
 
 use App\Repository\DestinationRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DestinationRepository::class)]
 #[ORM\Table(name: 'destination')]
+#[ORM\HasLifecycleCallbacks]
 class Destination
 {
     #[ORM\Id]
@@ -26,8 +29,71 @@ class Destination
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $statut = null;
 
+    #[ORM\Column(options: ['default' => 5])]
+    private int $capaciteMax = 5;
+
+    #[ORM\Column(options: ['default' => 0])]
+    private int $nbParticipants = 0;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $dateLancement = null;
+
+    /**
+     * Ancien champ texte conservé pour rétro-compatibilité
+     * (les nouvelles images passent par la relation OneToMany)
+     */
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $images = null;
+
+    /**
+     * @var Collection<int, DestinationImage>
+     */
+    #[ORM\OneToMany(
+        mappedBy: 'destination',
+        targetEntity: DestinationImage::class,
+        cascade: ['persist', 'remove'],
+        orphanRemoval: true
+    )]
+    #[ORM\OrderBy(['ordre' => 'ASC'])]
+    private Collection $destinationImages;
+
+    /**
+     * @var Collection<int, DestinationAvis>
+     */
+    #[ORM\OneToMany(
+        mappedBy: 'destination',
+        targetEntity: DestinationAvis::class,
+        cascade: ['persist', 'remove'],
+        orphanRemoval: true
+    )]
+    #[ORM\OrderBy(['createdAt' => 'DESC'])]
+    private Collection $reviews;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $currency = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $plugType = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $survivalPhrases = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $panoramaUrl = null;
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $reminderSent = false;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $programme = null;
+
+    public function __construct()
+    {
+        $this->destinationImages = new ArrayCollection();
+        $this->reviews = new ArrayCollection();
+    }
+
+    // ─── Getters / Setters simples ───────────────────────────────────
 
     public function getId(): ?int { return $this->id; }
 
@@ -41,22 +107,188 @@ class Destination
     public function setLocalisation(?string $v): static { $this->localisation = $v; return $this; }
 
     public function getStatut(): ?string { return $this->statut; }
-    public function setStatut(?string $v): static { $this->statut = $v; return $this; }
+    public function setStatut(?string $v): static 
+    { 
+        $this->statut = $v; 
+        return $this; 
+    }
+
+    #[ORM\PrePersist]
+    #[ORM\PreUpdate]
+    #[ORM\PostLoad]
+    public function updateStatutAutomatically(): void
+    {
+        if ($this->nbParticipants >= $this->capaciteMax) {
+            $this->statut = 'Complet';
+        } else {
+            $this->statut = 'Disponible';
+        }
+    }
+
+    public function getCapaciteMax(): int { return $this->capaciteMax; }
+    public function setCapaciteMax(int $v): static 
+    { 
+        $this->capaciteMax = $v; 
+        $this->updateStatutAutomatically();
+        return $this; 
+    }
+
+    public function getNbParticipants(): int { return $this->nbParticipants; }
+    public function setNbParticipants(int $v): static 
+    { 
+        $this->nbParticipants = $v; 
+        $this->updateStatutAutomatically();
+        return $this; 
+    }
+
+    public function getDateLancement(): ?\DateTimeInterface { return $this->dateLancement; }
+    public function setDateLancement(?\DateTimeInterface $v): static { $this->dateLancement = $v; return $this; }
+
+    public function isExpired(): bool
+    {
+        if (!$this->dateLancement) return false;
+        return $this->dateLancement->getTimestamp() < time();
+    }
 
     public function getImages(): ?string { return $this->images; }
     public function setImages(?string $v): static { $this->images = $v; return $this; }
 
-    /** Retourne la liste des URLs d'images */
-    public function getImagesList(): array
+    // ─── Relation OneToMany ──────────────────────────────────────────
+
+    /** @return Collection<int, DestinationImage> */
+    public function getDestinationImages(): Collection
     {
-        if (!$this->images) return [];
-        return array_filter(array_map('trim', explode(',', $this->images)));
+        return $this->destinationImages;
     }
 
-    /** Première image ou placeholder */
+    public function addDestinationImage(DestinationImage $image): static
+    {
+        if (!$this->destinationImages->contains($image)) {
+            $this->destinationImages->add($image);
+            $image->setDestination($this);
+        }
+        return $this;
+    }
+
+    public function removeDestinationImage(DestinationImage $image): static
+    {
+        if ($this->destinationImages->removeElement($image)) {
+            if ($image->getDestination() === $this) {
+                $image->setDestination(null);
+            }
+        }
+        return $this;
+    }
+
+    /** @return Collection<int, DestinationAvis> */
+    public function getReviews(): Collection
+    {
+        return $this->reviews;
+    }
+
+    public function addReview(DestinationAvis $review): static
+    {
+        if (!$this->reviews->contains($review)) {
+            $this->reviews->add($review);
+            $review->setDestination($this);
+        }
+        return $this;
+    }
+
+    public function removeReview(DestinationAvis $review): static
+    {
+        if ($this->reviews->removeElement($review)) {
+            if ($review->getDestination() === $this) {
+                $review->setDestination(null);
+            }
+        }
+        return $this;
+    }
+
+
+
+
+    /** Première image (URL prête à afficher) ou chaîne vide */
     public function getFirstImage(): string
     {
-        $list = $this->getImagesList();
-        return $list[0] ?? '';
+        if (!$this->destinationImages->isEmpty()) {
+            return self::toDisplayUrl((string) $this->destinationImages->first()->getChemin());
+        }
+        if ($this->images) {
+            $list = array_filter(array_map('trim', explode(',', $this->images)));
+            return self::toDisplayUrl((string) array_shift($list));
+        }
+        return '';
     }
+
+    /** Retourne tous les chemins en format affichable */
+    public function getImagesList(): array
+    {
+        if (!$this->destinationImages->isEmpty()) {
+            return array_map(
+                fn(DestinationImage $img) => self::toDisplayUrl($img->getChemin()),
+                $this->destinationImages->toArray()
+            );
+        }
+        if ($this->images) {
+            return array_values(array_filter(array_map(
+                fn($p) => self::toDisplayUrl(trim($p)),
+                explode(',', $this->images)
+            )));
+        }
+        return [];
+    }
+
+    /**
+     * Convertit n'importe quel format d'URL Google Drive vers le format thumbnail
+     * (plus fiable pour les balises <img>).
+     * Les chemins locaux sont retournés tels quels.
+     */
+    public static function toDisplayUrl(string $url): string
+    {
+        // Chemin local → tel quel
+        if (!str_contains($url, 'drive.google.com')) {
+            return $url;
+        }
+        // Déjà au bon format thumbnail → tel quel
+        if (str_contains($url, 'thumbnail?id=')) {
+            return $url;
+        }
+        // Extraire le fileId depuis uc?id=, ?id=, /d/
+        $fileId = null;
+        if (preg_match('/[?&]id=([a-zA-Z0-9_\-]+)/', $url, $m)) {
+            $fileId = $m[1];
+        } elseif (preg_match('/\/d\/([a-zA-Z0-9_\-]+)/', $url, $m)) {
+            $fileId = $m[1];
+        }
+        if ($fileId) {
+            return 'https://drive.google.com/thumbnail?id=' . $fileId . '&sz=w1200';
+        }
+        return $url;
+    }
+
+
+    /** Nombre d'images */
+    public function getImagesCount(): int
+    {
+        return $this->destinationImages->count();
+    }
+
+    public function getCurrency(): ?string { return $this->currency; }
+    public function setCurrency(?string $v): static { $this->currency = $v; return $this; }
+
+    public function getPlugType(): ?string { return $this->plugType; }
+    public function setPlugType(?string $v): static { $this->plugType = $v; return $this; }
+
+    public function getSurvivalPhrases(): ?string { return $this->survivalPhrases; }
+    public function setSurvivalPhrases(?string $v): static { $this->survivalPhrases = $v; return $this; }
+
+    public function getPanoramaUrl(): ?string { return $this->panoramaUrl; }
+    public function setPanoramaUrl(?string $v): static { $this->panoramaUrl = $v; return $this; }
+
+    public function isReminderSent(): bool { return $this->reminderSent; }
+    public function setReminderSent(bool $reminderSent): static { $this->reminderSent = $reminderSent; return $this; }
+
+    public function getProgramme(): ?string { return $this->programme; }
+    public function setProgramme(?string $programme): static { $this->programme = $programme; return $this; }
 }

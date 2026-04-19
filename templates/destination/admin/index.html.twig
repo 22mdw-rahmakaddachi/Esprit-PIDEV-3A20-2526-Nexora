@@ -1,357 +1,196 @@
 {# templates/destination/admin/index.html.twig #}
-{% extends 'base.html.twig' %}
+{% extends 'admin/base_admin.html.twig' %}
 
-{% block title %}Gestion des Destinations{% endblock %}
+{% block title %}Gestion des Excursions{% endblock %}
+{% block page_title %}Gestion des Excursions{% endblock %}
 
 {% block stylesheets %}
 <style>
-    :root {
-        --primary: #2563EB;
-        --primary-light: #DBEAFE;
-        --danger: #DC2626;
-        --success: #16A34A;
-        --warning: #D97706;
-        --gray-50: #F9FAFB;
-        --gray-100: #F3F4F6;
-        --gray-200: #E5E7EB;
-        --gray-600: #4B5563;
-        --gray-800: #1F2937;
-    }
+    /* Custom styles for specific elements not in admin base */
+    .dest-image { width: 80px; height: 55px; object-fit: cover; border-radius: 6px; border: 1px solid #ede5ff; }
+    .dest-image-placeholder { width: 80px; height: 55px; background: #f0ebff; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+    
+    .search-bar-admin { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; }
+    .search-bar-admin input { flex: 1; max-width: 400px; padding: 10px 16px; border: 2px solid #ede5ff; border-radius: 10px; outline: none; transition: border .2s; }
+    .search-bar-admin input:focus { border-color: var(--primary); }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-        font-family: 'Segoe UI', system-ui, sans-serif;
-        background: var(--gray-50);
-        color: var(--gray-800);
-    }
-
-    .page-header {
-        background: white;
-        border-bottom: 1px solid var(--gray-200);
-        padding: 24px 32px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        box-shadow: 0 1px 3px rgba(0,0,0,.06);
-    }
-
-    .page-header h1 {
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: var(--gray-800);
-    }
-
-    .btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-size: .9rem;
-        font-weight: 600;
-        text-decoration: none;
-        border: none;
-        cursor: pointer;
-        transition: all .2s;
-    }
-
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
-    .btn-danger { background: var(--danger); color: white; }
-    .btn-warning { background: var(--warning); color: white; }
-    .btn-sm { padding: 6px 12px; font-size: .8rem; }
-
-    .container { max-width: 1400px; margin: 0 auto; padding: 32px; }
-
-    /* FLASH */
-    .flash { padding: 14px 20px; border-radius: 8px; margin-bottom: 24px; font-weight: 500; }
-    .flash-success { background: #DCFCE7; color: #15803D; border-left: 4px solid #16A34A; }
-    .flash-error { background: #FEE2E2; color: #DC2626; border-left: 4px solid #DC2626; }
-
-    /* SEARCH BAR */
-    .search-bar {
-        display: flex;
-        gap: 12px;
-        margin-bottom: 24px;
-        align-items: center;
-    }
-
-    .search-bar input {
-        flex: 1;
-        max-width: 400px;
-        padding: 10px 16px;
-        border: 2px solid var(--gray-200);
-        border-radius: 8px;
-        font-size: .9rem;
-        outline: none;
-        transition: border .2s;
-    }
-
-    .search-bar input:focus { border-color: var(--primary); }
-
-    /* TABLE */
-    .table-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 1px 3px rgba(0,0,0,.08);
-        overflow: hidden;
-    }
-
-    table { width: 100%; border-collapse: collapse; }
-
-    thead th {
-        background: var(--gray-50);
-        padding: 14px 16px;
-        font-size: .8rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: .05em;
-        color: var(--gray-600);
-        text-align: left;
-        border-bottom: 2px solid var(--gray-200);
-    }
-
-    tbody tr { border-bottom: 1px solid var(--gray-100); transition: background .15s; }
-    tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: var(--gray-50); }
-
-    td { padding: 16px; vertical-align: middle; }
-
-    .dest-image {
-        width: 80px;
-        height: 55px;
-        object-fit: cover;
-        border-radius: 6px;
-        border: 1px solid var(--gray-200);
-    }
-
-    .dest-image-placeholder {
-        width: 80px;
-        height: 55px;
-        background: var(--gray-100);
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.4rem;
-    }
-
-    .badge {
-        display: inline-block;
-        padding: 4px 10px;
-        border-radius: 999px;
-        font-size: .75rem;
-        font-weight: 600;
-    }
-
-    .badge-disponible { background: #DCFCE7; color: #15803D; }
-    .badge-complet { background: #FEE2E2; color: #DC2626; }
-    .badge-default { background: var(--gray-100); color: var(--gray-600); }
-
-    .maps-link {
-        color: var(--primary);
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        font-size: .85rem;
-    }
-
+    .maps-link { color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; font-size: .85rem; }
     .maps-link:hover { text-decoration: underline; }
 
-    .actions { display: flex; gap: 8px; align-items: center; }
+    /* Modal confirmation suppression */
+    .confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 99999; align-items: center; justify-content: center; }
+    .confirm-overlay.active { display: flex !important; }
+    .confirm-modal { background: white; border-radius: 14px; padding: 32px; max-width: 420px; width: 90%; box-shadow: 0 24px 64px rgba(0,0,0,.2); animation: modalIn .2s ease; }
+    @keyframes modalIn { from { transform: scale(.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .confirm-modal h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; color: var(--primary-dark); }
+    .confirm-modal p { color: #666; margin-bottom: 24px; }
+    .confirm-actions { display: flex; gap: 12px; justify-content: flex-end; }
 
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: var(--gray-600);
+    .btn-success-admin {
+        background: #d1f2eb; color: #1a7a4a;
+        border: none; border-radius: 8px;
+        padding: 6px 14px; font-size: 0.82rem;
+        transition: background 0.2s;
     }
+    .btn-success-admin:hover { background: #1a7a4a; color: #fff; }
 
-    .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
-
-    /* PAGINATION */
-    .pagination {
-        display: flex;
-        justify-content: center;
-        gap: 8px;
-        padding: 24px;
-    }
-
-    .pagination a, .pagination span {
-        padding: 8px 14px;
-        border-radius: 6px;
-        font-size: .85rem;
-        font-weight: 500;
-        text-decoration: none;
-        border: 1px solid var(--gray-200);
-        color: var(--gray-800);
-        transition: all .2s;
-    }
-
-    .pagination a:hover { background: var(--primary); color: white; border-color: var(--primary); }
-    .pagination .current { background: var(--primary); color: white; border-color: var(--primary); }
-
-    /* Modal de confirmation suppression */
-    .modal-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,.5);
-        z-index: 1000;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .modal-overlay.active { display: flex; }
-
-    .modal {
-        background: white;
-        border-radius: 12px;
-        padding: 32px;
-        max-width: 420px;
-        width: 90%;
-        box-shadow: 0 20px 60px rgba(0,0,0,.2);
-    }
-
-    .modal h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; }
-    .modal p { color: var(--gray-600); margin-bottom: 24px; }
-    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+    tr.dest-row.hidden { display: none; }
+    .no-results-row { text-align: center; color: #888; padding: 40px; }
 </style>
 {% endblock %}
 
 {% block body %}
-<div class="page-header">
-    <h1>🗺️ Gestion des Destinations</h1>
-    <a href="{{ path('admin_destination_new') }}" class="btn btn-primary">
-        ➕ Ajouter une destination
+<div class="page-header mb-4">
+    <h1>🗺️ Liste des Excursions</h1>
+    <a href="{{ path('admin_destination_new') }}" class="btn-primary-admin">
+        <i class="bi bi-plus-circle me-1"></i> Ajouter une excursion
     </a>
 </div>
 
-<div class="container">
+{# SEARCH LIVE #}
+<div class="search-bar-admin">
+    <input type="text" id="liveSearch" value="{{ search }}" placeholder="🔍 Rechercher par nom ou localisation..." autocomplete="off">
+    <span id="resultCount" class="small text-muted ms-auto">
+        {{ destinations|length }} excursion{{ destinations|length != 1 ? 's' : '' }} trouvée{{ destinations|length != 1 ? 's' : '' }}
+    </span>
+</div>
 
-    {# FLASH MESSAGES #}
-    {% for message in app.flashes('success') %}
-        <div class="flash flash-success">✅ {{ message }}</div>
-    {% endfor %}
-    {% for message in app.flashes('error') %}
-        <div class="flash flash-error">❌ {{ message }}</div>
-    {% endfor %}
-
-    {# SEARCH #}
-    <form method="GET" class="search-bar">
-        <input type="text" name="search" value="{{ search }}" placeholder="🔍 Rechercher par nom ou localisation...">
-        <button type="submit" class="btn btn-primary">Rechercher</button>
-        {% if search %}
-            <a href="{{ path('admin_destination_index') }}" class="btn" style="background:var(--gray-100);color:var(--gray-800);">✕ Effacer</a>
-        {% endif %}
-        <span style="color:var(--gray-600); font-size:.9rem; margin-left:auto;">
-            {{ destinations|length }} destination{{ destinations|length != 1 ? 's' : '' }} trouvée{{ destinations|length != 1 ? 's' : '' }}
-        </span>
-    </form>
-
-    {# TABLE #}
-    <div class="table-card">
-        {% if destinations is empty %}
-            <div class="empty-state">
-                <div class="icon">🌍</div>
-                <p>Aucune destination trouvée{% if search %} pour "{{ search }}"{% endif %}.</p>
-            </div>
-        {% else %}
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Image</th>
-                    <th>Nom</th>
-                    <th>Description</th>
-                    <th>Localisation</th>
-                    <th>Statut</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for dest in destinations %}
-                <tr>
-                    <td><strong>#{{ dest.id }}</strong></td>
-                    <td>
+{# TABLE #}
+<div class="admin-table">
+    {% if destinations is empty %}
+        <div class="text-center py-5">
+            <div class="fs-1 mb-2">🌍</div>
+            <p class="text-muted">Aucune excursion trouvée.</p>
+            <a href="{{ path('admin_destination_new') }}" class="btn-primary-admin btn-sm">Créer la première</a>
+        </div>
+    {% else %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Image</th>
+                <th>Nom</th>
+                <th>Localisation</th>
+                <th>Capacité</th>
+                <th>Statut</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="destTableBody">
+            {% for dest in destinations %}
+            <tr class="dest-row" data-nom="{{ dest.nom|lower|e('html_attr') }}" data-loc="{{ (dest.localisation ?? '')|lower|e('html_attr') }}">
+                <td>
+                    <div style="position:relative;display:inline-block;">
                         {% if dest.firstImage %}
                             <img src="{{ dest.firstImage }}" alt="{{ dest.nom }}" class="dest-image">
                         {% else %}
                             <div class="dest-image-placeholder">🏔️</div>
                         {% endif %}
-                    </td>
-                    <td><strong>{{ dest.nom }}</strong></td>
-                    <td>{{ dest.description|u.truncate(60, '...')|default('—') }}</td>
-                    <td>
-                        {% if dest.localisation %}
-                            <a href="https://www.google.com/maps/search/?api=1&query={{ dest.localisation|url_encode }}"
-                               target="_blank" class="maps-link">
-                                📍 {{ dest.localisation }}
-                            </a>
-                        {% else %}
-                            —
+                        {% if dest.imagesCount > 1 %}
+                            <span style="position:absolute;bottom:4px;right:4px;background:var(--primary);color:white;font-size:.6rem;font-weight:700;padding:1px 4px;border-radius:4px;">
+                                +{{ dest.imagesCount - 1 }}
+                            </span>
                         {% endif %}
-                    </td>
-                    <td>
-                        {% if dest.statut == 'Disponible' %}
-                            <span class="badge badge-disponible">✅ Disponible</span>
-                        {% elseif dest.statut == 'Complet' %}
-                            <span class="badge badge-complet">🔴 Complet</span>
-                        {% else %}
-                            <span class="badge badge-default">{{ dest.statut ?? '—' }}</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <div class="actions">
-                            <a href="{{ path('admin_destination_edit', {id: dest.id}) }}"
-                               class="btn btn-warning btn-sm">✏️ Modifier</a>
-                            <button type="button" class="btn btn-danger btn-sm"
-                                    onclick="openDeleteModal({{ dest.id }}, '{{ dest.nom|e('html_attr') }}')">
-                                🗑️ Supprimer
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% endif %}
-    </div>
-
+                    </div>
+                </td>
+                <td><strong>{{ dest.nom }}</strong></td>
+                <td>
+                    {% if dest.localisation %}
+                        <a href="https://www.google.com/maps/search/?api=1&query={{ dest.localisation|url_encode }}" target="_blank" class="maps-link">
+                            📍 {{ dest.localisation|slice(0, 30) }}...
+                        </a>
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>{{ dest.nbParticipants }}/{{ dest.capaciteMax }}</td>
+                <td>
+                    {% if dest.statut == 'Disponible' %}
+                        <span class="status-badge badge-actif">Disponible</span>
+                    {% elseif dest.statut == 'Complet' %}
+                        <span class="status-badge badge-complet">Complet</span>
+                    {% else %}
+                        <span class="status-badge badge-passe">{{ dest.statut ?? '—' }}</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ path('admin_destination_export_participants', {id: dest.id}) }}" class="btn-success-admin btn-sm" title="Exporter les participants">
+                            <i class="bi bi-file-earmark-excel"></i>
+                        </a>
+                        <a href="{{ path('admin_destination_edit', {id: dest.id}) }}" class="btn-edit-admin btn-sm">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <button type="button" class="btn-danger-admin btn-sm"
+                                onclick="openDeleteModal({{ dest.id }}, '{{ dest.nom|e('html_attr') }}', '{{ csrf_token('delete' ~ dest.id) }}')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
 </div>
 
 {# MODAL SUPPRESSION #}
-<div class="modal-overlay" id="deleteModal">
-    <div class="modal">
-        <h3>⚠️ Confirmer la suppression</h3>
-        <p>Voulez-vous vraiment supprimer la destination <strong id="modalDestName"></strong> ?<br>Cette action est irréversible.</p>
-        <div class="modal-actions">
-            <button class="btn" onclick="closeDeleteModal()"
-                    style="background:var(--gray-100);color:var(--gray-800);">Annuler</button>
+<div class="confirm-overlay" id="deleteModal">
+    <div class="confirm-modal">
+        <h3>⚠️ Supprimer ?</h3>
+        <p>Voulez-vous vraiment supprimer <strong id="modalDestName"></strong> ? Cette action est irréversible.</p>
+        <div class="confirm-actions">
+            <button class="btn btn-edit-admin" onclick="closeDeleteModal()">Annuler</button>
             <form id="deleteForm" method="POST">
                 <input type="hidden" name="_token" id="deleteToken">
-                <button type="submit" class="btn btn-danger">Supprimer</button>
+                <button type="submit" class="btn-danger-admin py-2 px-3">🗑️ Supprimer définitivement</button>
             </form>
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block javascripts %}
 <script>
-function openDeleteModal(id, name) {
+// ── SUPPRESSION MODAL ──
+function openDeleteModal(id, name, token) {
     document.getElementById('modalDestName').textContent = name;
     document.getElementById('deleteForm').action = '/admin/destinations/' + id + '/delete';
-    document.getElementById('deleteToken').value = '{{ csrf_token("delete") }}' .replace('delete', 'delete' + id);
+    document.getElementById('deleteToken').value = token;
     document.getElementById('deleteModal').classList.add('active');
 }
+function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('active'); }
+document.getElementById('deleteModal').addEventListener('click', e => { if (e.target === document.getElementById('deleteModal')) closeDeleteModal(); });
 
-function closeDeleteModal() {
-    document.getElementById('deleteModal').classList.remove('active');
-}
+// ── LIVE SEARCH ──
+(function() {
+    const input   = document.getElementById('liveSearch');
+    const rows    = document.querySelectorAll('.dest-row');
+    const counter = document.getElementById('resultCount');
+    const tbody   = document.getElementById('destTableBody');
+    let noResRow  = null;
 
-// Fermer en cliquant en dehors
-document.getElementById('deleteModal').addEventListener('click', function(e) {
-    if (e.target === this) closeDeleteModal();
-});
+    function updateCounter(n) {
+        counter.textContent = n + ' excursion' + (n !== 1 ? 's' : '') + ' trouvée' + (n !== 1 ? 's' : '');
+    }
+
+    input.addEventListener('input', function() {
+        const q = this.value.trim().toLowerCase();
+        let visible = 0;
+        rows.forEach(row => {
+            const nom = row.dataset.nom || '';
+            const loc = row.dataset.loc || '';
+            const match = !q || nom.includes(q) || loc.includes(q);
+            row.classList.toggle('hidden', !match);
+            if (match) visible++;
+        });
+        if (noResRow) { noResRow.remove(); noResRow = null; }
+        if (visible === 0) {
+            noResRow = document.createElement('tr');
+            noResRow.innerHTML = '<td colspan="6" class="no-results-row">🔍 Aucun résultat pour "' + this.value + '"</td>';
+            tbody.appendChild(noResRow);
+        }
+        updateCounter(visible);
+    });
+})();
 </script>
 {% endblock %}

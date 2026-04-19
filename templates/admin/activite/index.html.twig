@@ -32,21 +32,21 @@
                 <td class="fw-semibold">{{ a.nom }}</td>
                 <td><span class="badge" style="background:#f0ebff;color:var(--primary)">{{ a.type }}</span></td>
                 <td><i class="bi bi-geo-alt me-1 text-muted"></i>{{ a.lieu }}</td>
-                <td class="small">{{ a.dateActivite|date('d/m/Y') }}</td>
+                <td class="small">{{ a.date_activite|date('d/m/Y') }}</td>
                 <td class="fw-semibold" style="color:var(--primary)">{{ a.prix }} TND</td>
                 <td>
                     <div class="d-flex align-items-center gap-1">
-                        <span class="fw-semibold">{{ a.placesDisponibles }}</span>
-                        <span class="text-muted small">/{{ a.nombrePlaces }}</span>
-                        {% if a.placesDisponibles == 0 %}
+                        <span class="fw-semibold">{{ a.places_disponibles }}</span>
+                        <span class="text-muted small">/{{ a.nombre_places }}</span>
+                        {% if a.places_disponibles == 0 %}
                         <span class="ms-1 status-badge badge-complet" style="font-size:0.68rem">Complet</span>
                         {% endif %}
                     </div>
                 </td>
                 <td>
-                    {% if a.placesDisponibles == 0 %}
+                    {% if a.places_disponibles == 0 %}
                     <span class="status-badge badge-complet">Complet</span>
-                    {% elseif a.dateActivite < date() %}
+                    {% elseif a.date_activite < date() %}
                     <span class="status-badge badge-passe">Passée</span>
                     {% else %}
                     <span class="status-badge badge-actif">Active</span>

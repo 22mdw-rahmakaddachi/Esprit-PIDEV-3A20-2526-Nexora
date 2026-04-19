@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px; }
+        .header { background: #2563eb; color: #fff; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { padding: 20px; }
+        .destination-box { background: #f8fafc; padding: 15px; border-left: 5px solid #2563eb; margin: 20px 0; }
+        .weather-box { background: #eff6ff; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #bfdbfe; }
+        .tips-list { padding-left: 20px; }
+        .footer { text-align: center; font-size: 0.8rem; color: #666; margin-top: 30px; }
+        .btn { display: inline-block; background: #2563eb; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>C'est bientôt le départ ! ✈️</h1>
+        </div>
+        <div class="content">
+            <p>Bonjour <strong>{{ userNom }}</strong>,</p>
+            <p>Votre excursion <strong>{{ destination.nom }}</strong> approche à grands pas ! Voici un récapitulatif pour vous préparer au mieux.</p>
+
+            <div class="destination-box">
+                <p>📍 <strong>Lieu :</strong> {{ destination.localisation }}</p>
+                <p>📅 <strong>Date :</strong> {{ destination.dateLancement|date('d/m/Y') }}</p>
+                <p>⏰ <strong>Heure :</strong> {{ destination.dateLancement|date('H:i') }}</p>
+            </div>
+
+            {% if weather %}
+            <div class="weather-box">
+                <h3 style="margin-top:0">⛅ Prévisions Météo</h3>
+                <p>Pour votre séjour à {{ destination.localisation }}, voici les prévisions :</p>
+                <p>
+                    <strong>{{ weather.description }}</strong> avec une température de <strong>{{ weather.temp }}°C</strong> 
+                    (Min: {{ weather.temp_min }}°C / Max: {{ weather.temp_max }}°C).
+                </p>
+            </div>
+            {% endif %}
+
+            <h3>🧹 Conseils de Bagages</h3>
+            <ul class="tips-list">
+                {% for tip in tips %}
+                <li>{{ tip }}</li>
+                {% endfor %}
+            </ul>
+
+            <p>Nous vous conseillons d'arriver 15 minutes avant l'heure prévue.</p>
+            
+            <center>
+                <a href="{{ url('client_destination_show', {id: destination.id}) }}" class="btn">Voir les détails de l'excursion</a>
+            </center>
+        </div>
+        <div class="footer">
+            <p>&copy; {{ "now"|date("Y") }} Nexora. Bon voyage !</p>
+        </div>
+    </div>
+</body>
+</html>

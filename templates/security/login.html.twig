@@ -19,24 +19,26 @@
         {% endif %}
 
         <div class="p-4 rounded-4 bg-white shadow-sm" style="border:1px solid #ede5ff">
-            <form method="post">
+            <form method="post" action="{{ path('app_login') }}">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
                 <div class="mb-3">
                     <label class="form-label fw-semibold small" style="color:var(--primary-dark)">
                         <i class="bi bi-envelope me-1"></i>Email
                     </label>
-                    <input type="email" name="email" value="{{ last_username }}"
+                    <input type="email" name="_username" value="{{ last_username }}"
                            class="form-control rounded-3"
+                           autocomplete="username"
                            placeholder="votre@email.com" required autofocus>
                 </div>
                 <div class="mb-4">
                     <label class="form-label fw-semibold small" style="color:var(--primary-dark)">
                         <i class="bi bi-lock me-1"></i>Mot de passe
                     </label>
-                    <input type="password" name="password"
+                    <input type="password" name="_password"
                            class="form-control rounded-3"
+                           autocomplete="current-password"
                            placeholder="••••••••" required>
                 </div>
-                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
                 <button type="submit" class="btn w-100 rounded-pill fw-semibold"
                         style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:11px">
                     <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter

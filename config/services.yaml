@@ -3,11 +3,16 @@ parameters:
     flouci_mode_test: 'true'
     flouci_public_key: ''
     flouci_private_key: ''
+    app.weather.api_key: '%env(OPENWEATHER_API_KEY)%'
 
 services:
     _defaults:
         autowire: true
         autoconfigure: true
+        bind:
+            $projectDir: '%kernel.project_dir%'
+            $openWeatherApiKey: '%env(OPENWEATHER_API_KEY)%'
+            $geminiApiKey: '%env(GEMINI_API_KEY)%'
 
     App\:
         resource: '../src/'
@@ -16,7 +21,6 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-<<<<<<< HEAD
     App\Service\ActivityEmailService:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
@@ -30,7 +34,7 @@ services:
             $publicKey:  '%env(default:flouci_public_key:FLOUCI_PUBLIC_KEY)%'
             $privateKey: '%env(default:flouci_private_key:FLOUCI_PRIVATE_KEY)%'
             $modeTest:   '%env(default:flouci_mode_test:FLOUCI_MODE_TEST)%'
-=======
+
     App\Service\AIService:
         arguments:
             $huggingfaceApiKey: '%env(HUGGINGFACE_API_KEY)%'
@@ -42,4 +46,3 @@ services:
     App\Service\FingerprintBridgeService:
         arguments:
             $bridgeUrl: '%env(FINGERPRINT_BRIDGE_URL)%'
->>>>>>> user
