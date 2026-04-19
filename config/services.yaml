@@ -25,9 +25,6 @@ services:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Controller\AiController:
-        arguments:
-            $huggingFaceToken: '%env(default:huggingface_token:HUGGINGFACE_TOKEN)%'
 
     App\Service\FlouciService:
         arguments:
