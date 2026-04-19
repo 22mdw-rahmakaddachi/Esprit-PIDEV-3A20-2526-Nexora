@@ -17,11 +17,11 @@ class Reclamation
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Users::class)]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Users $client = null;
 
     #[ORM\ManyToOne(targetEntity: Activite::class)]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Activite $activite = null;
 
     #[ORM\Column(type: 'text')]

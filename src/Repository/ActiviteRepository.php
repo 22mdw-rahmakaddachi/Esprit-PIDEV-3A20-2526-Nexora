@@ -27,7 +27,7 @@ class ActiviteRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('a')
             ->where('a.placesDisponibles > 0');
         if ($type) $qb->andWhere('a.type = :type')->setParameter('type', $type);
-        if ($lieu) $qb->andWhere('a.lieu = :lieu')->setParameter('lieu', $lieu);
+        if ($lieu) $qb->andWhere('LOWER(a.lieu) LIKE LOWER(:lieu)')->setParameter('lieu', '%' . $lieu . '%');
         return $qb->orderBy('a.dateCreation', 'DESC')->getQuery()->getResult();
     }
 
@@ -46,6 +46,16 @@ class ActiviteRepository extends ServiceEntityRepository
             ->where('a.placesDisponibles > 0')
             ->orderBy('a.dateCreation', 'DESC')
             ->setMaxResults(4)
+            ->getQuery()->getResult();
+    }
+
+    public function searchByLieu(string $lieu): array
+    {
+        return $this->createQueryBuilder('a')
+            ->where('a.lieu LIKE :lieu')
+            ->andWhere('a.placesDisponibles > 0')
+            ->setParameter('lieu', '%' . $lieu . '%')
+            ->orderBy('a.dateCreation', 'DESC')
             ->getQuery()->getResult();
     }
 }

@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Users;
 use App\Form\UsersType;
 use App\Repository\UsersRepository;
+use App\Service\FaceRecognitionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -85,5 +86,35 @@ final class UsersController extends AbstractController
         }
 
         return $this->redirectToRoute('app_users_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    #[Route('/{id}/register-face', name: 'app_users_register_face', methods: ['POST'])]
+    public function registerFace(int $id, Request $request, UsersRepository $usersRepo, FaceRecognitionService $faceService): Response
+    {
+        try {
+            $user = $usersRepo->find($id);
+            if (!$user) {
+                return $this->json(['success' => false, 'message' => 'Utilisateur introuvable'], 404);
+            }
+
+            $faceImage = $request->files->get('face_image');
+            if (!$faceImage) {
+                return $this->json(['success' => false, 'message' => 'Aucune image fournie'], 400);
+            }
+
+            $result = $faceService->registerFace(
+                $user->getId(),
+                $faceImage,
+                $user->getPrenom() . ' ' . $user->getNom()
+            );
+
+            return $this->json($result);
+
+        } catch (\Throwable $e) {
+            return $this->json([
+                'success' => false,
+                'message' => get_class($e) . ': ' . $e->getMessage() . ' (line ' . $e->getLine() . ' in ' . basename($e->getFile()) . ')'
+            ], 500);
+        }
     }
 }

@@ -71,6 +71,11 @@ class DestinationType extends AbstractType
                 'required' => false,
                 'help'     => 'Format recommandé : Code "Intégrer une carte" (iframe) ou URL complète de la barre d\'adresse.',
                 'attr'     => ['placeholder' => 'Code <iframe... ou URL complète maps.google.com/...'],
+            ])
+            ->add('programme', TextareaType::class, [
+                'label'    => 'Programme de l\'excursion',
+                'required' => false,
+                'attr'     => ['rows' => 10, 'placeholder' => "Le programme détaillé s'affichera ici ou peut être généré par l'IA..."],
             ]);
 
 

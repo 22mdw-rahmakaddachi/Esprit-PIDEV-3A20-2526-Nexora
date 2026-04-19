@@ -4,173 +4,311 @@
 
 {% block stylesheets %}
 <style>
-    .field-error { color: #dc3545; font-size: 0.82rem; margin-top: 4px; display: none; }
-    .form-control.is-invalid, .form-select.is-invalid { border-color: #dc3545 !important; box-shadow: 0 0 0 3px rgba(220,53,69,0.12); }
-    .form-control.is-valid, .form-select.is-valid { border-color: #27ae60 !important; }
+    .field-err { color:#dc3545; font-size:0.82rem; margin-top:4px; }
+    .field-err::before { content:'⚠ '; }
+    .is-invalid { border-color:#dc3545!important; box-shadow:0 0 0 3px rgba(220,53,69,.12)!important; }
 </style>
 {% endblock %}
 
 {% block body %}
 <div class="page-header">
     <h1><i class="bi bi-{{ activite ? 'pencil' : 'plus-circle' }} me-2"></i>{{ titre }}</h1>
-    <a href="{{ path('admin_activites') }}" class="btn btn-sm rounded-pill px-3"
-       style="border:1.5px solid var(--primary);color:var(--primary)">
+    <a href="{{ path('admin_activites') }}" class="btn btn-sm rounded-pill px-3" style="border:1.5px solid var(--primary);color:var(--primary)">
         <i class="bi bi-arrow-left me-1"></i>Retour
     </a>
 </div>
 
 <div class="row justify-content-center">
-    <div class="col-lg-9">
-        <div class="form-card">
+<div class="col-lg-9">
+<div class="form-card">
 
-            {% if form %}
-                {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'enctype': 'multipart/form-data', 'id': 'activiteForm'}}) }}
-                <div class="row g-4">
-                    <div class="col-12">
-                        {{ form_label(form.nom) }}
-                        {{ form_widget(form.nom, {'attr': {'class': 'form-control', 'id': 'f_nom'}}) }}
-                        <div class="field-error" id="err_nom">Le nom est obligatoire.</div>
-                        {{ form_errors(form.nom) }}
-                    </div>
-                    <div class="col-md-6">
-                        {{ form_label(form.type) }}
-                        {{ form_widget(form.type, {'attr': {'class': 'form-select', 'id': 'f_type'}}) }}
-                        <div class="field-error" id="err_type">Veuillez choisir un type.</div>
-                    </div>
-                    <div class="col-md-6">
-                        {{ form_label(form.genreCible) }}
-                        {{ form_widget(form.genreCible, {'attr': {'class': 'form-select', 'id': 'f_genre'}}) }}
-                    </div>
-                    <div class="col-md-6">
-                        {{ form_label(form.lieu) }}
-                        {{ form_widget(form.lieu, {'attr': {'class': 'form-select', 'id': 'f_lieu'}}) }}
-                        <div class="field-error" id="err_lieu">Veuillez choisir un gouvernorat.</div>
-                        {{ form_errors(form.lieu) }}
-                    </div>
-                    <div class="col-md-3">
-                        {{ form_label(form.prix) }}
-                        <div class="input-group">
-                            {{ form_widget(form.prix, {'attr': {'class': 'form-control', 'id': 'f_prix', 'placeholder': '0.00', 'min': '0.01', 'step': '0.01'}}) }}
-                            <span class="input-group-text" style="border-color:#ddd;background:#f9f7ff;color:var(--primary)">TND</span>
-                        </div>
-                        <div class="field-error" id="err_prix">Le prix doit être supérieur à 0.</div>
-                        {{ form_errors(form.prix) }}
-                    </div>
-                    <div class="col-md-3">
-                        {{ form_label(form.nombrePlaces) }}
-                        {{ form_widget(form.nombrePlaces, {'attr': {'class': 'form-control', 'id': 'f_places', 'placeholder': 'Ex: 20', 'min': '1'}}) }}
-                        <div class="field-error" id="err_places">Le nombre de places doit être ≥ 1.</div>
-                        {{ form_errors(form.nombrePlaces) }}
-                    </div>
-                    <div class="col-12">
-                        <div class="p-3 rounded-3" style="background:#f9f7ff;border:1px solid #ede5ff">
-                            <div class="form-check form-switch">
-                                {{ form_widget(form.avecDate, {'attr': {'class': 'form-check-input', 'id': 'avecDateToggle', 'role': 'switch', 'style': 'width:2.5em;height:1.3em;cursor:pointer'}}) }}
-                                <label class="form-check-label fw-semibold ms-2" for="avecDateToggle" style="color:var(--primary-dark)">
-                                    Fixer une date pour cette activité
-                                </label>
-                                <div class="text-muted small mt-1">Si désactivé, le client choisit sa date lors de la réservation.</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6" id="date-field" style="display:none">
-                        {{ form_label(form.dateActivite) }}
-                        {{ form_widget(form.dateActivite, {'attr': {'class': 'form-control', 'id': 'f_date'}}) }}
-                        <div class="field-error" id="err_date">Veuillez choisir une date future.</div>
-                    </div>
-                    <div class="col-12">
-                        <div class="p-3 rounded-3" style="background:#f9f7ff;border:1px solid #ede5ff">
-                            <div class="fw-semibold mb-3" style="color:var(--primary-dark)">
-                                <i class="bi bi-image me-2"></i>Image de l'activité
-                            </div>
-                            <ul class="nav nav-pills mb-3 gap-2">
-                                <li class="nav-item">
-                                    <button class="nav-link active px-3 py-1" id="tab-url" type="button" onclick="switchTab('url')" style="font-size:0.85rem;border-radius:50px">
-                                        <i class="bi bi-link-45deg me-1"></i>URL
-                                    </button>
-                                </li>
-                                <li class="nav-item">
-                                    <button class="nav-link px-3 py-1" id="tab-upload" type="button" onclick="switchTab('upload')" style="font-size:0.85rem;border-radius:50px">
-                                        <i class="bi bi-upload me-1"></i>Depuis mon PC
-                                    </button>
-                                </li>
-                            </ul>
-                            <div id="panel-url">
-                                {{ form_label(form.imageUrl) }}
-                                {{ form_widget(form.imageUrl, {'attr': {'class': 'form-control', 'id': 'imageUrlInput', 'placeholder': 'https://...'}}) }}
-                            </div>
-                            <div id="panel-upload" style="display:none">
-                                {{ form_label(form.imageFile) }}
-                                {{ form_widget(form.imageFile, {'attr': {'class': 'form-control', 'accept': 'image/*', 'id': 'imageFileInput'}}) }}
-                                {{ form_errors(form.imageFile) }}
-                                <div id="img-preview" class="mt-2" style="display:none">
-                                    <img id="preview-img" src="" alt="aperçu" style="height:120px;border-radius:8px;object-fit:cover;border:2px solid #ede5ff">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        {{ form_label(form.description) }}
-                        {{ form_widget(form.description, {'attr': {'class': 'form-control', 'id': 'f_desc', 'placeholder': 'Décrivez l\'activité...'}}) }}
-                        <div class="field-error" id="err_desc">La description est obligatoire.</div>
-                    </div>
-                </div>
-                <div class="d-flex gap-3 mt-4">
-                    <button type="submit" class="btn btn-primary-admin px-4">
-                        <i class="bi bi-check-lg me-2"></i>{{ activite ? 'Enregistrer' : 'Créer l\'activité' }}
-                    </button>
-                    <a href="{{ path('admin_activites') }}" class="btn btn-sm rounded-pill px-4" style="border:1.5px solid #ddd;color:#666">Annuler</a>
-                </div>
-                {{ form_end(form) }}
+<form method="POST" enctype="multipart/form-data" id="activiteForm"
+      action="{{ activite ? path('admin_activite_edit', {id: activite.id}) : path('admin_activite_new') }}">
 
-            {% else %}
-                {# Squelette vitrine — le form sera branché quand l'entité sera prête #}
-                <div class="text-center py-5 text-muted">
-                    <i class="bi bi-tools" style="font-size:3rem;opacity:0.4"></i>
-                    <p class="mt-3">Le formulaire sera disponible une fois les entités configurées.</p>
-                    <a href="{{ path('admin_activites') }}" class="btn rounded-pill px-4 mt-2"
-                       style="background:var(--primary);color:#fff">Retour à la liste</a>
-                </div>
-            {% endif %}
+    <div class="row g-4">
 
+        {# NOM #}
+        <div class="col-12">
+            <label class="form-label fw-semibold" style="color:var(--primary-dark)">Nom de l'activité</label>
+            <input type="text" name="nom" class="form-control {{ errors.nom is defined ? 'is-invalid' : '' }}"
+                   value="{{ old.nom ?? activite.nom ?? '' }}"
+                   placeholder="Ex: Randonnée au Djebel Zaghouan">
+            {% if errors.nom is defined %}<div class="field-err">{{ errors.nom }}</div>{% endif %}
         </div>
+
+        {# TYPE #}
+        <div class="col-md-6">
+            <label class="form-label fw-semibold" style="color:var(--primary-dark)">Type d'activité</label>
+            <select name="type" id="sel_type" class="form-select {{ errors.type is defined ? 'is-invalid' : '' }}">
+                <option value="">-- Choisir un type --</option>
+                {% for t in ['Sport','Culture','Gastronomie','Aventure','Bien-être','Autre'] %}
+                <option value="{{ t }}" {{ (old.type ?? activite.type ?? '') == t ? 'selected' : '' }}>{{ t }}</option>
+                {% endfor %}
+            </select>
+            {% if errors.type is defined %}<div class="field-err">{{ errors.type }}</div>{% endif %}
+            <div id="autre-box" style="display:none;margin-top:8px">
+                <input type="text" name="typeAutre" id="autre-input" class="form-control"
+                       placeholder="Précisez le type (ex: Yoga, Peinture...)"
+                       value="{{ old.typeAutre ?? '' }}">
+                <div id="autre-err" style="display:none;color:#dc3545;font-size:0.82rem;margin-top:4px">⚠ Veuillez préciser le type.</div>
+            </div>
+        </div>
+
+        {# GENRE #}
+        <div class="col-md-6">
+            <label class="form-label fw-semibold" style="color:var(--primary-dark)">Genre cible</label>
+            <select name="genreCible" class="form-select {{ errors.genreCible is defined ? 'is-invalid' : '' }}">
+                <option value="">-- Choisir --</option>
+                {% for label,val in {'Mixte':'MIXTE','Masculin':'MASCULIN','Féminin':'FEMININ'} %}
+                <option value="{{ val }}" {{ (old.genreCible ?? activite.genreCible ?? '') == val ? 'selected' : '' }}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            {% if errors.genreCible is defined %}<div class="field-err">{{ errors.genreCible }}</div>{% endif %}
+        </div>
+
+        {# LIEU #}
+        <div class="col-md-6">
+            <label class="form-label fw-semibold" style="color:var(--primary-dark)">Gouvernorat</label>
+            <select name="lieu" class="form-select {{ errors.lieu is defined ? 'is-invalid' : '' }}">
+                <option value="">-- Choisir un gouvernorat --</option>
+                {% for g in ['Ariana','Béja','Ben Arous','Bizerte','Gabès','Gafsa','Jendouba','Kairouan','Kasserine','Kébili','Le Kef','Mahdia','La Manouba','Médenine','Monastir','Nabeul','Sfax','Sidi Bouzid','Siliana','Sousse','Tataouine','Tozeur','Tunis','Zaghouan'] %}
+                <option value="{{ g }}" {{ (old.lieu ?? activite.lieu ?? '') == g ? 'selected' : '' }}>{{ g }}</option>
+                {% endfor %}
+            </select>
+            {% if errors.lieu is defined %}<div class="field-err">{{ errors.lieu }}</div>{% endif %}
+        </div>
+
+        {# PRIX #}
+        <div class="col-md-3">
+            <label class="form-label fw-semibold" style="color:var(--primary-dark)">Prix (TND)</label>
+            <div class="input-group">
+                <input type="number" name="prix" step="0.01" min="0.01"
+                       class="form-control {{ errors.prix is defined ? 'is-invalid' : '' }}"
+                       value="{{ old.prix ?? activite.prix ?? '' }}" placeholder="0.00">
+                <span class="input-group-text" style="border-color:#ddd;background:#f9f7ff;color:var(--primary)">TND</span>
+            </div>
+            {% if errors.prix is defined %}<div class="field-err">{{ errors.prix }}</div>{% endif %}
+        </div>
+
+        {# PLACES #}
+        <div class="col-md-3">
+            <label class="form-label fw-semibold" style="color:var(--primary-dark)">Nombre de places</label>
+            <input type="number" name="nombrePlaces" min="1"
+                   class="form-control {{ errors.nombrePlaces is defined ? 'is-invalid' : '' }}"
+                   value="{{ old.nombrePlaces ?? activite.nombrePlaces ?? '' }}" placeholder="Ex: 20">
+            {% if errors.nombrePlaces is defined %}<div class="field-err">{{ errors.nombrePlaces }}</div>{% endif %}
+        </div>
+
+        {# DATE SELECT #}
+        <div class="col-md-6">
+            <label class="form-label fw-semibold" style="color:var(--primary-dark)">
+                <i class="bi bi-calendar3 me-1"></i>Date de l'activité
+            </label>
+            <select id="date-select" class="form-select" style="border-color:#ddd;border-radius:10px">
+                <option value="0">📅 Le client choisit sa date lors de la réservation</option>
+                <option value="1" {{ (activite and activite.avecDate) ? 'selected' : '' }}>📌 Fixer une date maintenant</option>
+            </select>
+            <input type="hidden" name="avecDate" id="avecDateHidden" value="{{ (activite and activite.avecDate) ? '1' : '0' }}">
+        </div>
+
+        {# CALENDRIER #}
+        <div class="col-md-6" id="date-field" style="{{ (activite and activite.avecDate) ? '' : 'display:none' }}">
+            <label class="form-label fw-semibold" style="color:var(--primary-dark)">
+                <i class="bi bi-calendar-event me-1"></i>Choisir la date
+            </label>
+            <input type="datetime-local" name="dateActivite" id="f_date_picker"
+                   class="form-control {{ errors.dateActivite is defined ? 'is-invalid' : '' }}"
+                   min="{{ 'now'|date('Y-m-d') }}T00:00"
+                   value="{{ (activite and activite.dateActivite and activite.avecDate) ? activite.dateActivite|date('Y-m-d\\TH:i') : '' }}">
+            <div class="text-muted small mt-1"><i class="bi bi-info-circle me-1"></i>La date doit être dans le futur.</div>
+            {% if errors.dateActivite is defined %}<div class="field-err">{{ errors.dateActivite }}</div>{% endif %}
+        </div>
+
+        {# IMAGE #}
+        <div class="col-12">
+            <div class="p-3 rounded-3" style="background:#f9f7ff;border:1px solid #ede5ff">
+                <div class="fw-semibold mb-3" style="color:var(--primary-dark)">
+                    <i class="bi bi-image me-2"></i>Image de l'activité
+                </div>
+                {% if activite and activite.images %}
+                <div class="mb-3 d-flex align-items-center gap-3">
+                    <img src="{{ activite.imageUrl }}" alt="image actuelle"
+                         style="height:80px;border-radius:8px;object-fit:cover;border:2px solid #ede5ff"
+                         onerror="this.style.display='none'">
+                    <span class="text-muted small">Image actuelle</span>
+                </div>
+                {% endif %}
+
+                {# Input file caché — déclenché par le label #}
+                <input type="file" name="imageFile" id="imageFileInput" accept="image/*"
+                       style="visibility:hidden;position:absolute;width:1px;height:1px">
+
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <label for="imageFileInput"
+                           class="btn rounded-pill px-4 mb-0"
+                           style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;font-size:0.88rem;cursor:pointer">
+                        <i class="bi bi-folder2-open me-2"></i>Choisir une image
+                    </label>
+                    <span id="file-name" class="text-muted small">Aucun fichier sélectionné</span>
+                    <button type="button" id="btn-clear-img"
+                            class="btn btn-sm rounded-pill px-3"
+                            style="background:#fde8e8;color:#c0392b;font-size:0.8rem;display:none"
+                            onclick="clearImage()">
+                        <i class="bi bi-x me-1"></i>Supprimer
+                    </button>
+                </div>
+                <div id="preview-container" class="mt-3" style="display:none">
+                    <img id="preview-img" src="" alt="aperçu"
+                         style="max-height:160px;border-radius:10px;object-fit:cover;border:2px solid #ede5ff">
+                </div>
+                <div class="text-muted small mt-2">Formats acceptés : JPG, PNG, WEBP, GIF, BMP — max 10 Mo</div>
+            </div>
+        </div>
+
+        {# DESCRIPTION #}
+        <div class="col-12">
+            <label class="form-label fw-semibold" style="color:var(--primary-dark)">Description</label>
+            <div class="position-relative">
+                <textarea name="description" id="description" rows="4"
+                          class="form-control {{ errors.description is defined ? 'is-invalid' : '' }}"
+                          placeholder="Décrivez l'activité...">{{ old.description ?? activite.description ?? '' }}</textarea>
+                <button type="button" id="btn-ai-desc"
+                        onclick="generateDescription()"
+                        style="position:absolute;bottom:10px;right:10px;background:linear-gradient(135deg,#6c3fc5,#9b59b6);color:#fff;border:none;border-radius:20px;padding:6px 14px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(108,63,197,0.3)">
+                    <span id="ai-icon">🤖</span>
+                    <span id="ai-label">Générer avec IA</span>
+                </button>
+            </div>
+            <div id="ai-status" style="font-size:12px;color:#9b59b6;margin-top:4px;display:none">
+                ✨ Génération en cours...
+            </div>
+            {% if errors.description is defined %}<div class="field-err">{{ errors.description }}</div>{% endif %}
+        </div>
+
+    </div>{# end row #}
+
+    <div class="d-flex gap-3 mt-4">
+        <button type="submit" class="btn btn-primary-admin px-4">
+            <i class="bi bi-check-lg me-2"></i>{{ activite ? 'Enregistrer' : 'Créer l\'activité' }}
+        </button>
+        <a href="{{ path('admin_activites') }}" class="btn btn-sm rounded-pill px-4" style="border:1.5px solid #ddd;color:#666">Annuler</a>
     </div>
-</div>
+
+</form>
+</div></div></div>
 {% endblock %}
 
 {% block javascripts %}
 {{ parent() }}
 <script>
-function switchTab(tab) {
-    const isUrl = tab === 'url';
-    const pu = document.getElementById('panel-url');
-    const pp = document.getElementById('panel-upload');
-    if (pu) pu.style.display = isUrl ? 'block' : 'none';
-    if (pp) pp.style.display = isUrl ? 'none' : 'block';
-    document.getElementById('tab-url').classList.toggle('active', isUrl);
-    document.getElementById('tab-upload').classList.toggle('active', !isUrl);
-}
+// ── Type Autre ──
+const selType  = document.getElementById('sel_type');
+const autreBox = document.getElementById('autre-box');
+const autreInp = document.getElementById('autre-input');
+const autreErr = document.getElementById('autre-err');
 
-const avecDateCb = document.getElementById('avecDateToggle');
-const dateField  = document.getElementById('date-field');
+function toggleAutre() {
+    autreBox.style.display = selType.value === 'Autre' ? 'block' : 'none';
+}
+if (selType) { selType.addEventListener('change', toggleAutre); toggleAutre(); }
+
+document.getElementById('activiteForm').addEventListener('submit', function(e) {
+    if (selType && selType.value === 'Autre') {
+        const val = autreInp ? autreInp.value.trim() : '';
+        if (!val) {
+            e.preventDefault();
+            autreErr.style.display = 'block';
+            autreInp.focus();
+            return;
+        }
+        // Remplacer la valeur du select par le texte saisi
+        selType.innerHTML += '<option value="'+val+'" selected>'+val+'</option>';
+        selType.value = val;
+    }
+});
+
+// ── Date select ──
+const dateSelect     = document.getElementById('date-select');
+const dateField      = document.getElementById('date-field');
+const avecDateHidden = document.getElementById('avecDateHidden');
+
 function toggleDate() {
-    if (!avecDateCb || !dateField) return;
-    dateField.style.display = avecDateCb.checked ? 'block' : 'none';
+    const fixe = dateSelect.value === '1';
+    dateField.style.display = fixe ? 'block' : 'none';
+    avecDateHidden.value = fixe ? '1' : '0';
 }
-if (avecDateCb) { avecDateCb.addEventListener('change', toggleDate); toggleDate(); }
+if (dateSelect) { dateSelect.addEventListener('change', toggleDate); toggleDate(); }
 
-const imgFileInput = document.getElementById('imageFileInput');
-if (imgFileInput) {
-    imgFileInput.addEventListener('change', function () {
+// ── Image ──
+const fileInput = document.getElementById('imageFileInput');
+if (fileInput) {
+    fileInput.addEventListener('change', function() {
         const file = this.files[0];
         if (!file) return;
+        document.getElementById('file-name').textContent = file.name + ' (' + (file.size/1024).toFixed(0) + ' Ko)';
+        document.getElementById('btn-clear-img').style.display = 'inline-block';
         const reader = new FileReader();
         reader.onload = e => {
             document.getElementById('preview-img').src = e.target.result;
-            document.getElementById('img-preview').style.display = 'block';
+            document.getElementById('preview-container').style.display = 'block';
         };
         reader.readAsDataURL(file);
     });
+}
+function clearImage() {
+    fileInput.value = '';
+    document.getElementById('file-name').textContent = 'Aucun fichier sélectionné';
+    document.getElementById('btn-clear-img').style.display = 'none';
+    document.getElementById('preview-container').style.display = 'none';
+}
+
+// ── Hugging Face AI Description ──
+async function generateDescription() {
+    const nom  = document.querySelector('input[name="nom"]').value.trim();
+    const type = document.getElementById('sel_type').value;
+    const lieu = document.querySelector('select[name="lieu"]').value;
+
+    if (!nom || !type || !lieu) {
+        alert('Veuillez remplir le nom, le type et le lieu avant de générer une description.');
+        return;
+    }
+
+    const btn    = document.getElementById('btn-ai-desc');
+    const label  = document.getElementById('ai-label');
+    const icon   = document.getElementById('ai-icon');
+    const status = document.getElementById('ai-status');
+
+    btn.disabled = true;
+    label.textContent = 'Génération...';
+    icon.textContent = '⏳';
+    status.style.display = 'block';
+
+    try {
+        const response = await fetch('/api/ai/description', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nom, type, lieu })
+        });
+
+        const data = await response.json();
+
+        if (data.description) {
+            document.getElementById('description').value = data.description;
+            status.textContent = '✅ Description générée avec succès !';
+            status.style.color = '#16a34a';
+        } else {
+            status.textContent = '❌ Erreur : ' + (data.error || 'Réponse invalide');
+            status.style.color = '#dc2626';
+        }
+    } catch (e) {
+        status.textContent = '❌ Erreur de connexion à l\'API.';
+        status.style.color = '#dc2626';
+    } finally {
+        btn.disabled = false;
+        label.textContent = 'Générer avec IA';
+        icon.textContent = '🤖';
+        setTimeout(() => { status.style.display = 'none'; status.style.color = '#9b59b6'; }, 4000);
+    }
 }
 </script>
 {% endblock %}

@@ -30,7 +30,8 @@ class DestinationController extends AbstractController
         private DestinationRepository  $repo,
         private SluggerInterface       $slugger,
         private GoogleDriveService     $driveService,
-        private TravelInfoService       $travelService,
+        private TravelInfoService      $travelService,
+        private \App\Service\GeminiService $geminiService,
     ) {}
 
     // ========================= LIST =========================
@@ -333,5 +334,17 @@ class DestinationController extends AbstractController
         }
 
         return $this->json($data);
+    }
+
+    // ========================= AI SUGGEST PROGRAMME =========================
+    #[Route('/api/ai/suggest-programme', name: 'admin_destination_suggest_programme', methods: ['GET'])]
+    public function suggestProgramme(Request $request): JsonResponse
+    {
+        $localisation = $request->query->get('q', '');
+        if (!$localisation) return $this->json(['error' => 'Localisation manquante'], 400);
+
+        $programme = $this->geminiService->generateProgramme($localisation);
+
+        return $this->json(['programme' => $programme]);
     }
 }

@@ -210,6 +210,20 @@
             transition: background 0.2s;
         }
         .btn-edit-admin:hover { background: var(--primary); color: #fff; }
+        .btn-warning-admin {
+            background: #fff3cd; color: #856404;
+            border: none; border-radius: 8px;
+            padding: 6px 14px; font-size: 0.82rem;
+            transition: background 0.2s;
+        }
+        .btn-warning-admin:hover { background: #e67e22; color: #fff; }
+        .btn-success-admin {
+            background: #d1f2eb; color: #1a7a4a;
+            border: none; border-radius: 8px;
+            padding: 6px 14px; font-size: 0.82rem;
+            transition: background 0.2s;
+        }
+        .btn-success-admin:hover { background: #1a7a4a; color: #fff; }
 
         /* ── BADGE STATUT ── */
         .badge-complet  { background: #fde8e8; color: #c0392b; }
@@ -289,6 +303,10 @@
     <a href="{{ path('admin_promo_new') }}" class="sidebar-link {{ app.request.get('_route') == 'admin_promo_new' ? 'active' : '' }}">
         <i class="bi bi-plus-circle"></i> Nouveau code promo
     </a>
+    <a href="{{ path('admin_reclamations') }}" class="sidebar-link {{ 'admin_reclamation' in app.request.get('_route') ? 'active' : '' }}">
+        <i class="bi bi-exclamation-triangle-fill"></i> Réclamations
+        {# badge réclamations en attente #}
+    </a>
 
     <div class="sidebar-section">Avis</div>
     <a href="{{ path('admin_avis_activites') }}" class="sidebar-link {{ 'admin_avis' in app.request.get('_route') ? 'active' : '' }}">
@@ -296,6 +314,11 @@
     </a>
 
     <div class="sidebar-section">Aperçu</div>
+    {% if is_granted('ROLE_ADMIN') %}
+    <a href="{{ path('app_users_index') }}" class="sidebar-link {{ 'app_users' in app.request.get('_route') ? 'active' : '' }}">
+        <i class="bi bi-people-fill"></i> Utilisateurs
+    </a>
+    {% endif %}
     <a href="{{ path('app_home') }}" class="sidebar-link" target="_blank">
         <i class="bi bi-box-arrow-up-right"></i> Voir le site
     </a>
@@ -315,7 +338,35 @@
         <a href="{{ path('app_home') }}" class="topbar-icon" title="Voir le site" target="_blank">
             <i class="bi bi-eye-fill"></i>
         </a>
-        <div class="topbar-avatar">P</div>
+        <div class="dropdown">
+            <a href="#" class="topbar-avatar text-decoration-none" data-bs-toggle="dropdown" title="Mon profil">
+                {{ app.user ? app.user.prenom|first|upper : 'A' }}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 mt-2" style="min-width:200px">
+                <li class="px-3 py-2 border-bottom">
+                    <div class="fw-semibold" style="color:var(--primary-dark)">
+                        {{ app.user ? app.user.prenom ~ ' ' ~ app.user.nom : 'Admin' }}
+                    </div>
+                    <div class="text-muted small">{{ app.user ? app.user.email : '' }}</div>
+                </li>
+                <li>
+                    <a class="dropdown-item py-2" href="{{ path('app_profile') }}">
+                        <i class="bi bi-person-circle me-2" style="color:var(--primary)"></i>Mon profil
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item py-2" href="{{ path('app_profile_edit') }}">
+                        <i class="bi bi-pencil-square me-2" style="color:var(--primary)"></i>Modifier le profil
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a class="dropdown-item py-2 text-danger" href="{{ path('app_logout') }}">
+                        <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
+                    </a>
+                </li>
+            </ul>
+        </div>
     </div>
 </header>
 
@@ -351,6 +402,50 @@
             el.classList.remove('show'); setTimeout(() => el.remove(), 300);
         });
     }, 4000);
+
+    // Badge notifications commandes — polling toutes les 15 secondes
+    if (document.querySelector('.sidebar')) {
+        function refreshNotifBadge() {
+            fetch('/admin/notifications/api/count')
+                .then(r => r.ok ? r.json() : null)
+                .then(d => {
+                    if (!d) return;
+                    const badge = document.getElementById('notif-badge-sidebar');
+                    if (!badge) return;
+                    badge.textContent = d.count;
+                    badge.style.display = d.count > 0 ? 'inline' : 'none';
+                    if (d.count > 0 && !window._lastNotifCount) {
+                        window._lastNotifCount = d.count;
+                    } else if (d.count > (window._lastNotifCount || 0)) {
+                        window._lastNotifCount = d.count;
+                        showNewOrderToast();
+                    } else {
+                        window._lastNotifCount = d.count;
+                    }
+                })
+                .catch(() => {});
+        }
+
+        function showNewOrderToast() {
+            const t = document.createElement('div');
+            t.style.cssText = 'position:fixed;top:80px;right:20px;z-index:99999;min-width:300px;animation:fadeIn 0.3s ease';
+            t.innerHTML = `<div class="alert shadow-lg rounded-4 p-3 border-0" style="background:#fff;border-left:4px solid var(--primary)!important">
+                <div class="d-flex align-items-center gap-2">
+                    <span style="font-size:1.5rem">🛍️</span>
+                    <div>
+                        <div class="fw-bold small" style="color:var(--primary-dark)">Nouvelle commande reçue !</div>
+                        <a href="/admin/notifications" class="small" style="color:var(--primary)">Voir les détails →</a>
+                    </div>
+                    <button onclick="this.closest('div[style]').remove()" class="btn-close ms-auto" style="font-size:0.7rem"></button>
+                </div>
+            </div>`;
+            document.body.appendChild(t);
+            setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity 0.3s'; setTimeout(()=>t.remove(),300); }, 7000);
+        }
+
+        refreshNotifBadge();
+        setInterval(refreshNotifBadge, 15000);
+    }
 </script>
 {% block javascripts %}{% endblock %}
 </body>

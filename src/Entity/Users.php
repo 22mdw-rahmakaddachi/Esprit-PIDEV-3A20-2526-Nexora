@@ -203,45 +203,31 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * @see UserInterface
-     */
+    // ── UserInterface ──────────────────────────────────────────────────────
+
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        return $this->email;
     }
 
-    /**
-     * @see UserInterface
-     */
     public function getRoles(): array
     {
-        $roles = [$this->role ? strtoupper($this->role) : 'ROLE_USER'];
-        // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
+        $roles = ['ROLE_USER'];
+        $role  = strtolower(trim($this->role));
+
+        if (in_array($role, ['admin', 'role_admin', 'administrateur'])) {
+            $roles[] = 'ROLE_ADMIN';
+        } elseif (in_array($role, ['partenaire', 'role_partenaire', 'partner'])) {
+            $roles[] = 'ROLE_PARTENAIRE';
+        }
 
         return array_unique($roles);
     }
 
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
     public function getPassword(): string
     {
         return $this->mdp;
     }
 
-    /**
-     * @see UserInterface
-     */
-    public function eraseCredentials(): void
-    {
-        // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
-    }
-
-    public function getFullName(): string
-    {
-        return trim($this->prenom . ' ' . $this->nom);
-    }
+    public function eraseCredentials(): void {}
 }

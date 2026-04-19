@@ -147,6 +147,22 @@
             </div>
         </div>
 
+        {# ─── PROGRAMME IA ─── #}
+        <div class="col-12 mt-3">
+            <div class="p-4 rounded-3" style="background:#fff7ed; border:1px solid #ffedd5">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0 fw-bold" style="color:#9a3412">📅 Programme de l'excursion</h6>
+                    <button type="button" class="btn btn-sm btn-warning shadow-sm" id="btnMagicAI" style="font-size:0.75rem; border-radius:30px; font-weight:700">
+                        ✨ Suggérer avec l'IA (Gemini)
+                    </button>
+                </div>
+                <div class="col-12">
+                    {{ form_widget(form.programme, {attr: {class: 'form-control', rows: 8, placeholder: 'Détails du programme...'}}) }}
+                    <div id="ai-status" class="small mt-2 text-muted" style="display:none"></div>
+                </div>
+            </div>
+        </div>
+
         <div class="col-12 mt-4">
             <label class="form-label d-block mb-2">🖼️ Galerie d'images</label>
             
@@ -361,6 +377,44 @@ document.getElementById('btnMagic360').addEventListener('click', function() {
 
     const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(q)}/@?api=1&map_action=pano`;
     window.open(searchUrl, '_blank');
+});
+
+// ============ MAGIC AI (GEMINI) ============
+document.getElementById('btnMagicAI').addEventListener('click', function() {
+    const locInput = document.getElementById(_locFieldId) 
+                  || document.getElementById('localisation-field')
+                  || document.querySelector('input[name*="[localisation]"]');
+    
+    const q = locInput.value;
+    if (!q) { alert('Veuillez d\'abord saisir une localisation.'); return; }
+
+    const btn = this;
+    const status = document.getElementById('ai-status');
+    const programmeField = document.querySelector('textarea[name*="[programme]"]');
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="ac-spinner" style="width:12px;height:12px;vertical-align:middle"></span> IA en réflexion...';
+    status.style.display = 'block';
+    status.innerHTML = '🤖 L\'IA prépare votre itinéraire sur-mesure...';
+
+    fetch("{{ path('admin_destination_suggest_programme') }}?q=" + encodeURIComponent(q))
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) throw new Error(data.error);
+        
+        // Simuler un effet de frappe ou remplissage direct
+        programmeField.value = data.programme;
+        
+        status.innerHTML = '<span class="text-success">✨ Programme généré avec succès !</span>';
+        setTimeout(() => { status.style.display = 'none'; }, 3000);
+    })
+    .catch(err => {
+        status.innerHTML = '<span class="text-danger">⚠️ Oups : ' + err.message + '</span>';
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = '✨ Suggérer avec l\'IA (Gemini)';
+    });
 });
 </script>
 {% endblock %}

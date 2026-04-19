@@ -4,7 +4,7 @@
 
 {% block body %}
 
-{# STAT CARDS #}
+{# ── STAT CARDS ── #}
 <div class="row g-4 mb-4">
     <div class="col-6 col-xl-3">
         <div class="stat-card">
@@ -48,6 +48,7 @@
     <div class="col-6 col-xl-3">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-start">
+                <div>
                     <div class="stat-num">{{ totalDestinations ?? 0 }}</div>
                     <div class="stat-label">Excursions</div>
                 </div>
@@ -57,20 +58,59 @@
             </div>
         </div>
     </div>
-    <div class="col-6 col-xl-3">
-        <div class="stat-card">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <div class="stat-num">{{ demandesEnAttente }}</div>
-                    <div class="stat-label">Demandes en attente</div>
-                </div>
-                <div class="stat-icon" style="background:#fde8e8;color:#c0392b">
-                    <i class="bi bi-bell-fill"></i>
+</div>
+
+{# ── ZONE ROUGE PARTENAIRES (admin uniquement) ── #}
+{% if is_granted('ROLE_ADMIN') and partenairesZoneRouge is defined and partenairesZoneRouge is not empty %}
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="admin-table" style="border:2px solid #e74c3c">
+            <div class="p-3 border-bottom d-flex justify-content-between align-items-center"
+                 style="background:linear-gradient(135deg,#fde8e8,#fff5f5);border-color:#e74c3c!important">
+                <h6 class="mb-0 fw-bold" style="color:#c0392b">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                    🚨 Partenaires en zone rouge
+                    <span class="badge rounded-pill ms-2" style="background:#e74c3c;color:#fff;font-size:0.75rem">
+                        {{ partenairesZoneRouge|length }}
+                    </span>
+                </h6>
+                <span class="small text-muted">Plus de 3 réclamations reçues</span>
+            </div>
+            <div class="p-3">
+                <div class="row g-3">
+                    {% for p in partenairesZoneRouge %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="p-3 rounded-3 d-flex align-items-center gap-3"
+                             style="background:#fde8e8;border:1px solid #f5b7b1">
+                            <div class="flex-shrink-0 rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                                 style="width:48px;height:48px;background:#e74c3c;color:#fff;font-size:1.1rem">
+                                {{ p.prenom|first|upper }}
+                            </div>
+                            <div class="flex-grow-1 min-width-0">
+                                <div class="fw-bold" style="color:#c0392b">
+                                    {{ p.nom_entreprise ?: (p.prenom ~ ' ' ~ p.nom) }}
+                                </div>
+                                <div class="small text-muted text-truncate">{{ p.email }}</div>
+                                <div class="mt-1">
+                                    <span class="badge rounded-pill" style="background:#e74c3c;color:#fff;font-size:0.72rem">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                        {{ p.nb_reclamations }} réclamations
+                                    </span>
+                                </div>
+                            </div>
+                            <a href="{{ path('admin_reclamations') }}" class="btn btn-sm flex-shrink-0"
+                               style="background:#e74c3c;color:#fff;border:none;border-radius:8px;font-size:0.78rem">
+                                Voir
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endif %}
 
 {# ANALYTICS SECTION #}
 <div class="row g-4 mb-4">
@@ -96,9 +136,8 @@
     </div>
 </div>
 
-<div class="row g-4">
-
-    {# DERNIÈRES ACTIVITÉS #}
+{# ── ACTIVITÉS & DEMANDES ── #}
+<div class="row g-4 mb-4">
     <div class="col-lg-7">
         <div class="admin-table">
             <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color:#ede5ff!important">
@@ -110,25 +149,22 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Activité</th>
-                        <th>Type</th>
-                        <th>Places</th>
-                        <th>Statut</th>
+                        <th>Activité</th><th>Type</th><th>Places</th><th>Statut</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for a in activites %}
+                    {% for a in (activites ?? []) %}
                     <tr>
                         <td class="fw-semibold">{{ a.nom }}</td>
                         <td><span class="badge" style="background:#f0ebff;color:var(--primary)">{{ a.type }}</span></td>
-                        <td>{{ a.places_disponibles }}/{{ a.nombre_places }}</td>
+                        <td>{{ a.places_disponibles|default(0) }}/{{ a.nombre_places|default(0) }}</td>
                         <td>
-                            {% if a.places_disponibles == 0 %}
-                            <span class="status-badge badge-complet">Complet</span>
-                            {% elseif a.date_activite < date() %}
-                            <span class="status-badge badge-passe">Passée</span>
+                            {% if a.places_disponibles|default(0) == 0 %}
+                                <span class="status-badge badge-complet">Complet</span>
+                            {% elseif a.date_activite|default('now')|date('U') < 'now'|date('U') %}
+                                <span class="status-badge badge-passe">Passée</span>
                             {% else %}
-                            <span class="status-badge badge-actif">Active</span>
+                                <span class="status-badge badge-actif">Active</span>
                             {% endif %}
                         </td>
                     </tr>
@@ -140,7 +176,6 @@
         </div>
     </div>
 
-    {# DERNIÈRES DEMANDES #}
     <div class="col-lg-5">
         <div class="admin-table">
             <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color:#ede5ff!important">
@@ -150,18 +185,18 @@
                 <a href="{{ path('app_partenaire_demandes') }}" class="btn btn-primary-admin btn-sm">Voir tout</a>
             </div>
             <div class="p-3 d-flex flex-column gap-2">
-                {% for d in demandes %}
+                {% for d in (demandes ?? []) %}
                 <div class="d-flex justify-content-between align-items-center p-2 rounded-3" style="background:#faf8ff">
                     <div>
                         <div class="fw-semibold small">{{ d.clientNom }}</div>
                         <div class="text-muted" style="font-size:0.78rem">{{ d.activite.nom }}</div>
                     </div>
                     {% if d.statut == 'EN_ATTENTE' %}
-                    <span class="status-badge badge-attente">En attente</span>
+                        <span class="status-badge badge-attente">En attente</span>
                     {% elseif d.statut == 'ACCEPTEE' %}
-                    <span class="status-badge badge-actif">Acceptée</span>
+                        <span class="status-badge badge-actif">Acceptée</span>
                     {% else %}
-                    <span class="status-badge badge-complet">Refusée</span>
+                        <span class="status-badge badge-complet">Refusée</span>
                     {% endif %}
                 </div>
                 {% else %}
@@ -170,14 +205,11 @@
             </div>
         </div>
     </div>
-
 </div>
 
-{# ── SECTION BOUTIQUE ── #}
+{# ── BOUTIQUE ── #}
 <hr style="border-color:#ede5ff;margin:32px 0">
-<div class="row g-4">
-
-    {# PRODUITS #}
+<div class="row g-4 mb-4">
     <div class="col-lg-7">
         <div class="admin-table">
             <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color:#ede5ff!important">
@@ -200,9 +232,7 @@
                         <td>{{ p.sousCategorie ? p.sousCategorie.nom : '—' }}</td>
                         <td><span class="badge" style="background:#f0ebff;color:var(--primary)">{{ p.variants|length }}</span></td>
                         <td style="color:var(--primary);font-weight:600">{{ p.prixMin ? p.prixMin ~ ' TND' : '—' }}</td>
-                        <td>
-                            <span class="status-badge {{ p.statut == 'actif' ? 'badge-actif' : 'badge-complet' }}">{{ p.statut }}</span>
-                        </td>
+                        <td><span class="status-badge {{ p.statut == 'actif' ? 'badge-actif' : 'badge-complet' }}">{{ p.statut }}</span></td>
                         <td>
                             <a href="{{ path('admin_produit_edit', {id: p.id}) }}" class="btn-edit-admin btn btn-sm">
                                 <i class="bi bi-pencil"></i>
@@ -217,7 +247,6 @@
         </div>
     </div>
 
-    {# CODES PROMO #}
     <div class="col-lg-5">
         <div class="admin-table">
             <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color:#ede5ff!important">
@@ -252,12 +281,76 @@
             </div>
         </div>
     </div>
-
 </div>
+
+{# ── GESTION UTILISATEURS ── #}
+{% if is_granted('ROLE_ADMIN') %}
+<hr style="border-color:#ede5ff;margin:32px 0">
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="admin-table">
+            <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color:#ede5ff!important">
+                <h6 class="mb-0 fw-bold" style="color:var(--primary-dark)">
+                    <i class="bi bi-people-fill me-2"></i>Gestion des utilisateurs
+                </h6>
+                <div class="d-flex gap-2">
+                    <a href="{{ path('app_users_new') }}" class="btn btn-primary-admin btn-sm">
+                        <i class="bi bi-person-plus-fill me-1"></i>Ajouter
+                    </a>
+                    <a href="{{ path('app_users_index') }}" class="btn btn-edit-admin btn-sm">Voir tout</a>
+                </div>
+            </div>
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th><th>Nom complet</th><th>Email</th><th>Téléphone</th><th>Rôle</th><th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in (users ?? []) %}
+                    <tr>
+                        <td class="text-muted">{{ user.id }}</td>
+                        <td class="fw-semibold">{{ user.prenom }} {{ user.nom }}</td>
+                        <td><i class="bi bi-envelope me-1 text-muted"></i>{{ user.email }}</td>
+                        <td>{{ user.num }}</td>
+                        <td>
+                            <span class="status-badge
+                                {% if user.role == 'ROLE_ADMIN' %}badge-complet
+                                {% elseif user.role == 'ROLE_PARTENAIRE' %}badge-attente
+                                {% else %}badge-actif{% endif %}">
+                                {{ user.role }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a href="{{ path('app_users_edit', {id: user.id}) }}" class="btn btn-edit-admin btn-sm">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+                                <form method="post" action="{{ path('app_users_delete', {id: user.id}) }}"
+                                      onsubmit="return confirm('Supprimer cet utilisateur ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                                    <button class="btn btn-danger-admin btn-sm">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">Aucun utilisateur</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 {# ── SECTION EXCURSIONS ── #}
 <hr style="border-color:#ede5ff;margin:32px 0">
-<div class="row g-4">
+<div class="row g-4 mb-4">
     <div class="col-12">
         <div class="admin-table">
             <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color:#ede5ff!important">
@@ -280,7 +373,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for d in destinations %}
+                    {% for d in (destinations ?? []) %}
                     <tr>
                         <td class="fw-semibold">{{ d.nom }}</td>
                         <td><small class="text-muted">{{ d.localisation|slice(0, 40) }}...</small></td>
@@ -304,6 +397,7 @@
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block javascripts %}
@@ -315,10 +409,10 @@ document.addEventListener('DOMContentLoaded', function() {
     new Chart(ctxPop, {
         type: 'bar',
         data: {
-            labels: {{ destLabels|json_encode|raw }},
+            labels: {{ destLabels|default([])|json_encode|raw }},
             datasets: [{
                 label: 'Nombre de participants',
-                data: {{ destData|json_encode|raw }},
+                data: {{ destData|default([])|json_encode|raw }},
                 backgroundColor: 'rgba(37, 99, 235, 0.7)',
                 borderColor: 'rgba(37, 99, 235, 1)',
                 borderWidth: 1,
@@ -345,9 +439,9 @@ document.addEventListener('DOMContentLoaded', function() {
     new Chart(ctxType, {
         type: 'doughnut',
         data: {
-            labels: {{ activiteTypes|json_encode|raw }},
+            labels: {{ activiteTypes|default([])|json_encode|raw }},
             datasets: [{
-                data: {{ activiteCounts|json_encode|raw }},
+                data: {{ activiteCounts|default([])|json_encode|raw }},
                 backgroundColor: [
                     '#2563EB', '#16A34A', '#D97706', '#DC2626', '#7C3AED', '#64748B'
                 ],

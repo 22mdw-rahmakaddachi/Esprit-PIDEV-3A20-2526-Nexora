@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}TripShop{% endblock %}</title>
+    <title>{% block title %}Nexora{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -434,13 +434,161 @@
 </head>
 <body>
 
+{# LOADING SCREEN #}
+<div id="loading-screen" style="
+    position:fixed;inset:0;z-index:99999;
+    background:#0f0c29;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    overflow:hidden;">
+
+    <style>
+        body { overflow: hidden; }
+        body.loaded { overflow: auto; }
+        #loading-screen { transition: opacity 0.6s ease, visibility 0.6s ease; }
+        #loading-screen.hide { opacity:0; visibility:hidden; }
+
+        /* Fond animé */
+        .ls-bg {
+            position:absolute;inset:0;
+            background: radial-gradient(ellipse at 20% 50%, #6c3fc5 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 20%, #9b59b6 0%, transparent 50%),
+                        radial-gradient(ellipse at 60% 80%, #4e2d9a 0%, transparent 50%),
+                        #0f0c29;
+            animation: ls-bg-shift 4s ease-in-out infinite alternate;
+        }
+        @keyframes ls-bg-shift {
+            0%   { filter: hue-rotate(0deg) brightness(1); }
+            100% { filter: hue-rotate(20deg) brightness(1.15); }
+        }
+
+        /* Particules flottantes */
+        .ls-particle {
+            position:absolute;border-radius:50%;
+            background:rgba(255,255,255,0.06);
+            animation: ls-float linear infinite;
+        }
+        @keyframes ls-float {
+            0%   { transform: translateY(110vh) scale(0); opacity:0; }
+            10%  { opacity:1; }
+            90%  { opacity:0.5; }
+            100% { transform: translateY(-10vh) scale(1); opacity:0; }
+        }
+
+        /* Logo */
+        .ls-logo {
+            position:relative;z-index:2;
+            font-family:'Playfair Display',serif;
+            font-size:3rem;font-weight:700;
+            color:#fff;letter-spacing:2px;
+            margin-bottom:8px;
+            animation: ls-logo-in 0.8s cubic-bezier(.22,1,.36,1) both;
+        }
+        .ls-logo span { color:#c39bd3; }
+        @keyframes ls-logo-in {
+            from { opacity:0; transform:translateY(-20px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        /* Tagline */
+        .ls-tagline {
+            position:relative;z-index:2;
+            color:rgba(255,255,255,0.5);
+            font-size:0.8rem;letter-spacing:4px;
+            text-transform:uppercase;
+            margin-bottom:48px;
+            animation: ls-logo-in 0.8s 0.2s cubic-bezier(.22,1,.36,1) both;
+        }
+
+        /* Barre de progression */
+        .ls-bar-wrap {
+            position:relative;z-index:2;
+            width:200px;height:3px;
+            background:rgba(255,255,255,0.1);
+            border-radius:10px;overflow:hidden;
+            margin-bottom:20px;
+        }
+        .ls-bar {
+            height:100%;width:0%;
+            background:linear-gradient(90deg,#6c3fc5,#c39bd3,#9b59b6);
+            border-radius:10px;
+            animation: ls-progress 1.4s cubic-bezier(.4,0,.2,1) forwards;
+            box-shadow: 0 0 12px rgba(195,155,211,0.6);
+        }
+        @keyframes ls-progress {
+            0%   { width:0%; }
+            30%  { width:40%; }
+            60%  { width:70%; }
+            85%  { width:88%; }
+            100% { width:100%; }
+        }
+
+        /* Texte pourcentage */
+        .ls-percent {
+            position:relative;z-index:2;
+            color:rgba(255,255,255,0.4);
+            font-size:0.75rem;letter-spacing:2px;
+        }
+    </style>
+
+    <div class="ls-bg"></div>
+
+    <!-- Particules -->
+    <div class="ls-particle" style="width:80px;height:80px;left:10%;animation-duration:8s;animation-delay:0s"></div>
+    <div class="ls-particle" style="width:40px;height:40px;left:25%;animation-duration:6s;animation-delay:1s"></div>
+    <div class="ls-particle" style="width:60px;height:60px;left:50%;animation-duration:9s;animation-delay:0.5s"></div>
+    <div class="ls-particle" style="width:30px;height:30px;left:70%;animation-duration:7s;animation-delay:2s"></div>
+    <div class="ls-particle" style="width:90px;height:90px;left:85%;animation-duration:10s;animation-delay:0.2s"></div>
+
+    <div class="ls-logo">Nexora</div>
+    <div class="ls-tagline">Votre aventure commence ici</div>
+    <div class="ls-bar-wrap"><div class="ls-bar"></div></div>
+    <div class="ls-percent" id="ls-percent">0%</div>
+</div>
+
+<script>
+    // Compteur de pourcentage
+    let pct = 0;
+    const pctEl = document.getElementById('ls-percent');
+    const pctInterval = setInterval(function() {
+        pct = Math.min(pct + Math.floor(Math.random() * 8) + 2, 99);
+        if (pctEl) pctEl.textContent = pct + '%';
+    }, 80);
+
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('a');
+        if (link && link.href && !link.target && !link.href.startsWith('#') &&
+            link.href.startsWith(window.location.origin)) {
+            document.getElementById('loading-screen').classList.remove('hide');
+            document.body.classList.remove('loaded');
+        }
+    });
+
+    document.addEventListener('submit', function() {
+        document.getElementById('loading-screen').classList.remove('hide');
+        document.body.classList.remove('loaded');
+    });
+
+    const start = Date.now();
+    window.addEventListener('load', function() {
+        clearInterval(pctInterval);
+        if (pctEl) pctEl.textContent = '100%';
+        const elapsed = Date.now() - start;
+        const delay = Math.max(0, 800 - elapsed);
+        setTimeout(function() {
+            const loader = document.getElementById('loading-screen');
+            loader.classList.add('hide');
+            document.body.classList.add('loaded');
+        }, delay);
+    });
+</script>
+
     {# TOPBAR #}
     <div class="topbar d-none d-md-block">
         <div class="container d-flex justify-content-between align-items-center">
             <div>
                 <i class="bi bi-telephone-fill me-1"></i> +216 00 000 000
                 <span class="mx-3 opacity-50">|</span>
-                <i class="bi bi-envelope-fill me-1"></i> contact@tripshop.tn
+                <i class="bi bi-envelope-fill me-1"></i> contact@nexora.tn
             </div>
             <div class="d-flex gap-3">
                 <a href="#"><i class="bi bi-facebook"></i></a>
@@ -453,7 +601,7 @@
     {# NAVBAR #}
     <nav class="navbar navbar-expand-lg sticky-top" id="mainNav">
         <div class="container">
-            <a class="navbar-brand" href="{{ path('app_home') }}">Trip<span>Shop</span></a>
+            <a class="navbar-brand" href="{{ path('app_home') }}">Nexora</a>
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -475,6 +623,12 @@
                         <a class="nav-link {% if 'activite' in app.request.get('_route') %}active{% endif %}"
                            href="{{ path('app_activites') }}">
                             <i class="bi bi-calendar-event-fill me-1"></i>Activités
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'offres' in app.request.get('_route') %}active{% endif %}"
+                           href="{{ path('app_offres') }}">
+                            <i class="bi bi-tag-fill me-1"></i>Offres
                         </a>
                     </li>
                     <li class="nav-item">
@@ -500,10 +654,26 @@
                     <a href="#" class="btn btn-cart btn-pulse">
                         <i class="bi bi-cart3 me-1"></i>Panier
                     </a>
-                    <a href="#" class="btn btn-sm rounded-pill px-3"
-                       style="border:1.5px solid var(--primary);color:var(--primary)">
-                        <i class="bi bi-person me-1"></i>Connexion
-                    </a>
+                    {% if app.user %}
+                        <a href="{{ path('app_mes_reclamations') }}" class="btn btn-sm rounded-pill px-3"
+                           style="border:1.5px solid #e67e22;color:#e67e22"
+                           title="Mes réclamations">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Réclamations
+                        </a>
+                        <a href="{{ path('app_profile') }}" class="btn btn-sm rounded-pill px-3"
+                           style="border:1.5px solid var(--primary);color:var(--primary)">
+                            <i class="bi bi-person-circle me-1"></i>{{ app.user.prenom }}
+                        </a>
+                        <a href="{{ path('app_logout') }}" class="btn btn-sm rounded-pill px-3"
+                           style="border:1.5px solid #e74c3c;color:#e74c3c">
+                            <i class="bi bi-box-arrow-right me-1"></i>Déconnexion
+                        </a>
+                    {% else %}
+                        <a href="{{ path('app_login') }}" class="btn btn-sm rounded-pill px-3"
+                           style="border:1.5px solid var(--primary);color:var(--primary)">
+                            <i class="bi bi-person me-1"></i>Connexion
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -529,7 +699,7 @@
         <div class="container">
             <div class="row g-4">
                 <div class="col-md-4" data-aos="fade-up">
-                    <h5>Trip<span style="color:var(--accent-light)">Shop</span></h5>
+                    <h5>Nexora</h5>
                     <p style="font-size:0.9rem;opacity:0.8">Votre plateforme de produits outdoor et d'activités en Tunisie.</p>
                     <div class="d-flex gap-3 mt-3">
                         <a href="#" class="text-white fs-5"><i class="bi bi-facebook"></i></a>
@@ -561,7 +731,7 @@
                 </div>
             </div>
             <div class="footer-bottom text-center opacity-75">
-                © {{ "now"|date("Y") }} TripShop — Tous droits réservés
+                © {{ "now"|date("Y") }} Nexora — Tous droits réservés
             </div>
         </div>
     </footer>
@@ -618,6 +788,85 @@
                 })
                 .catch(() => {});
         }, 30000);
+        // ── Notifications temps réel (polling SSE) ──
+        {% if app.user %}
+        (function() {
+            let lastId = 0;
+
+            // Conteneur toast
+            const toastContainer = document.createElement('div');
+            toastContainer.style.cssText = 'position:fixed;top:80px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:10px;min-width:320px;max-width:380px';
+            document.body.appendChild(toastContainer);
+
+            function showToast(titre, message, type) {
+                const colors = {
+                    'NOUVELLE_DEMANDE': { bg: '#6c3fc5', icon: '📩' },
+                    'ACCEPTATION':      { bg: '#16a34a', icon: '✅' },
+                    'REFUS':            { bg: '#dc2626', icon: '❌' },
+                    'PAIEMENT':         { bg: '#0284c7', icon: '💳' },
+                };
+                const c = colors[type] || { bg: '#6c3fc5', icon: '🔔' };
+
+                const toast = document.createElement('div');
+                toast.style.cssText = `background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.15);overflow:hidden;animation:slideIn 0.3s ease;border-left:4px solid ${c.bg}`;
+                toast.innerHTML = `
+                    <div style="padding:14px 16px;display:flex;align-items:flex-start;gap:12px">
+                        <div style="font-size:22px;flex-shrink:0">${c.icon}</div>
+                        <div style="flex:1">
+                            <div style="font-weight:700;font-size:14px;color:#222;margin-bottom:3px">${titre}</div>
+                            <div style="font-size:13px;color:#666;line-height:1.4">${message}</div>
+                        </div>
+                        <button onclick="this.closest('div[style]').remove()" style="background:none;border:none;color:#aaa;font-size:18px;cursor:pointer;padding:0;line-height:1">×</button>
+                    </div>
+                    <div style="height:3px;background:${c.bg};animation:toastProgress 5s linear forwards"></div>
+                `;
+
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes slideIn { from { transform:translateX(120%);opacity:0 } to { transform:translateX(0);opacity:1 } }
+                    @keyframes toastProgress { from { width:100% } to { width:0% } }
+                `;
+                document.head.appendChild(style);
+
+                toastContainer.appendChild(toast);
+                setTimeout(() => toast.remove(), 5500);
+
+                // Mettre à jour les badges
+                fetch('/api/badges').then(r => r.ok ? r.json() : null).then(data => {
+                    if (!data) return;
+                    updateBadge('badge-historique', data.mesActivites ?? 0);
+                    updateBadge('badge-demandes',   data.demandes ?? 0);
+                }).catch(() => {});
+            }
+
+            function pollNotifications() {
+                fetch('/api/notifications/stream?lastId=' + lastId)
+                    .then(r => r.ok ? r.json() : [])
+                    .then(notifications => {
+                        if (!Array.isArray(notifications)) return;
+                        notifications.forEach(n => {
+                            showToast(n.titre, n.message, n.type);
+                            if (n.id > lastId) lastId = n.id;
+                        });
+                    })
+                    .catch(() => {});
+            }
+
+            // Initialiser lastId avec la dernière notification connue
+            fetch('/api/notifications/stream?lastId=0')
+                .then(r => r.ok ? r.json() : [])
+                .then(notifications => {
+                    if (Array.isArray(notifications) && notifications.length > 0) {
+                        lastId = Math.max(...notifications.map(n => n.id));
+                    }
+                })
+                .catch(() => {})
+                .finally(() => {
+                    // Démarrer le polling toutes les 5 secondes
+                    setInterval(pollNotifications, 5000);
+                });
+        })();
+        {% endif %}
     </script>
     {% block javascripts %}{% endblock %}
 </body>

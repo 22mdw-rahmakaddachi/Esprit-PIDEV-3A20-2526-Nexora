@@ -1,0 +1,246 @@
+{% extends 'base.html.twig' %}
+{% block title %}Connexion par visage — Nexora{% endblock %}
+
+{% block stylesheets %}
+<style>
+.face-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 8px 32px rgba(26,35,126,0.12);
+    border: 1px solid #e8ecff;
+}
+#video-container {
+    position: relative;
+    width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #0a0f2c;
+    aspect-ratio: 4/3;
+}
+#video-feed {
+    width: 100%; height: 100%;
+    object-fit: cover; display: block;
+    transform: scaleX(-1);
+}
+.face-overlay {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+}
+.face-frame {
+    width: 200px; height: 240px;
+    border: 3px solid rgba(255,255,255,0.5);
+    border-radius: 50% 50% 45% 45%;
+    box-shadow: 0 0 0 2000px rgba(0,0,0,0.35);
+    transition: border-color .3s, box-shadow .3s;
+}
+.face-frame.scanning {
+    border-color: #4caf50;
+    animation: scan-pulse 1s infinite;
+}
+.face-frame.success { border-color: #4caf50; box-shadow: 0 0 0 2000px rgba(0,0,0,0.2), 0 0 30px #4caf50; }
+.face-frame.error   { border-color: #e74c3c; box-shadow: 0 0 0 2000px rgba(0,0,0,0.35), 0 0 20px #e74c3c; }
+
+@keyframes scan-pulse {
+    0%,100% { box-shadow: 0 0 0 2000px rgba(0,0,0,0.35), 0 0 0 0 rgba(76,175,80,0.5); }
+    50%      { box-shadow: 0 0 0 2000px rgba(0,0,0,0.35), 0 0 0 16px rgba(76,175,80,0); }
+}
+.scan-line {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    width: 200px; height: 2px;
+    background: linear-gradient(90deg, transparent, #4caf50, transparent);
+    animation: scan-move 2s ease-in-out infinite;
+    display: none;
+}
+.scan-line.active { display: block; }
+@keyframes scan-move {
+    0%   { top: calc(50% - 120px); }
+    100% { top: calc(50% + 120px); }
+}
+.status-bar {
+    background: rgba(0,0,0,0.75);
+    color: #fff; position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 10px 16px; font-size: 0.82rem;
+    text-align: center; backdrop-filter: blur(4px);
+}
+.user-detected-badge {
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    background: rgba(76,175,80,0.9); color: #fff;
+    padding: 6px 18px; border-radius: 50px;
+    font-size: 0.82rem; font-weight: 700;
+    backdrop-filter: blur(4px);
+    display: none; white-space: nowrap;
+}
+.btn-scan {
+    background: linear-gradient(135deg, #1a237e, #3949ab);
+    color: #fff; border: none; border-radius: 50px;
+    padding: 12px 32px; font-weight: 700; font-size: 0.95rem;
+    cursor: pointer; transition: opacity .2s, transform .2s; width: 100%;
+}
+.btn-scan:hover { opacity: .9; transform: translateY(-2px); }
+.btn-scan:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="d-flex align-items-center justify-content-center" style="min-height:80vh;padding:40px 0">
+    <div class="w-100" style="max-width:460px;margin:auto" data-aos="fade-up">
+
+        <div class="text-center mb-4">
+            <div style="width:56px;height:56px;background:linear-gradient(135deg,#1a237e,#3949ab);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto 12px">
+                👤
+            </div>
+            <h2 style="font-family:'Playfair Display',serif;color:#1a237e">Connexion par visage</h2>
+            <p class="text-muted small">Positionnez votre visage dans le cadre et cliquez Scanner</p>
+        </div>
+
+        <div class="face-card">
+
+            {# Caméra #}
+            <div id="video-container" class="mb-3">
+                <video id="video-feed" autoplay playsinline muted></video>
+                <div class="face-overlay">
+                    <div class="face-frame" id="face-frame"></div>
+                    <div class="scan-line" id="scan-line"></div>
+                </div>
+                <div class="user-detected-badge" id="user-badge"></div>
+                <div class="status-bar" id="status-bar">
+                    <i class="bi bi-camera me-1"></i>Initialisation de la caméra...
+                </div>
+            </div>
+
+            {# Résultat #}
+            <div id="result-box" style="display:none;margin-bottom:16px;padding:14px 16px;border-radius:12px"></div>
+
+            {# Bouton scan #}
+            <button id="btn-scan" class="btn-scan" onclick="scanFace()" disabled>
+                <i class="bi bi-person-bounding-box me-2"></i>Scanner mon visage
+            </button>
+
+            <div class="text-center mt-3">
+                <a href="{{ path('app_login') }}" class="text-muted small text-decoration-none">
+                    <i class="bi bi-arrow-left me-1"></i>Connexion classique
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+let stream = null;
+const video     = document.getElementById('video-feed');
+const frame     = document.getElementById('face-frame');
+const scanLine  = document.getElementById('scan-line');
+const statusBar = document.getElementById('status-bar');
+const btnScan   = document.getElementById('btn-scan');
+const resultBox = document.getElementById('result-box');
+const userBadge = document.getElementById('user-badge');
+
+// ── Démarrer la caméra ──
+async function startCamera() {
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: { width: 640, height: 480, facingMode: 'user' }
+        });
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+            setStatus('✅ Caméra prête — Cliquez "Scanner mon visage"', '#4caf50');
+            btnScan.disabled = false;
+        };
+    } catch (err) {
+        setStatus('❌ Caméra non accessible : ' + err.message, '#e74c3c');
+        frame.classList.add('error');
+    }
+}
+
+function setStatus(msg, color = '#fff') {
+    statusBar.innerHTML = msg;
+    statusBar.style.color = color;
+}
+
+function showResult(type, html) {
+    resultBox.style.display = 'block';
+    resultBox.style.background = type === 'success' ? '#d1f2eb' : '#fde8e8';
+    resultBox.style.border = '1px solid ' + (type === 'success' ? '#a9dfbf' : '#f5b7b1');
+    resultBox.innerHTML = html;
+}
+
+// ── Scanner et identifier automatiquement ──
+async function scanFace() {
+    btnScan.disabled = true;
+    btnScan.innerHTML = '<span class="spinner-border spinner-border-sm me-2" style="width:14px;height:14px"></span>Identification...';
+    frame.classList.remove('error', 'success');
+    frame.classList.add('scanning');
+    scanLine.classList.add('active');
+    userBadge.style.display = 'none';
+    resultBox.style.display = 'none';
+    setStatus('🔍 Identification du visage en cours...', '#81d4fa');
+
+    // Capturer l'image
+    const canvas = document.createElement('canvas');
+    canvas.width  = video.videoWidth  || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(async (blob) => {
+        const formData = new FormData();
+        formData.append('face_image', blob, 'face.jpg');
+
+        try {
+            const response = await fetch('{{ path('face_identify_login') }}', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            frame.classList.remove('scanning');
+            scanLine.classList.remove('active');
+
+            if (data.success) {
+                // Visage identifié → connexion automatique
+                frame.classList.add('success');
+                userBadge.textContent = '👤 ' + data.user_name;
+                userBadge.style.display = 'block';
+                setStatus('✅ Bienvenue ' + data.user_name + ' !', '#4caf50');
+                showResult('success',
+                    '<div class="fw-bold mb-1" style="color:#1a7a4a">✅ Identifié : ' + data.user_name + '</div>'
+                    + '<div class="text-muted small">Similarité : ' + data.similarity + '% — Connexion en cours...</div>'
+                    + '<div style="height:6px;background:#e8ecff;border-radius:3px;margin-top:6px;overflow:hidden"><div style="height:100%;width:' + data.similarity + '%;background:#4caf50;border-radius:3px;transition:width .5s"></div></div>'
+                );
+                setTimeout(() => { window.location.href = data.redirect; }, 1500);
+            } else {
+                frame.classList.add('error');
+                setStatus('❌ ' + data.message, '#e74c3c');
+                showResult('error',
+                    '<div class="fw-bold mb-1" style="color:#c0392b">❌ ' + data.message + '</div>'
+                    + '<div class="text-muted small mt-1">Assurez-vous d\'avoir enregistré votre visage et d\'être bien éclairé.</div>'
+                );
+                btnScan.disabled = false;
+                btnScan.innerHTML = '<i class="bi bi-person-bounding-box me-2"></i>Réessayer';
+                setTimeout(() => { frame.classList.remove('error'); }, 3000);
+            }
+        } catch (err) {
+            frame.classList.remove('scanning');
+            scanLine.classList.remove('active');
+            setStatus('❌ Erreur réseau', '#e74c3c');
+            showResult('error', '❌ Erreur de connexion.');
+            btnScan.disabled = false;
+            btnScan.innerHTML = '<i class="bi bi-person-bounding-box me-2"></i>Réessayer';
+        }
+    }, 'image/jpeg', 0.9);
+}
+
+startCamera();
+window.addEventListener('beforeunload', () => {
+    if (stream) stream.getTracks().forEach(t => t.stop());
+});
+</script>
+{% endblock %}
