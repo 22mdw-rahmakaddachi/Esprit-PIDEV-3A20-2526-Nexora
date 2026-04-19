@@ -87,9 +87,6 @@ final class UsersController extends AbstractController
 
         return $this->redirectToRoute('app_users_index', [], Response::HTTP_SEE_OTHER);
     }
-<<<<<<< HEAD
-}
-=======
 
     #[Route('/{id}/register-face', name: 'app_users_register_face', methods: ['POST'])]
     public function registerFace(int $id, Request $request, UsersRepository $usersRepo, FaceRecognitionService $faceService): Response
@@ -121,4 +118,3 @@ final class UsersController extends AbstractController
         }
     }
 }
->>>>>>> user

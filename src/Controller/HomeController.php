@@ -37,16 +37,15 @@ final class HomeController extends AbstractController
         }
 
         return $this->render('home/index.html.twig', [
-<<<<<<< HEAD
             'activites' => $activiteRepo->findVitrine(),
             'produits'  => $produitRepo->findActifs(6),
-=======
+
             'activites'    => $activiteRepo->findVitrine(),
             'produits'     => $produitRepo->findActifs(),
             'mesActivites' => $mesActivites,
             'offres'       => $offreRepo->findBy([], ['id' => 'ASC'], 6),
             'offresTotal'  => $offreRepo->count([]),
->>>>>>> user
+            'user'         => $user,    
         ]);
     }
 }

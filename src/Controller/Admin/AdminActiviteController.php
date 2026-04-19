@@ -8,12 +8,9 @@ use App\Repository\ActiviteRepository;
 use App\Repository\CodePromoRepository;
 use App\Repository\NotificationRepository;
 use App\Repository\PartenaireRepository;
-<<<<<<< HEAD
 use App\Repository\ParticipationDemandeRepository;
 use App\Repository\ProduitParentRepository;
-=======
 use App\Repository\ReclamationRepository;
->>>>>>> user
 use App\Repository\UsersRepository;
 use App\Service\ActivityEmailService;
 use App\Service\NotificationService;
@@ -27,12 +24,8 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 #[Route('/admin')]
 final class AdminActiviteController extends AbstractController
 {
-<<<<<<< HEAD
-    private function getPartenaire(PartenaireRepository $repo): ?Partenaire
-=======
     /** Retourne le partenaire lié à l'utilisateur connecté, ou le crée si absent */
     private function getPartenaire(PartenaireRepository $repo, ?EntityManagerInterface $em = null): ?Partenaire
->>>>>>> user
     {
         $user = $this->getUser();
         if (!$user) return null;
@@ -59,7 +52,6 @@ final class AdminActiviteController extends AbstractController
     }
 
     #[Route('/dashboard', name: 'admin_dashboard')]
-<<<<<<< HEAD
     public function dashboard(
         Request $request,
         ActiviteRepository $activiteRepo,
@@ -67,13 +59,9 @@ final class AdminActiviteController extends AbstractController
         UsersRepository $usersRepo,
         PartenaireRepository $partenaireRepo,
         ProduitParentRepository $produitRepo,
-        CodePromoRepository $promoRepo
+        CodePromoRepository $promoRepo,
+        ReclamationRepository $reclamationRepo
     ): Response {
-        // Données activités
-=======
-    public function dashboard(ActiviteRepository $activiteRepo, ParticipationDemandeRepository $demandeRepo, UsersRepository $usersRepo, PartenaireRepository $partenaireRepo, ReclamationRepository $reclamationRepo): Response
-    {
->>>>>>> user
         if ($this->isGranted('ROLE_ADMIN')) {
             $activites = $activiteRepo->findBy([], ['dateCreation' => 'DESC']);
             $reclamations = $reclamationRepo->findBy([], ['dateCreation' => 'DESC'], 5);
@@ -112,19 +100,15 @@ final class AdminActiviteController extends AbstractController
             'demandesEnAttente' => $demandesEnAttente,
             'activites'         => array_slice($activites, 0, 5),
             'demandes'          => array_slice($demandes, 0, 5),
-<<<<<<< HEAD
             'users'             => $this->isGranted('ROLE_ADMIN') ? $usersRepo->findBy([], ['id' => 'DESC'], 5) : [],
             'partenaire'        => $partenaire,
             'produits'          => $produits,
             'promos'            => $promos,
             'totalProduits'     => count($produits),
             'totalPromos'       => count($promos),
-=======
             'reclamations'           => $reclamations,
             'partenairesZoneRouge'   => $partenairesZoneRouge,
             'tousPartenaires'        => $this->isGranted('ROLE_ADMIN') ? $reclamationRepo->findTousPartenairesAvecReclamations() : [],
-            'users'                  => $this->isGranted('ROLE_ADMIN') ? $usersRepo->findBy([], ['id' => 'DESC'], 5) : [],
->>>>>>> user
         ]);
     }
 
@@ -173,10 +157,7 @@ final class AdminActiviteController extends AbstractController
                 $activite = new Activite();
                 $this->fillActivite($activite, $data, $request, $slugger);
 
-<<<<<<< HEAD
-=======
                 $partenaire = $this->getPartenaire($partenaireRepo, $em);
->>>>>>> user
                 $activite->setPartenaire($partenaire);
                 $activite->setPlacesDisponibles($activite->getNombrePlaces());
                 $activite->setDateCreation(new \DateTime());
@@ -197,7 +178,7 @@ final class AdminActiviteController extends AbstractController
     public function edit(int $id, Request $request, ActiviteRepository $repo, EntityManagerInterface $em, SluggerInterface $slugger, PartenaireRepository $partenaireRepo): Response
     {
         $activite = $repo->find($id);
-        if (!$activite || $activite->getPartenaire()?->getId() !== $this->getPartenaireId($partenaireRepo)) {
+        if (!$activite || ($activite->getPartenaire()?->getId() !== $this->getPartenaireId($partenaireRepo) && !$this->isGranted('ROLE_ADMIN'))) {
             throw $this->createNotFoundException();
         }
         $errors = [];
