@@ -230,4 +230,9 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     public function eraseCredentials(): void {}
+
+    public function getFullName(): string
+    {
+        return trim($this->prenom . ' ' . $this->nom);
+    }
 }

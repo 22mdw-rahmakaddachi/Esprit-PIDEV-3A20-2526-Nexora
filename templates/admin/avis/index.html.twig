@@ -1,0 +1,108 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}Avis — {{ activite.nom }}{% endblock %}
+{% block page_title %}Avis — {{ activite.nom }}{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1><i class="bi bi-chat-square-text-fill me-2"></i>{{ activite.nom }}</h1>
+    <div class="d-flex gap-2">
+        <a href="{{ path('admin_avis_new', {activiteId: activite.id}) }}" class="btn btn-primary-admin">
+            <i class="bi bi-plus-lg me-2"></i>Ajouter un avis
+        </a>
+        <a href="{{ path('admin_avis_activites') }}" class="btn btn-sm rounded-pill px-3"
+           style="border:1.5px solid var(--primary);color:var(--primary)">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card text-center">
+            <div class="stat-num">{{ total }}</div>
+            <div class="stat-label">Total avis</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card text-center">
+            <div class="stat-num" style="color:#f39c12">
+                {% if moyenne > 0 %}
+                    {{ moyenne }}
+                    <i class="bi bi-star-fill" style="font-size:1.2rem"></i>
+                {% else %}
+                    —
+                {% endif %}
+            </div>
+            <div class="stat-label">Note moyenne</div>
+        </div>
+    </div>
+</div>
+
+<div class="admin-table">
+    <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color:#ede5ff!important">
+        <h6 class="mb-0 fw-bold" style="color:var(--primary-dark)">
+            <i class="bi bi-list-ul me-2"></i>Liste des avis ({{ total }})
+        </h6>
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Auteur</th>
+                <th>Note</th>
+                <th>Commentaire</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in avis %}
+            <tr>
+                <td class="text-muted small">{{ a.id }}</td>
+                <td class="fw-semibold">{{ a.auteur }}</td>
+                <td>
+                    <span style="color:#f39c12;font-size:0.9rem">
+                        {% for i in 1..5 %}
+                            <i class="bi bi-star{{ i <= a.note ? '-fill' : '' }}"></i>
+                        {% endfor %}
+                    </span>
+                    <span class="ms-1 small text-muted">({{ a.note }}/5)</span>
+                </td>
+                <td style="max-width:280px">
+                    <span class="text-truncate d-inline-block" style="max-width:260px" title="{{ a.commentaire }}">
+                        {{ a.commentaire|length > 80 ? a.commentaire|slice(0,80) ~ '…' : a.commentaire }}
+                    </span>
+                </td>
+                <td class="small text-muted">{{ a.createdAt|date('d/m/Y H:i') }}</td>
+                <td>
+                    <div class="d-flex gap-1">
+                        <a href="{{ path('admin_avis_show', {id: a.id}) }}" class="btn btn-edit-admin" title="Voir">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{{ path('admin_avis_edit', {id: a.id}) }}" class="btn btn-edit-admin" title="Modifier">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ path('admin_avis_delete', {id: a.id}) }}" class="d-inline"
+                              onsubmit="return confirm('Supprimer cet avis ?')">
+                            <button type="submit" class="btn btn-danger-admin" title="Supprimer">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center py-5 text-muted">
+                    <div style="font-size:3rem">💬</div>
+                    <p class="mt-2">Aucun avis pour cette activité.</p>
+                    <a href="{{ path('admin_avis_new', {activiteId: activite.id}) }}" class="btn btn-primary-admin mt-2">
+                        <i class="bi bi-plus-lg me-1"></i>Ajouter le premier avis
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,184 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}Publications{% endblock %}
+{% block page_title %}Publications{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1><i class="bi bi-newspaper me-2"></i>Publications</h1>
+</div>
+
+{# STATS #}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card text-center">
+            <div class="stat-num">{{ total }}</div>
+            <div class="stat-label">Total publications</div>
+        </div>
+    </div>
+</div>
+
+{# BARRE RECHERCHE #}
+<div class="admin-table mb-3 p-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted mb-1">
+                <i class="bi bi-search me-1"></i>Recherche
+            </label>
+            <input type="text" id="search-input" class="form-control form-control-sm"
+                   placeholder="Auteur ou contenu…">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label small fw-semibold text-muted mb-1">
+                <i class="bi bi-sort-down me-1"></i>Trier par
+            </label>
+            <select id="sort-select" class="form-select form-select-sm">
+                <option value="date-desc">Date (récent → ancien)</option>
+                <option value="date-asc">Date (ancien → récent)</option>
+                <option value="auteur-asc">Auteur (A → Z)</option>
+                <option value="auteur-desc">Auteur (Z → A)</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button id="reset-filters" class="btn btn-sm w-100" title="Réinitialiser"
+                    style="border:1.5px solid #ccc;color:#888;border-radius:8px">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+{# TABLE #}
+<div class="admin-table">
+    <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="border-color:#ede5ff!important">
+        <h6 class="mb-0 fw-bold" style="color:var(--primary-dark)">
+            <i class="bi bi-list-ul me-2"></i>Liste des publications
+            (<span id="count-visible">{{ total }}</span> / {{ total }})
+        </h6>
+    </div>
+    <table class="table" id="pub-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Auteur</th>
+                <th>Contenu</th>
+                <th>Image</th>
+                <th>Commentaires</th>
+                <th>Réactions</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="pub-tbody">
+            {% for pub in publications %}
+            <tr class="pub-row"
+                data-auteur="{{ pub.auteur|lower }}"
+                data-contenu="{{ pub.contenu|lower }}"
+                data-date="{{ pub.created_at }}">
+                <td class="text-muted small">{{ pub.id }}</td>
+                <td class="fw-semibold">{{ pub.auteur }}</td>
+                <td style="max-width:260px">
+                    <span class="text-truncate d-inline-block" style="max-width:240px" title="{{ pub.contenu }}">
+                        {{ pub.contenu|length > 70 ? pub.contenu|slice(0,70) ~ '…' : pub.contenu }}
+                    </span>
+                </td>
+                <td>
+                    {% if pub.image %}
+                        <img src="/uploads/publications/{{ pub.image }}" alt="img"
+                             style="width:48px;height:36px;object-fit:cover;border-radius:6px;border:1px solid #ede5ff">
+                    {% else %}
+                        <span class="text-muted small">—</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="badge rounded-pill" style="background:#f0ebff;color:var(--primary)">
+                        <i class="bi bi-chat me-1"></i>{{ pub.nb_commentaires }}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge rounded-pill" style="background:#fff3cd;color:#856404">
+                        <i class="bi bi-emoji-smile me-1"></i>{{ pub.nb_reactions }}
+                    </span>
+                </td>
+                <td class="small text-muted">{{ pub.created_at|date('d/m/Y H:i') }}</td>
+                <td>
+                    <div class="d-flex gap-1">
+                        <a href="{{ path('admin_publication_show', {id: pub.id}) }}"
+                           class="btn btn-edit-admin" title="Voir">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <form method="POST" action="{{ path('admin_publication_delete', {id: pub.id}) }}"
+                               class="d-inline" onsubmit="return confirm('Supprimer cette publication et ses commentaires ?')">
+                            <button type="submit" class="btn btn-danger-admin" title="Supprimer">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" class="text-center py-5 text-muted">
+                    <div style="font-size:3rem">📝</div>
+                    <p class="mt-2">Aucune publication.</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div id="no-results" class="text-center py-5 text-muted d-none">
+        <div style="font-size:2.5rem">🔍</div>
+        <p class="mt-2">Aucune publication ne correspond à votre recherche.</p>
+        <button id="reset-filters-2" class="btn btn-sm mt-1"
+                style="border:1.5px solid var(--primary);color:var(--primary);border-radius:8px">
+            <i class="bi bi-x-circle me-1"></i>Réinitialiser
+        </button>
+    </div>
+</div>
+
+<script>
+(function () {
+    const searchInput  = document.getElementById('search-input');
+    const sortSelect   = document.getElementById('sort-select');
+    const tbody        = document.getElementById('pub-tbody');
+    const noResults    = document.getElementById('no-results');
+    const countVisible = document.getElementById('count-visible');
+
+    function getRows() { return Array.from(tbody.querySelectorAll('tr.pub-row')); }
+
+    function apply() {
+        const search = searchInput.value.toLowerCase().trim();
+        const sort   = sortSelect.value;
+        let rows = getRows();
+
+        rows.forEach(row => {
+            const match = !search || row.dataset.auteur.includes(search) || row.dataset.contenu.includes(search);
+            row.style.display = match ? '' : 'none';
+        });
+
+        const visible = rows.filter(r => r.style.display !== 'none');
+        visible.sort((a, b) => {
+            switch (sort) {
+                case 'date-desc':   return b.dataset.date.localeCompare(a.dataset.date);
+                case 'date-asc':    return a.dataset.date.localeCompare(b.dataset.date);
+                case 'auteur-asc':  return a.dataset.auteur.localeCompare(b.dataset.auteur);
+                case 'auteur-desc': return b.dataset.auteur.localeCompare(a.dataset.auteur);
+                default: return 0;
+            }
+        });
+        visible.forEach(row => tbody.appendChild(row));
+        countVisible.textContent = visible.length;
+        noResults.classList.toggle('d-none', visible.length > 0);
+    }
+
+    function reset() { searchInput.value = ''; sortSelect.value = 'date-desc'; apply(); }
+
+    let timer;
+    searchInput.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(apply, 200); });
+    sortSelect.addEventListener('change', apply);
+    document.getElementById('reset-filters').addEventListener('click', reset);
+    const r2 = document.getElementById('reset-filters-2');
+    if (r2) r2.addEventListener('click', reset);
+})();
+</script>
+{% endblock %}

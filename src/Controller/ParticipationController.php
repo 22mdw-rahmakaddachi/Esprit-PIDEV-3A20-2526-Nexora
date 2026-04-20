@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\ParticipationDemande;
+use App\Entity\Users;
 use App\Repository\ActiviteRepository;
 use App\Repository\NotificationRepository;
 use App\Repository\ParticipationDemandeRepository;
@@ -18,9 +19,25 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class ParticipationController extends AbstractController
 {
-    private function getFakeClient(): array
+    private function getCurrentUser(): ?Users
     {
-        return ['id' => 47, 'nom' => 'Client Test', 'email' => 'client@test.com', 'telephone' => '55000000'];
+        $user = $this->getUser();
+        return $user instanceof Users ? $user : null;
+    }
+
+    private function getClientData(): array
+    {
+        $user = $this->getCurrentUser();
+        if ($user) {
+            return [
+                'id'        => $user->getId(),
+                'nom'       => $user->getPrenom() . ' ' . $user->getNom(),
+                'email'     => $user->getEmail(),
+                'telephone' => (string) $user->getNum(),
+            ];
+        }
+        // Fallback anonyme — ne devrait pas arriver si les routes sont protégées
+        return ['id' => 0, 'nom' => 'Anonyme', 'email' => '', 'telephone' => ''];
     }
 
     /** Retourne l'ID du partenaire lié à l'utilisateur connecté, ou 0 */
@@ -35,7 +52,7 @@ final class ParticipationController extends AbstractController
     #[Route('/api/badges', name: 'api_badges')]
     public function apiBadges(ParticipationDemandeRepository $demandeRepo, NotificationRepository $notifRepo, ActiviteRepository $activiteRepo, PartenaireRepository $partenaireRepo): JsonResponse
     {
-        $client = $this->getFakeClient();
+        $client = $this->getClientData();
         $notifNonLues = $notifRepo->countUnread($client['id'], 'CLIENT');
 
         $partenaireId = $this->getPartenaireId($partenaireRepo);
@@ -56,7 +73,7 @@ final class ParticipationController extends AbstractController
         $activite = $activiteRepo->find($id);
         if (!$activite) throw $this->createNotFoundException();
 
-        $client = $this->getFakeClient();
+        $client = $this->getClientData();
 
         if ($demandeRepo->findExisting($id, $client['id'])) {
             $this->addFlash('warning', 'Vous avez déjà une demande pour cette activité.');
@@ -110,7 +127,7 @@ final class ParticipationController extends AbstractController
     #[Route('/mes-activites', name: 'app_mes_activites')]
     public function mesActivites(ParticipationDemandeRepository $demandeRepo, NotificationRepository $notifRepo): Response
     {
-        $client = $this->getFakeClient();
+        $client = $this->getClientData();
         return $this->render('participation/mes_activites.html.twig', [
             'demandes'      => $demandeRepo->findByClient($client['id']),
             'notifications' => $notifRepo->findByUser($client['id'], 'CLIENT'),

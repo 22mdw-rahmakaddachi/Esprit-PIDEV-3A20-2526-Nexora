@@ -1,0 +1,80 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}{{ titre }}{% endblock %}
+{% block page_title %}{{ titre }}{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1><i class="bi bi-{{ avis ? 'pencil' : 'plus-circle' }} me-2"></i>{{ titre }}</h1>
+    <a href="{{ path('admin_avis_list', {activiteId: activite.id}) }}"
+       class="btn btn-sm rounded-pill px-3" style="border:1.5px solid var(--primary);color:var(--primary)">
+        <i class="bi bi-arrow-left me-1"></i>Retour
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+
+        <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-4"
+             style="background:#f0ebff;border:1px solid #ede5ff">
+            <div class="stat-icon" style="background:#fff;color:var(--primary)">
+                <i class="bi bi-calendar-event-fill"></i>
+            </div>
+            <div>
+                <div class="text-muted small">Activité concernée</div>
+                <div class="fw-bold" style="color:var(--primary-dark)">{{ activite.nom }}</div>
+            </div>
+        </div>
+
+        <div class="form-card">
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+            {% form_theme form 'form/avis_errors.html.twig' %}
+
+            <style>
+                .form-error-message {
+                    display: block;
+                    margin-top: 6px;
+                    padding: 6px 12px;
+                    background: #fff5f5;
+                    border-left: 3px solid #e74c3c;
+                    border-radius: 0 8px 8px 0;
+                    color: #c0392b;
+                    font-size: 0.8rem;
+                    font-weight: 500;
+                }
+                .form-error-message::before { content: '⚠ '; }
+            </style>
+
+            <div class="row g-4">
+                <div class="col-12">
+                    {{ form_label(form.auteur) }}
+                    {{ form_widget(form.auteur, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.auteur) }}
+                </div>
+                <div class="col-12">
+                    {{ form_label(form.note) }}
+                    {{ form_widget(form.note, {'attr': {'class': 'form-select'}}) }}
+                    {{ form_errors(form.note) }}
+                </div>
+                <div class="col-12">
+                    {{ form_label(form.commentaire) }}
+                    {{ form_widget(form.commentaire, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.commentaire) }}
+                </div>
+            </div>
+
+            <div class="d-flex gap-3 mt-4">
+                <button type="submit" class="btn btn-primary-admin px-4">
+                    <i class="bi bi-check-lg me-2"></i>{{ avis ? 'Enregistrer' : 'Ajouter l\'avis' }}
+                </button>
+                <a href="{{ path('admin_avis_list', {activiteId: activite.id}) }}"
+                   class="btn btn-sm rounded-pill px-4" style="border:1.5px solid #ddd;color:#666">
+                    Annuler
+                </a>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

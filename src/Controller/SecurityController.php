@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
@@ -10,7 +11,7 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 final class SecurityController extends AbstractController
 {
     #[Route('/login', name: 'app_login')]
-    public function login(AuthenticationUtils $authenticationUtils): Response
+    public function login(Request $request, AuthenticationUtils $authenticationUtils): Response
     {
         // Si déjà connecté, rediriger selon le rôle
         if ($this->getUser()) {
@@ -20,6 +21,8 @@ final class SecurityController extends AbstractController
         return $this->render('security/login.html.twig', [
             'error'         => $authenticationUtils->getLastAuthenticationError(),
             'last_username' => $authenticationUtils->getLastUsername(),
+            'tentatives'    => $request->getSession()->get('login_tentatives', 0),
+            'remaining'     => $request->getSession()->get('login_remaining', 3),
         ]);
     }
 

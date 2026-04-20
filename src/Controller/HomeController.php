@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Users;
 use App\Repository\ActiviteRepository;
+use App\Repository\DestinationRepository;
 use App\Repository\OffreRepository;
 use App\Repository\ParticipationDemandeRepository;
 use App\Repository\ProduitParentRepository;
@@ -18,7 +19,8 @@ final class HomeController extends AbstractController
         ActiviteRepository $activiteRepo,
         ProduitParentRepository $produitRepo,
         ParticipationDemandeRepository $demandeRepo,
-        OffreRepository $offreRepo
+        OffreRepository $offreRepo,
+        DestinationRepository $destinationRepo
     ): Response {
         $user = $this->getUser();
         $mesActivites = [];
@@ -37,16 +39,12 @@ final class HomeController extends AbstractController
         }
 
         return $this->render('home/index.html.twig', [
-<<<<<<< HEAD
-            'activites' => $activiteRepo->findVitrine(),
-            'produits'  => $produitRepo->findActifs(6),
-=======
             'activites'    => $activiteRepo->findVitrine(),
-            'produits'     => $produitRepo->findActifs(),
+            'produits'     => $produitRepo->findActifs(6),
             'mesActivites' => $mesActivites,
             'offres'       => $offreRepo->findBy([], ['id' => 'ASC'], 6),
             'offresTotal'  => $offreRepo->count([]),
->>>>>>> user
+            'destinations' => $destinationRepo->findBy([], ['id' => 'DESC'], 4),
         ]);
     }
 }

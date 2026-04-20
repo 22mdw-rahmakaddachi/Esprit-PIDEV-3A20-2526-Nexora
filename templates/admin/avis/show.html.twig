@@ -1,0 +1,61 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}Détail de l'avis #{{ avis.id }}{% endblock %}
+{% block page_title %}Détail de l'avis{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1><i class="bi bi-chat-square-quote me-2"></i>Détail de l'avis #{{ avis.id }}</h1>
+    <div class="d-flex gap-2">
+        <a href="{{ path('admin_avis_activites') }}"
+           class="btn btn-sm rounded-pill px-3" style="border:1.5px solid var(--primary);color:var(--primary)">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="form-card">
+
+            <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom" style="border-color:#f0ebff!important">
+                <div class="stat-icon" style="background:#f0ebff;color:var(--primary)">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-5" style="color:var(--primary-dark)">Utilisateur #{{ avis.userId }}</div>
+                    <div class="text-muted small">{{ avis.createdAt ? avis.createdAt|date('d/m/Y à H:i') : '—' }}</div>
+                </div>
+                <div class="ms-auto text-end">
+                    <div style="color:#f39c12;font-size:1.2rem">
+                        {% for i in 1..5 %}
+                            <i class="bi bi-star{{ i <= avis.rating ? '-fill' : '' }}"></i>
+                        {% endfor %}
+                    </div>
+                    <div class="small text-muted fw-bold">{{ avis.rating }}/5</div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label small fw-semibold text-muted">Sujet / Titre</label>
+                <div class="fw-bold" style="color:var(--primary-dark);font-size:1.1rem">{{ avis.titre }}</div>
+            </div>
+
+            <div class="p-3 rounded-4" style="background:#faf8ff;border:1px solid #ede5ff">
+                <div class="text-muted small mb-2"><i class="bi bi-chat-left-text me-1"></i>Commentaire complet</div>
+                <p class="mb-0" style="line-height:1.7;white-space: pre-line;">{{ avis.contenu }}</p>
+            </div>
+
+            <div class="d-flex gap-2 mt-5 pt-3 border-top" style="border-color:#f0ebff!important">
+                <form method="POST" action="{{ path('admin_avis_delete', {id: avis.id}) }}"
+                      onsubmit="return confirm('Supprimer définitivement cet avis ? Cette action est irréversible.')">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ avis.id) }}">
+                    <button type="submit" class="btn btn-danger-admin px-4">
+                        <i class="bi bi-trash me-1"></i>Supprimer cet avis
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -146,16 +146,43 @@ class ActivityEmailService
         );
     }
 
-    /** Email au client : confirmation de paiement */
+    /** Email au client : confirmation de paiement + ticket PDF joint */
     public function sendConfirmationPaiementClient(ParticipationDemande $demande, string $paymentId): void
     {
         $activite = $demande->getActivite();
-        $this->send(
-            $demande->getClientEmail(),
-            '💳 Paiement confirmé — ' . $activite->getNom(),
-            'emails/activite/paiement_client.html.twig',
-            ['demande' => $demande, 'activite' => $activite, 'paymentId' => $paymentId]
-        );
+
+        if (empty($demande->getClientEmail())) {
+            $this->logger->error('[ActivityEmail] Email client vide pour paiement.', ['demande_id' => $demande->getId()]);
+            return;
+        }
+
+        try {
+            $html = $this->twig->render('emails/activite/paiement_client.html.twig', [
+                'demande'   => $demande,
+                'activite'  => $activite,
+                'paymentId' => $paymentId,
+            ]);
+
+            $email = (new Email())
+                ->from($this->mailerFrom)
+                ->to($demande->getClientEmail())
+                ->subject('💳 Paiement confirmé — ' . $activite->getNom())
+                ->html($html);
+
+            // Joindre le ticket PDF
+            $pdfContent = $this->pdfTicketService->generate($demande);
+            if ($pdfContent !== null) {
+                $filename = 'ticket-nexora-' . $demande->getId() . '.pdf';
+                $email->addPart(new DataPart($pdfContent, $filename, 'application/pdf'));
+                $this->logger->info('[ActivityEmail] Ticket PDF joint au mail paiement.', ['demande_id' => $demande->getId()]);
+            }
+
+            $this->mailer->send($email);
+            $this->logger->info('[ActivityEmail] Email paiement envoyé.', ['to' => $demande->getClientEmail()]);
+
+        } catch (\Throwable $e) {
+            $this->logger->error('[ActivityEmail] Échec envoi paiement: ' . $e->getMessage());
+        }
     }
 
     /** Email au partenaire : paiement reçu */

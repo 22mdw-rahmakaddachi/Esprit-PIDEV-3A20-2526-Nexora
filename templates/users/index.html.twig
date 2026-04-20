@@ -1,148 +1,448 @@
 {% extends 'admin/base_admin.html.twig' %}
 {% block title %}Gestion des utilisateurs{% endblock %}
-{% block page_title %}Gestion des utilisateurs{% endblock %}
+{% block page_title %}Utilisateurs{% endblock %}
+
+{% block stylesheets %}
+<style>
+/* ── KPI CARDS ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 28px; }
+.kpi-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 22px 24px;
+    border: 1px solid #ede5ff;
+    box-shadow: 0 4px 20px rgba(108,63,197,0.07);
+    display: flex; align-items: center; gap: 18px;
+    transition: transform .2s, box-shadow .2s;
+    position: relative; overflow: hidden;
+}
+.kpi-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    border-radius: 18px 18px 0 0;
+}
+.kpi-card.kpi-total::before  { background: linear-gradient(90deg, #6c3fc5, #9b59b6); }
+.kpi-card.kpi-admin::before  { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+.kpi-card.kpi-partner::before{ background: linear-gradient(90deg, #f39c12, #e67e22); }
+.kpi-card.kpi-user::before   { background: linear-gradient(90deg, #27ae60, #1a7a4a); }
+.kpi-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(108,63,197,0.13); }
+.kpi-icon {
+    width: 54px; height: 54px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; flex-shrink: 0;
+}
+.kpi-total  .kpi-icon { background: #f0ebff; }
+.kpi-admin  .kpi-icon { background: #fde8e8; }
+.kpi-partner .kpi-icon { background: #fff3cd; }
+.kpi-user   .kpi-icon { background: #d1f2eb; }
+.kpi-num  { font-size: 2rem; font-weight: 800; color: #1a1a2e; line-height: 1; }
+.kpi-label{ font-size: 0.78rem; color: #999; margin-top: 3px; font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
+
+/* ── TOOLBAR ── */
+.users-toolbar {
+    background: #fff;
+    border-radius: 16px;
+    padding: 16px 20px;
+    border: 1px solid #ede5ff;
+    box-shadow: 0 2px 12px rgba(108,63,197,0.05);
+    display: flex; align-items: center; gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+.search-wrap {
+    position: relative; flex: 1; min-width: 220px;
+}
+.search-wrap i {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    color: #aaa; font-size: 0.95rem; pointer-events: none;
+}
+.search-wrap input {
+    padding-left: 40px !important;
+    border-radius: 12px !important;
+    border: 1.5px solid #e8e0ff !important;
+    background: #faf8ff !important;
+    font-size: 0.88rem !important;
+    height: 42px;
+    transition: border-color .2s, box-shadow .2s !important;
+}
+.search-wrap input:focus {
+    border-color: var(--primary-light) !important;
+    box-shadow: 0 0 0 3px rgba(108,63,197,0.1) !important;
+    background: #fff !important;
+}
+.role-filter {
+    border-radius: 12px !important;
+    border: 1.5px solid #e8e0ff !important;
+    background: #faf8ff !important;
+    font-size: 0.88rem !important;
+    height: 42px; min-width: 170px;
+    color: #555;
+}
+.role-filter:focus {
+    border-color: var(--primary-light) !important;
+    box-shadow: 0 0 0 3px rgba(108,63,197,0.1) !important;
+}
+.btn-reset {
+    height: 42px; border-radius: 12px;
+    border: 1.5px solid #e8e0ff;
+    background: #faf8ff; color: #888;
+    font-size: 0.85rem; padding: 0 16px;
+    transition: all .2s;
+}
+.btn-reset:hover { background: #f0ebff; color: var(--primary); border-color: var(--primary-light); }
+
+/* ── TABLE ── */
+.users-table-wrap {
+    background: #fff;
+    border-radius: 18px;
+    border: 1px solid #ede5ff;
+    box-shadow: 0 4px 20px rgba(108,63,197,0.07);
+    overflow: hidden;
+}
+.users-table-wrap .table { margin: 0; }
+.users-table-wrap .table thead th {
+    background: #f9f7ff;
+    color: var(--primary-dark);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 2px solid #ede5ff;
+    padding: 14px 18px;
+    white-space: nowrap;
+}
+.users-table-wrap .table tbody td {
+    padding: 14px 18px;
+    vertical-align: middle;
+    border-color: #f5f0ff;
+    font-size: 0.875rem;
+}
+.users-table-wrap .table tbody tr { transition: background .15s; }
+.users-table-wrap .table tbody tr:hover { background: #faf8ff; }
+
+/* ── AVATAR ── */
+.user-avatar {
+    width: 38px; height: 38px; border-radius: 12px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.9rem; color: #fff;
+    flex-shrink: 0;
+}
+
+/* ── ROLE BADGE ── */
+.role-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 12px; border-radius: 50px;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: .3px;
+}
+.role-pill.admin    { background: #fde8e8; color: #c0392b; }
+.role-pill.partner  { background: #fff3cd; color: #856404; }
+.role-pill.user     { background: #e8f5e9; color: #2e7d32; }
+.blocked-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 9px; border-radius: 50px;
+    font-size: 0.68rem; font-weight: 700;
+    background: #fde8e8; color: #c0392b;
+    margin-left: 6px;
+}
+
+/* ── ACTION BUTTONS ── */
+.action-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 6px 12px; border-radius: 9px;
+    font-size: 0.78rem; font-weight: 600;
+    border: none; cursor: pointer;
+    transition: all .18s; white-space: nowrap;
+}
+.action-btn.edit    { background: #f0ebff; color: var(--primary); }
+.action-btn.edit:hover { background: var(--primary); color: #fff; }
+.action-btn.delete  { background: #fde8e8; color: #c0392b; }
+.action-btn.delete:hover { background: #e74c3c; color: #fff; }
+.action-btn.block   { background: #fde8e8; color: #c0392b; }
+.action-btn.block:hover { background: #c0392b; color: #fff; }
+.action-btn.unblock { background: #e8f5e9; color: #2e7d32; }
+.action-btn.unblock:hover { background: #2e7d32; color: #fff; }
+.action-btn.face    { background: #e8f4fd; color: #1565c0; }
+.action-btn.face:hover { background: #1565c0; color: #fff; }
+.action-btn.finger  { background: #e8f5e9; color: #2e7d32; }
+.action-btn.finger:hover { background: #2e7d32; color: #fff; }
+
+/* ── EMPTY STATE ── */
+.empty-state { padding: 60px 20px; text-align: center; }
+.empty-state .empty-icon {
+    width: 80px; height: 80px; border-radius: 24px;
+    background: #f0ebff; display: inline-flex;
+    align-items: center; justify-content: center;
+    font-size: 2rem; margin-bottom: 16px;
+}
+
+/* ── MODAL STATS ── */
+.stats-modal-body { padding: 8px 24px 28px; }
+.stats-legend-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; border-radius: 12px;
+    background: #faf8ff; border: 1px solid #ede5ff;
+    flex: 1;
+}
+.stats-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+</style>
+{% endblock %}
 
 {% block body %}
-<div class="page-header">
-    <h1><i class="bi bi-people-fill me-2" style="color:var(--primary)"></i>Utilisateurs</h1>
-    <a href="{{ path('app_users_new') }}" class="btn btn-primary-admin">
-        <i class="bi bi-person-plus-fill me-2"></i>Ajouter utilisateur
-    </a>
+
+{# ── KPI CARDS ── #}
+<div class="kpi-grid">
+    <div class="kpi-card kpi-total">
+        <div class="kpi-icon"><i class="bi bi-people-fill" style="color:var(--primary)"></i></div>
+        <div>
+            <div class="kpi-num">{{ stats['ROLE_ADMIN'] + stats['ROLE_PARTENAIRE'] + stats['ROLE_USER'] }}</div>
+            <div class="kpi-label">Total utilisateurs</div>
+        </div>
+    </div>
+    <div class="kpi-card kpi-admin">
+        <div class="kpi-icon"><i class="bi bi-shield-fill" style="color:#c0392b"></i></div>
+        <div>
+            <div class="kpi-num">{{ stats['ROLE_ADMIN'] }}</div>
+            <div class="kpi-label">Administrateurs</div>
+        </div>
+    </div>
+    <div class="kpi-card kpi-partner">
+        <div class="kpi-icon"><i class="bi bi-briefcase-fill" style="color:#e67e22"></i></div>
+        <div>
+            <div class="kpi-num">{{ stats['ROLE_PARTENAIRE'] }}</div>
+            <div class="kpi-label">Partenaires</div>
+        </div>
+    </div>
+    <div class="kpi-card kpi-user">
+        <div class="kpi-icon"><i class="bi bi-person-fill" style="color:#2e7d32"></i></div>
+        <div>
+            <div class="kpi-num">{{ stats['ROLE_USER'] }}</div>
+            <div class="kpi-label">Utilisateurs</div>
+        </div>
+    </div>
 </div>
 
-<div class="admin-table">
+{# ── TOOLBAR ── #}
+<div class="users-toolbar">
+    <form id="search-form" method="get" action="{{ path('app_users_index') }}" class="d-contents" style="display:contents">
+        <div class="search-wrap">
+            <i class="bi bi-search"></i>
+            <input id="search-input" type="text" name="search" value="{{ search }}"
+                   class="form-control" placeholder="Rechercher nom, prénom, email...">
+        </div>
+        <select name="role" class="form-select role-filter" onchange="this.form.submit()">
+            <option value="">Tous les rôles</option>
+            <option value="ROLE_ADMIN"      {% if role == 'ROLE_ADMIN' %}selected{% endif %}>🛡 Admin</option>
+            <option value="ROLE_PARTENAIRE" {% if role == 'ROLE_PARTENAIRE' %}selected{% endif %}>💼 Partenaire</option>
+            <option value="ROLE_USER"       {% if role == 'ROLE_USER' %}selected{% endif %}>👤 Utilisateur</option>
+        </select>
+        {% if search or role %}
+        <a href="{{ path('app_users_index') }}" class="btn-reset">
+            <i class="bi bi-x-lg me-1"></i>Réinitialiser
+        </a>
+        {% endif %}
+    </form>
+    <div class="ms-auto d-flex gap-2">
+        <button class="action-btn face" data-bs-toggle="modal" data-bs-target="#statsModal" style="background:#f0ebff;color:var(--primary)">
+            <i class="bi bi-bar-chart-fill"></i> Statistiques
+        </button>
+        <a href="{{ path('app_users_new') }}" class="btn btn-primary-admin" style="height:42px;display:inline-flex;align-items:center">
+            <i class="bi bi-person-plus-fill me-2"></i>Ajouter
+        </a>
+    </div>
+</div>
+
+{# ── TABLE ── #}
+<div class="users-table-wrap">
     <table class="table table-hover mb-0">
         <thead>
             <tr>
-                <th>#</th>
-                <th>Prénom</th>
-                <th>Nom</th>
+                <th style="width:50px">#</th>
+                <th>Utilisateur</th>
                 <th>Email</th>
                 <th>Rôle</th>
-                <th>Actions</th>
+                <th>Statut</th>
+                <th style="width:320px">Actions</th>
             </tr>
         </thead>
         <tbody>
         {% for user in users %}
-            <tr>
-                <td class="text-muted">{{ user.id }}</td>
-                <td class="fw-semibold">{{ user.prenom }}</td>
-                <td>{{ user.nom }}</td>
-                <td><i class="bi bi-envelope me-1 text-muted"></i>{{ user.email }}</td>
+            {% set isBlocked = user.blockUntil > date().timestamp %}
+            {% set colors = ['#6c3fc5','#e74c3c','#e67e22','#27ae60','#1565c0','#8e44ad','#16a085'] %}
+            {% set colorIdx = user.id % 7 %}
+            <tr class="{{ isBlocked ? 'opacity-75' : '' }}">
+                <td class="text-muted fw-500" style="font-size:0.8rem">#{{ user.id }}</td>
                 <td>
-                    <span class="status-badge
-                        {% if user.role == 'ROLE_ADMIN' %}badge-complet
-                        {% elseif user.role == 'ROLE_PARTENAIRE' %}badge-attente
-                        {% else %}badge-actif{% endif %}">
-                        {{ user.role }}
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="user-avatar" style="background:{{ colors[colorIdx] }}">
+                            {{ user.prenom|first|upper }}{{ user.nom|first|upper }}
+                        </div>
+                        <div>
+                            <div class="fw-600" style="color:#1a1a2e;font-size:0.9rem">{{ user.prenom }} {{ user.nom }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span style="color:#666;font-size:0.85rem">
+                        <i class="bi bi-envelope me-1" style="color:#bbb"></i>{{ user.email }}
                     </span>
                 </td>
                 <td>
-                    <div class="d-flex gap-2">
-                        <a href="{{ path('app_users_edit', {'id': user.id}) }}" class="btn btn-edit-admin">
-                            <i class="bi bi-pencil-fill me-1"></i>Modifier
+                    {% if user.role == 'ROLE_ADMIN' %}
+                        <span class="role-pill admin"><i class="bi bi-shield-fill"></i> Admin</span>
+                    {% elseif user.role == 'ROLE_PARTENAIRE' %}
+                        <span class="role-pill partner"><i class="bi bi-briefcase-fill"></i> Partenaire</span>
+                    {% else %}
+                        <span class="role-pill user"><i class="bi bi-person-fill"></i> Utilisateur</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if isBlocked %}
+                        <span class="role-pill" style="background:#fde8e8;color:#c0392b">
+                            <i class="bi bi-lock-fill"></i> Bloqué
+                        </span>
+                    {% else %}
+                        <span class="role-pill" style="background:#e8f5e9;color:#2e7d32">
+                            <i class="bi bi-check-circle-fill"></i> Actif
+                        </span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="d-flex gap-1 flex-wrap">
+                        <a href="{{ path('app_users_edit', {'id': user.id}) }}" class="action-btn edit">
+                            <i class="bi bi-pencil-fill"></i> Modifier
                         </a>
                         <form method="post" action="{{ path('app_users_delete', {'id': user.id}) }}"
-                              onsubmit="return confirm('Supprimer cet utilisateur ?');">
+                              onsubmit="return confirm('Supprimer {{ user.prenom }} ?');" style="display:inline">
                             <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
-                            <button class="btn btn-danger-admin">
-                                <i class="bi bi-trash-fill me-1"></i>Supprimer
-                            </button>
+                            <button class="action-btn delete"><i class="bi bi-trash-fill"></i></button>
                         </form>
-
-                        {# Bouton Enregistrer le visage #}
-                        <button class="btn btn-sm"
-                                style="background:#e8f4fd;color:#1565c0;border:none;border-radius:8px;font-size:0.82rem"
-                                onclick="openFaceModal({{ user.id }}, '{{ user.prenom }} {{ user.nom }}')"
-                                title="Enregistrer le visage de {{ user.prenom }}">
-                            <i class="bi bi-camera-fill me-1"></i>Visage
+                        <form method="post" action="{{ path('app_users_toggle_block', {'id': user.id}) }}" style="display:inline">
+                            {% if isBlocked %}
+                                <button class="action-btn unblock" title="Débloquer">
+                                    <i class="bi bi-unlock-fill"></i> Débloquer
+                                </button>
+                            {% else %}
+                                <button class="action-btn block" title="Bloquer">
+                                    <i class="bi bi-lock-fill"></i> Bloquer
+                                </button>
+                            {% endif %}
+                        </form>
+                        <button class="action-btn face"
+                                onclick="openFaceModal({{ user.id }}, '{{ user.prenom|e('js') }} {{ user.nom|e('js') }}')"
+                                title="Enregistrer le visage">
+                            <i class="bi bi-camera-fill"></i>
                         </button>
-
-                        {# Bouton Enregistrer l'empreinte #}
-                        <button class="btn btn-sm"
-                                style="background:#e8f5e9;color:#2e7d32;border:none;border-radius:8px;font-size:0.82rem"
-                                onclick="openFingerModal({{ user.id }}, '{{ user.prenom }} {{ user.nom }}')"
-                                title="Enregistrer l'empreinte de {{ user.prenom }}">
-                            <i class="bi bi-fingerprint me-1"></i>Empreinte
+                        <button class="action-btn finger"
+                                onclick="openFingerModal({{ user.id }}, '{{ user.prenom|e('js') }} {{ user.nom|e('js') }}')"
+                                title="Enregistrer l'empreinte">
+                            <i class="bi bi-fingerprint"></i>
                         </button>
                     </div>
                 </td>
             </tr>
         {% else %}
             <tr>
-                <td colspan="7" class="text-center text-muted py-4">
-                    <i class="bi bi-people" style="font-size:2rem;opacity:0.3"></i>
-                    <p class="mt-2 mb-0">Aucun utilisateur trouvé</p>
+                <td colspan="6">
+                    <div class="empty-state">
+                        <div class="empty-icon">👥</div>
+                        <div class="fw-600" style="color:#555;font-size:1rem">Aucun utilisateur trouvé</div>
+                        <div class="text-muted mt-1" style="font-size:0.85rem">Essayez de modifier vos filtres</div>
+                    </div>
                 </td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
 </div>
-<<<<<<< HEAD
-=======
 
-{% endblock %}
-
-{% block javascripts %}
-{{ parent() }}
-
-{# ── MODAL ENREGISTREMENT EMPREINTE ── #}
-<div class="modal fade" id="fingerModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
-        <div class="modal-content" style="border-radius:20px;border:none">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold" style="color:#1b5e20">
-                    <i class="bi bi-fingerprint me-2" style="color:#2e7d32"></i>
-                    Empreinte de <span id="finger-modal-name"></span>
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="cancelFingerEnroll()"></button>
+{# ── MODAL STATISTIQUES ── #}
+<div class="modal fade" id="statsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:460px">
+        <div class="modal-content" style="border-radius:24px;border:none;box-shadow:0 20px 60px rgba(108,63,197,0.2)">
+            <div class="modal-header border-0" style="padding:24px 24px 0">
+                <div>
+                    <h5 class="modal-title fw-bold" style="color:var(--primary-dark);font-size:1.1rem">
+                        <i class="bi bi-bar-chart-fill me-2" style="color:var(--primary)"></i>Répartition des utilisateurs
+                    </h5>
+                    <p class="text-muted mb-0" style="font-size:0.8rem">Vue d'ensemble des rôles</p>
+                </div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body text-center px-4 pb-4">
-
-                {# Icône principale #}
-                <div id="fmg-icon" style="font-size:5rem;margin:16px 0;transition:all .3s">🖐️</div>
-
-                {# Message principal #}
-                <div id="fmg-title" class="fw-bold mb-1" style="font-size:1.1rem;color:#1b5e20">
-                    Prêt à enregistrer
+            <div class="stats-modal-body">
+                <div style="max-width:220px;margin:20px auto">
+                    <canvas id="roleChart"></canvas>
                 </div>
-                <div id="fmg-subtitle" class="text-muted mb-3" style="font-size:0.88rem">
-                    Cliquez sur Démarrer pour commencer
+                <div class="d-flex gap-3 mt-4">
+                    <div class="stats-legend-item">
+                        <div class="stats-dot" style="background:#c0392b"></div>
+                        <div>
+                            <div class="fw-700" style="font-size:1.1rem;color:#1a1a2e">{{ stats['ROLE_ADMIN'] }}</div>
+                            <div style="font-size:0.72rem;color:#999;text-transform:uppercase;letter-spacing:.5px">Admins</div>
+                        </div>
+                    </div>
+                    <div class="stats-legend-item">
+                        <div class="stats-dot" style="background:#e67e22"></div>
+                        <div>
+                            <div class="fw-700" style="font-size:1.1rem;color:#1a1a2e">{{ stats['ROLE_PARTENAIRE'] }}</div>
+                            <div style="font-size:0.72rem;color:#999;text-transform:uppercase;letter-spacing:.5px">Partenaires</div>
+                        </div>
+                    </div>
+                    <div class="stats-legend-item">
+                        <div class="stats-dot" style="background:#27ae60"></div>
+                        <div>
+                            <div class="fw-700" style="font-size:1.1rem;color:#1a1a2e">{{ stats['ROLE_USER'] }}</div>
+                            <div style="font-size:0.72rem;color:#999;text-transform:uppercase;letter-spacing:.5px">Utilisateurs</div>
+                        </div>
+                    </div>
                 </div>
-
-                {# Barre de progression par étapes #}
-                <div class="d-flex gap-2 justify-content-center mb-4">
-                    <div id="fmg-step1" style="height:6px;width:80px;border-radius:3px;background:#e0e0e0;transition:background .4s"></div>
-                    <div id="fmg-step2" style="height:6px;width:80px;border-radius:3px;background:#e0e0e0;transition:background .4s"></div>
-                    <div id="fmg-step3" style="height:6px;width:80px;border-radius:3px;background:#e0e0e0;transition:background .4s"></div>
-                </div>
-
-                {# Bouton principal #}
-                <button id="fmg-btn" class="btn w-100 fw-bold rounded-pill"
-                        style="background:linear-gradient(135deg,#2e7d32,#4caf50);color:#fff;border:none;padding:13px;font-size:0.95rem"
-                        onclick="startFingerEnroll()">
-                    <i class="bi bi-fingerprint me-2"></i>Démarrer l'enregistrement
-                </button>
-
             </div>
         </div>
     </div>
 </div>
 
-{# ── MODAL ENREGISTREMENT VISAGE ── #}
+{# ── MODAL EMPREINTE ── #}
+<div class="modal fade" id="fingerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+        <div class="modal-content" style="border-radius:24px;border:none;box-shadow:0 20px 60px rgba(0,0,0,0.15)">
+            <div class="modal-header border-0" style="padding:22px 24px 0">
+                <h5 class="modal-title fw-bold" style="color:#1b5e20">
+                    <i class="bi bi-fingerprint me-2" style="color:#2e7d32"></i>
+                    Empreinte — <span id="finger-modal-name" style="color:var(--primary-dark)"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="cancelFingerEnroll()"></button>
+            </div>
+            <div class="modal-body text-center px-4 pb-4">
+                <div id="fmg-icon" style="font-size:5rem;margin:16px 0;transition:all .3s">🖐️</div>
+                <div id="fmg-title" class="fw-bold mb-1" style="font-size:1.05rem;color:#1b5e20">Prêt à enregistrer</div>
+                <div id="fmg-subtitle" class="text-muted mb-4" style="font-size:0.85rem">Cliquez sur Démarrer pour commencer</div>
+                <div class="d-flex gap-2 justify-content-center mb-4">
+                    <div id="fmg-step1" style="height:5px;width:80px;border-radius:3px;background:#e0e0e0;transition:background .4s"></div>
+                    <div id="fmg-step2" style="height:5px;width:80px;border-radius:3px;background:#e0e0e0;transition:background .4s"></div>
+                    <div id="fmg-step3" style="height:5px;width:80px;border-radius:3px;background:#e0e0e0;transition:background .4s"></div>
+                </div>
+                <button id="fmg-btn" class="btn w-100 fw-bold"
+                        style="background:linear-gradient(135deg,#2e7d32,#4caf50);color:#fff;border:none;border-radius:14px;padding:14px;font-size:0.95rem"
+                        onclick="startFingerEnroll()">
+                    <i class="bi bi-fingerprint me-2"></i>Démarrer l'enregistrement
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ── MODAL VISAGE ── #}
 <div class="modal fade" id="faceModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered" style="max-width:460px">
-        <div class="modal-content" style="border-radius:20px;border:none">
-            <div class="modal-header border-0 pb-0">
+        <div class="modal-content" style="border-radius:24px;border:none;box-shadow:0 20px 60px rgba(0,0,0,0.15)">
+            <div class="modal-header border-0" style="padding:22px 24px 0">
                 <h5 class="modal-title fw-bold" style="color:#1a237e">
                     <i class="bi bi-camera-fill me-2" style="color:#1565c0"></i>
-                    Visage de <span id="modal-user-name"></span>
+                    Visage — <span id="modal-user-name" style="color:var(--primary-dark)"></span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="stopFaceCamera()"></button>
             </div>
-            <div class="modal-body">
-                <div style="position:relative;border-radius:14px;overflow:hidden;background:#0a0f2c;aspect-ratio:4/3;margin-bottom:14px">
+            <div class="modal-body px-3 pb-4">
+                <div style="position:relative;border-radius:16px;overflow:hidden;background:#0a0f2c;aspect-ratio:4/3;margin-bottom:14px">
                     <video id="face-video" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;transform:scaleX(-1)"></video>
                     <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
                         <div id="face-frame-modal" style="width:180px;height:220px;border:3px solid rgba(255,255,255,0.5);border-radius:50% 50% 45% 45%;box-shadow:0 0 0 2000px rgba(0,0,0,0.35)"></div>
@@ -151,9 +451,9 @@
                         Initialisation...
                     </div>
                 </div>
-                <div id="face-result-modal" style="display:none;margin-bottom:12px;padding:12px 14px;border-radius:10px;font-size:0.85rem"></div>
+                <div id="face-result-modal" style="display:none;margin-bottom:12px;padding:12px 14px;border-radius:12px;font-size:0.85rem"></div>
                 <button id="face-capture-btn" class="btn w-100 fw-bold" disabled
-                        style="background:linear-gradient(135deg,#1a237e,#3949ab);color:#fff;border:none;border-radius:10px;padding:11px"
+                        style="background:linear-gradient(135deg,#1a237e,#3949ab);color:#fff;border:none;border-radius:14px;padding:13px"
                         onclick="captureFaceAdmin()">
                     <i class="bi bi-camera-fill me-2"></i>Capturer et enregistrer
                 </button>
@@ -161,41 +461,66 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block javascripts %}
+{{ parent() }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-// ── Gestion du modal empreinte ──
-let currentFingerUserId = null;
-let fingerEnrolling = false;
-
-function fmg(id) { return document.getElementById(id); }
-
-function setStep(step) {
-    const colors = ['#e0e0e0','#e0e0e0','#e0e0e0'];
-    for (let i = 0; i < step; i++) colors[i] = '#4caf50';
-    fmg('fmg-step1').style.background = colors[0];
-    fmg('fmg-step2').style.background = colors[1];
-    fmg('fmg-step3').style.background = colors[2];
+// ── Recherche dynamique ──
+const searchInput = document.getElementById('search-input');
+if (searchInput) {
+    let timer;
+    searchInput.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => document.getElementById('search-form').submit(), 300);
+    });
 }
 
-function setUI(icon, title, subtitle, btnText, btnColor, btnDisabled, iconAnim) {
-    fmg('fmg-icon').textContent      = icon;
-    fmg('fmg-icon').style.animation  = iconAnim || '';
-    fmg('fmg-title').textContent     = title;
-    fmg('fmg-subtitle').textContent  = subtitle;
-    fmg('fmg-btn').innerHTML         = btnText;
-    fmg('fmg-btn').style.background  = btnColor;
-    fmg('fmg-btn').disabled          = btnDisabled;
-}
+// ── Chart stats ──
+let chartInstance = null;
+document.getElementById('statsModal').addEventListener('shown.bs.modal', () => {
+    const ctx = document.getElementById('roleChart');
+    if (!ctx) return;
+    if (chartInstance) chartInstance.destroy();
+    const data = [{{ stats['ROLE_ADMIN'] }}, {{ stats['ROLE_PARTENAIRE'] }}, {{ stats['ROLE_USER'] }}];
+    chartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Admins', 'Partenaires', 'Utilisateurs'],
+            datasets: [{ data, backgroundColor: ['#c0392b','#e67e22','#27ae60'], borderWidth: 4, borderColor: '#fff', hoverOffset: 10 }]
+        },
+        options: {
+            responsive: true, cutout: '68%',
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: c => ` ${c.label} : ${c.parsed}` } }
+            },
+            animation: { animateRotate: true, duration: 800 }
+        }
+    });
+});
+
+// ── Empreinte ──
+let currentFingerUserId = null, fingerEnrolling = false;
+const fmg = id => document.getElementById(id);
+const setStep = step => ['fmg-step1','fmg-step2','fmg-step3'].forEach((id,i) => fmg(id).style.background = i < step ? '#4caf50' : '#e0e0e0');
+const setUI = (icon, title, sub, btnHtml, btnBg, disabled) => {
+    fmg('fmg-icon').textContent = icon;
+    fmg('fmg-title').textContent = title;
+    fmg('fmg-subtitle').textContent = sub;
+    fmg('fmg-btn').innerHTML = btnHtml;
+    fmg('fmg-btn').style.background = btnBg;
+    fmg('fmg-btn').disabled = disabled;
+};
 
 function openFingerModal(userId, userName) {
     currentFingerUserId = userId;
     fmg('finger-modal-name').textContent = userName;
-    // Reset
     setStep(0);
-    setUI('🖐️', 'Prêt à enregistrer', 'Cliquez sur Démarrer pour commencer',
-          '<i class="bi bi-fingerprint me-2"></i>Démarrer l\'enregistrement',
-          'linear-gradient(135deg,#2e7d32,#4caf50)', false, '');
+    setUI('🖐️','Prêt à enregistrer','Cliquez sur Démarrer pour commencer',
+        '<i class="bi bi-fingerprint me-2"></i>Démarrer l\'enregistrement',
+        'linear-gradient(135deg,#2e7d32,#4caf50)', false);
     fmg('fmg-btn').onclick = startFingerEnroll;
     fingerEnrolling = false;
     new bootstrap.Modal(fmg('fingerModal')).show();
@@ -204,248 +529,85 @@ function openFingerModal(userId, userName) {
 async function startFingerEnroll() {
     if (fingerEnrolling) return;
     fingerEnrolling = true;
-
     try { await fetch('/api/fingerprint/bridge/start', { method: 'POST' }); } catch {}
     await new Promise(r => setTimeout(r, 1500));
-
     setStep(1);
-    setUI('\uD83D\uDC46', 'Posez votre doigt', '1\u00e8re capture \u2014 placez votre doigt sur le lecteur',
-          '<span class="spinner-border spinner-border-sm me-2" style="width:14px;height:14px"></span>En attente...',
-          'linear-gradient(135deg,#1565c0,#1976d2)', true, 'pulse-fp 1s infinite');
-
-    const pollInterval = setInterval(async () => {
+    setUI('👆','Posez votre doigt','1ère capture — placez votre doigt sur le lecteur',
+        '<span class="spinner-border spinner-border-sm me-2" style="width:14px;height:14px"></span>En attente...',
+        'linear-gradient(135deg,#1565c0,#1976d2)', true);
+    const poll = setInterval(async () => {
         try {
-            const r = await fetch('/api/fingerprint/enroll/status');
-            const d = await r.json();
-            if (d.step === 2) {
-                clearInterval(pollInterval);
-                setStep(2);
-                setUI('\u261D\uFE0F', 'Reposez le m\u00eame doigt', '2\u00e8me capture \u2014 replacez votre doigt sur le lecteur',
-                      '<span class="spinner-border spinner-border-sm me-2" style="width:14px;height:14px"></span>En attente...',
-                      'linear-gradient(135deg,#1565c0,#1976d2)', true, 'pulse-fp 1s infinite');
-            }
+            const d = await (await fetch('/api/fingerprint/enroll/status')).json();
+            if (d.step === 2) { clearInterval(poll); setStep(2); setUI('☝️','Reposez le même doigt','2ème capture','<span class="spinner-border spinner-border-sm me-2" style="width:14px;height:14px"></span>En attente...','linear-gradient(135deg,#1565c0,#1976d2)',true); }
         } catch {}
     }, 800);
-
     try {
-        const response = await fetch('/api/fingerprint/bridge/enroll', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: currentFingerUserId }),
-            signal: AbortSignal.timeout(150000)  // 2.5 minutes
-        });
-        clearInterval(pollInterval);
-
-        // Lire la réponse comme texte d'abord pour déboguer
-        const text = await response.text();
-        let data;
-        try { data = JSON.parse(text); }
-        catch(e) {
-            setStep(0);
-            setUI('\u274C', 'Erreur serveur', text.substring(0, 100),
-                  '<i class="bi bi-fingerprint me-2"></i>R\u00e9essayer',
-                  'linear-gradient(135deg,#c0392b,#e74c3c)', false, '');
-            fmg('fmg-btn').onclick = () => { fingerEnrolling = false; startFingerEnroll(); };
-            return;
-        }
-
-        if (data.already_exists) {
-            setStep(0);
-            setUI('\u26A0\uFE0F', 'Doigt d\u00e9j\u00e0 enregistr\u00e9', 'Ce doigt est d\u00e9j\u00e0 associ\u00e9 \u00e0 un compte',
-                  '<i class="bi bi-fingerprint me-2"></i>Essayer un autre doigt',
-                  'linear-gradient(135deg,#e67e22,#f39c12)', false, '');
-            fmg('fmg-btn').onclick = () => { fingerEnrolling = false; startFingerEnroll(); };
-            return;
-        }
-        if (!data.success) {
-            setStep(0);
-            // Message spécial si port occupé
-            const msg = data.message || 'Veuillez r\u00e9essayer';
-            const isPortBusy = msg.toLowerCase().includes('occupe') || msg.toLowerCase().includes('arduino ide');
-            setUI(isPortBusy ? '\uD83D\uDD12' : '\u274C',
-                  isPortBusy ? 'Arduino IDE ouvert' : '\u00C9chec',
-                  isPortBusy ? 'Fermez l\'Arduino IDE puis r\u00e9essayez' : msg,
-                  '<i class="bi bi-fingerprint me-2"></i>R\u00e9essayer',
-                  'linear-gradient(135deg,#c0392b,#e74c3c)', false, '');
-            fmg('fmg-btn').onclick = () => { fingerEnrolling = false; startFingerEnroll(); };
-            return;
-        }
-
-        setStep(2);
-        setUI('\u23F3', 'Enregistrement...', 'Sauvegarde de votre empreinte',
-              '<span class="spinner-border spinner-border-sm me-2" style="width:14px;height:14px"></span>Enregistrement...',
-              'linear-gradient(135deg,#2e7d32,#4caf50)', true, '');
-
-        await fetch('/api/fingerprint/enroll_success', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: currentFingerUserId, finger_id: data.finger_id })
-        });
-
-        setStep(3);
-        setUI('\u2705', 'Votre doigt est enregistr\u00e9 avec succ\u00e8s !',
-              'Vous pouvez maintenant vous connecter avec votre empreinte',
-              '<i class="bi bi-check-circle-fill me-2"></i>Termin\u00e9',
-              'linear-gradient(135deg,#1a7a4a,#2e7d32)', false, '');
+        const res = await fetch('/api/fingerprint/bridge/enroll', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({user_id: currentFingerUserId}), signal: AbortSignal.timeout(150000) });
+        clearInterval(poll);
+        let data; try { data = JSON.parse(await res.text()); } catch(e) { setStep(0); setUI('❌','Erreur serveur','','<i class="bi bi-fingerprint me-2"></i>Réessayer','linear-gradient(135deg,#c0392b,#e74c3c)',false); fmg('fmg-btn').onclick=()=>{fingerEnrolling=false;startFingerEnroll();}; return; }
+        if (data.already_exists) { setStep(0); setUI('⚠️','Doigt déjà enregistré','Ce doigt est déjà associé à un compte','<i class="bi bi-fingerprint me-2"></i>Essayer un autre doigt','linear-gradient(135deg,#e67e22,#f39c12)',false); fmg('fmg-btn').onclick=()=>{fingerEnrolling=false;startFingerEnroll();}; return; }
+        if (!data.success) { setStep(0); setUI('❌','Échec',data.message||'Réessayer','<i class="bi bi-fingerprint me-2"></i>Réessayer','linear-gradient(135deg,#c0392b,#e74c3c)',false); fmg('fmg-btn').onclick=()=>{fingerEnrolling=false;startFingerEnroll();}; return; }
+        setStep(2); setUI('⏳','Enregistrement...','Sauvegarde...','<span class="spinner-border spinner-border-sm me-2" style="width:14px;height:14px"></span>Enregistrement...','linear-gradient(135deg,#2e7d32,#4caf50)',true);
+        await fetch('/api/fingerprint/enroll_success', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({user_id: currentFingerUserId, finger_id: data.finger_id}) });
+        setStep(3); setUI('✅','Enregistré avec succès !','Connexion par empreinte activée','<i class="bi bi-check-circle-fill me-2"></i>Terminé','linear-gradient(135deg,#1a7a4a,#2e7d32)',false);
         fmg('fmg-btn').onclick = () => bootstrap.Modal.getInstance(fmg('fingerModal')).hide();
-
-    } catch (err) {
-        clearInterval(pollInterval);
-        setStep(0);
-        setUI('\uD83D\uDD0C', 'Lecteur non disponible', 'V\u00e9rifiez que le lecteur est bien connect\u00e9',
-              '<i class="bi bi-fingerprint me-2"></i>R\u00e9essayer',
-              'linear-gradient(135deg,#c0392b,#e74c3c)', false, '');
-        fmg('fmg-btn').onclick = () => { fingerEnrolling = false; startFingerEnroll(); };
-    }
+    } catch { clearInterval(poll); setStep(0); setUI('🔌','Lecteur non disponible','Vérifiez la connexion','<i class="bi bi-fingerprint me-2"></i>Réessayer','linear-gradient(135deg,#c0392b,#e74c3c)',false); fmg('fmg-btn').onclick=()=>{fingerEnrolling=false;startFingerEnroll();}; }
 }
 function cancelFingerEnroll() { fingerEnrolling = false; }
-async function startBridge() {}
-async function checkFingerReader() {}
 
-// ── Gestion du modal visage ──
-let faceStream = null;
-let currentUserId = null;
-
+// ── Visage ──
+let faceStream = null, currentUserId = null;
 async function openFaceModal(userId, userName) {
     currentUserId = userId;
     document.getElementById('modal-user-name').textContent = userName;
     document.getElementById('face-result-modal').style.display = 'none';
     document.getElementById('face-frame-modal').style.borderColor = 'rgba(255,255,255,0.5)';
     const btn = document.getElementById('face-capture-btn');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="bi bi-camera-fill me-2"></i>Capturer et enregistrer';
+    btn.disabled = true; btn.innerHTML = '<i class="bi bi-camera-fill me-2"></i>Capturer et enregistrer';
     btn.style.background = 'linear-gradient(135deg,#1a237e,#3949ab)';
-
     new bootstrap.Modal(document.getElementById('faceModal')).show();
-
     try {
         faceStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
         const video = document.getElementById('face-video');
         video.srcObject = faceStream;
-        video.onloadedmetadata = () => {
-            document.getElementById('face-status-modal').textContent = '✅ Positionnez le visage dans le cadre';
-            btn.disabled = false;
-        };
-    } catch (err) {
-        document.getElementById('face-status-modal').textContent = '❌ Caméra non accessible : ' + err.message;
-    }
+        video.onloadedmetadata = () => { document.getElementById('face-status-modal').textContent = '✅ Positionnez le visage dans le cadre'; btn.disabled = false; };
+    } catch (err) { document.getElementById('face-status-modal').textContent = '❌ Caméra non accessible : ' + err.message; }
 }
-
-function stopFaceCamera() {
-    if (faceStream) { faceStream.getTracks().forEach(t => t.stop()); faceStream = null; }
-}
-
+function stopFaceCamera() { if (faceStream) { faceStream.getTracks().forEach(t => t.stop()); faceStream = null; } }
 document.getElementById('faceModal').addEventListener('hidden.bs.modal', stopFaceCamera);
 
 async function captureFaceAdmin() {
-    const btn    = document.getElementById('face-capture-btn');
-    const result = document.getElementById('face-result-modal');
-    const video  = document.getElementById('face-video');
-    const frame  = document.getElementById('face-frame-modal');
-
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" style="width:14px;height:14px"></span>Analyse...';
-
+    const btn = document.getElementById('face-capture-btn'), result = document.getElementById('face-result-modal');
+    const video = document.getElementById('face-video'), frame = document.getElementById('face-frame-modal');
+    btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" style="width:14px;height:14px"></span>Analyse...';
     const canvas = document.createElement('canvas');
-    canvas.width  = video.videoWidth  || 640;
-    canvas.height = video.videoHeight || 480;
-    const ctx = canvas.getContext('2d');
-    ctx.scale(-1, 1);
-    ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
-
-    canvas.toBlob(async (blob) => {
-        const formData = new FormData();
-        formData.append('face_image', blob, 'face.jpg');
-
+    canvas.width = video.videoWidth || 640; canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext('2d'); ctx.scale(-1,1); ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+    canvas.toBlob(async blob => {
+        const fd = new FormData(); fd.append('face_image', blob, 'face.jpg');
         try {
-            const response = await fetch('/admin/users/' + currentUserId + '/register-face', {
-                method: 'POST',
-                body: formData
-            });
-            
-            // Lire la réponse comme texte d'abord pour déboguer
-            const text = await response.text();
-            let data;
-            try {
-                data = JSON.parse(text);
-            } catch (e) {
-                // La réponse n'est pas du JSON — afficher l'erreur PHP
-                result.style.cssText = 'display:block;background:#fde8e8;border:1px solid #f5b7b1;border-radius:10px;padding:12px 14px;font-size:0.78rem;max-height:200px;overflow:auto';
-                result.innerHTML = '<strong style="color:#c0392b">Erreur serveur :</strong><br><pre style="font-size:0.72rem;white-space:pre-wrap">' + text.substring(0, 500) + '</pre>';
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-camera-fill me-2"></i>Réessayer';
-                return;
+            const res = await fetch('/admin/users/' + currentUserId + '/register-face', { method:'POST', body:fd });
+            const text = await res.text(); let data;
+            try { data = JSON.parse(text); } catch(e) {
+                result.style.cssText = 'display:block;background:#fde8e8;border:1px solid #f5b7b1;border-radius:12px;padding:12px 14px;font-size:0.78rem';
+                result.innerHTML = '<strong style="color:#c0392b">Erreur serveur</strong><br><pre style="font-size:0.72rem;white-space:pre-wrap">' + text.substring(0,300) + '</pre>';
+                btn.disabled = false; btn.innerHTML = '<i class="bi bi-camera-fill me-2"></i>Réessayer'; return;
             }
             result.style.display = 'block';
             if (data.success) {
                 frame.style.borderColor = '#4caf50';
-                result.style.cssText = 'display:block;background:#d1f2eb;border:1px solid #a9dfbf;border-radius:10px;padding:12px 14px;font-size:0.85rem';
+                result.style.cssText = 'display:block;background:#d1f2eb;border:1px solid #a9dfbf;border-radius:12px;padding:12px 14px;font-size:0.85rem';
                 result.innerHTML = '<i class="bi bi-check-circle-fill me-2" style="color:#1a7a4a"></i><strong>Visage enregistré avec succès !</strong>';
                 document.getElementById('face-status-modal').textContent = '✅ Enregistrement réussi';
-                btn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Enregistré !';
-                btn.style.background = '#1a7a4a';
+                btn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Enregistré !'; btn.style.background = '#1a7a4a';
             } else {
                 frame.style.borderColor = '#e74c3c';
-                result.style.cssText = 'display:block;background:#fde8e8;border:1px solid #f5b7b1;border-radius:10px;padding:12px 14px;font-size:0.85rem';
+                result.style.cssText = 'display:block;background:#fde8e8;border:1px solid #f5b7b1;border-radius:12px;padding:12px 14px;font-size:0.85rem';
                 result.innerHTML = '<i class="bi bi-x-circle-fill me-2" style="color:#c0392b"></i>' + data.message;
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-camera-fill me-2"></i>Réessayer';
+                btn.disabled = false; btn.innerHTML = '<i class="bi bi-camera-fill me-2"></i>Réessayer';
             }
-        } catch (err) {
-            result.style.cssText = 'display:block;background:#fde8e8;border:1px solid #f5b7b1;border-radius:10px;padding:12px 14px;font-size:0.85rem';
-            result.innerHTML = '❌ Erreur réseau.';
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-camera-fill me-2"></i>Réessayer';
-        }
+        } catch { result.style.cssText = 'display:block;background:#fde8e8;border:1px solid #f5b7b1;border-radius:12px;padding:12px 14px;font-size:0.85rem'; result.innerHTML = '❌ Erreur réseau.'; btn.disabled = false; btn.innerHTML = '<i class="bi bi-camera-fill me-2"></i>Réessayer'; }
     }, 'image/jpeg', 0.9);
 }
-// Init pie chart à l'ouverture du modal
-let chartInstance = null;
-document.getElementById('statsModal').addEventListener('shown.bs.modal', () => {
-    const ctx = document.getElementById('roleChart');
-    if (!ctx) return;
-    if (chartInstance) { chartInstance.destroy(); }
-    chartInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Admins', 'Partenaires', 'Utilisateurs'],
-            datasets: [{
-                data: [
-                    {{ stats['ROLE_ADMIN'] ?? 0 }},
-                    {{ stats['ROLE_PARTENAIRE'] ?? 0 }},
-                    {{ stats['ROLE_USER'] ?? 0 }}
-                ],
-                backgroundColor: ['#c0392b', '#e67e22', '#1a7a4a'],
-                borderColor: ['#fff','#fff','#fff'],
-                borderWidth: 3,
-                hoverOffset: 12
-            }]
-        },
-        options: {
-            responsive: true,
-            cutout: '55%',
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: c => ` ${c.label} : ${c.parsed} (${Math.round(c.parsed / [{{ stats['ROLE_ADMIN'] ?? 0 }}, {{ stats['ROLE_PARTENAIRE'] ?? 0 }}, {{ stats['ROLE_USER'] ?? 0 }}].reduce((a,b)=>a+b,0) * 100)}%)`
-                    }
-                }
-            },
-            animation: { animateRotate: true, duration: 900 }
-        }
-    });
-});
-
-// Recherche dynamique debounce 300ms
-const input = document.getElementById('search-input');
-if (input) {
-    let timer;
-    input.addEventListener('input', () => {
-        clearTimeout(timer);
-        timer = setTimeout(() => document.getElementById('search-form').submit(), 300);
-    });
-}
 </script>
->>>>>>> user
 {% endblock %}

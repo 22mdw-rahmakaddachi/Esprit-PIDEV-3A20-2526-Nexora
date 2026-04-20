@@ -17,10 +17,24 @@ use Symfony\Component\Routing\Attribute\Route;
 final class UsersController extends AbstractController
 {
     #[Route(name: 'app_users_index', methods: ['GET'])]
-    public function index(UsersRepository $usersRepository): Response
+    public function index(Request $request, UsersRepository $usersRepository): Response
     {
+        $search = $request->query->get('search', '');
+        $role   = $request->query->get('role', '');
+
+        $users = $usersRepository->findBySearchAndRole($search, $role);
+
+        $stats = [
+            'ROLE_ADMIN'      => $usersRepository->countByRole('ROLE_ADMIN'),
+            'ROLE_PARTENAIRE' => $usersRepository->countByRole('ROLE_PARTENAIRE'),
+            'ROLE_USER'       => $usersRepository->countByRole('ROLE_USER'),
+        ];
+
         return $this->render('users/index.html.twig', [
-            'users' => $usersRepository->findAll(),
+            'users'  => $users,
+            'stats'  => $stats,
+            'search' => $search,
+            'role'   => $role,
         ]);
     }
 
@@ -87,9 +101,26 @@ final class UsersController extends AbstractController
 
         return $this->redirectToRoute('app_users_index', [], Response::HTTP_SEE_OTHER);
     }
-<<<<<<< HEAD
-}
-=======
+
+    #[Route('/{id}/toggle-block', name: 'app_users_toggle_block', methods: ['POST'])]
+    public function toggleBlock(Users $user, EntityManagerInterface $entityManager): Response
+    {
+        $isBlocked = $user->getBlockUntil() > time();
+        if ($isBlocked) {
+            // Débloquer
+            $user->setBlockUntil(0);
+            $user->setBlockLevel(0);
+            $user->setTentative(0);
+            $this->addFlash('success', '✅ Utilisateur ' . $user->getPrenom() . ' débloqué.');
+        } else {
+            // Bloquer indéfiniment (100 ans)
+            $user->setBlockUntil(time() + 60 * 60 * 24 * 365 * 100);
+            $user->setBlockLevel(99);
+            $this->addFlash('warning', '🔒 Utilisateur ' . $user->getPrenom() . ' bloqué.');
+        }
+        $entityManager->flush();
+        return $this->redirectToRoute('app_users_index');
+    }
 
     #[Route('/{id}/register-face', name: 'app_users_register_face', methods: ['POST'])]
     public function registerFace(int $id, Request $request, UsersRepository $usersRepo, FaceRecognitionService $faceService): Response
@@ -121,4 +152,3 @@ final class UsersController extends AbstractController
         }
     }
 }
->>>>>>> user

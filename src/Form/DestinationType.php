@@ -5,11 +5,14 @@ namespace App\Form;
 use App\Entity\Destination;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\All;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
@@ -19,42 +22,83 @@ class DestinationType extends AbstractType
     {
         $builder
             ->add('nom', TextType::class, [
-                'label' => 'Nom de la destination',
+                'label'       => "Nom de l'excursion",
                 'constraints' => [new NotBlank(['message' => 'Le nom est obligatoire'])],
-                'attr' => ['placeholder' => 'Ex: Paris, Marrakech...'],
+                'attr'        => ['placeholder' => 'Ex: Paris, Marrakech...'],
             ])
             ->add('description', TextareaType::class, [
-                'label' => 'Description',
+                'label'    => 'Description',
                 'required' => false,
-                'attr' => ['rows' => 4, 'placeholder' => 'Décrivez la destination...'],
+                'attr'     => ['rows' => 4, 'placeholder' => "Décrivez l'excursion..."],
             ])
             ->add('localisation', TextType::class, [
-                'label' => 'Localisation',
+                'label'       => 'Localisation',
                 'constraints' => [new NotBlank(['message' => 'La localisation est obligatoire'])],
-                'attr' => [
-                    'placeholder' => 'Ville, Pays...',
+                'attr'        => [
+                    'placeholder'  => 'Ville, Pays...',
                     'autocomplete' => 'off',
-                    'id' => 'localisation-field',
+                    'id'           => 'localisation-field',
                 ],
             ])
-            ->add('statut', ChoiceType::class, [
-                'label' => 'Statut',
-                'choices' => [
-                    'Disponible' => 'Disponible',
-                    'Complet'    => 'Complet',
-                ],
-                'placeholder' => 'Sélectionner le statut',
-                'constraints' => [new NotBlank(['message' => 'Le statut est obligatoire'])],
+            ->add('capaciteMax', IntegerType::class, [
+                'label' => 'Nombre maximal de participants',
+                'attr'  => ['min' => 1, 'class' => 'form-control'],
+                'constraints' => [new NotBlank(['message' => 'La capacité maximale est obligatoire'])],
             ])
-            ->add('imageFile', FileType::class, [
-                'label' => 'Image de la destination',
-                'mapped' => false,
+            ->add('dateLancement', DateTimeType::class, [
+                'label'    => 'Date de lancement / départ',
+                'widget'   => 'single_text',
                 'required' => false,
+                'attr'     => ['class' => 'form-control'],
+            ])
+            ->add('currency', TextType::class, [
+                'label'    => 'Monnaie locale',
+                'required' => false,
+                'attr'     => ['placeholder' => 'Ex: Euro (€), Dollar ($)...'],
+            ])
+            ->add('plugType', TextType::class, [
+                'label'    => 'Type de prise',
+                'required' => false,
+                'attr'     => ['placeholder' => 'Ex: Type E / F / C...'],
+            ])
+            ->add('survivalPhrases', TextareaType::class, [
+                'label'    => 'Phrases de survie',
+                'required' => false,
+                'attr'     => ['rows' => 2, 'placeholder' => 'Ex: Bonjour / Merci / S\'il vous plaît'],
+            ])
+            ->add('panoramaUrl', TextType::class, [
+                'label'    => 'Lien Panorama 360° / VR',
+                'required' => false,
+                'help'     => 'Format recommandé : Code "Intégrer une carte" (iframe) ou URL complète de la barre d\'adresse.',
+                'attr'     => ['placeholder' => 'Code <iframe... ou URL complète maps.google.com/...'],
+            ])
+            ->add('programme', TextareaType::class, [
+                'label'    => 'Programme de l\'excursion',
+                'required' => false,
+                'attr'     => ['rows' => 10, 'placeholder' => "Le programme détaillé s'affichera ici ou peut être généré par l'IA..."],
+            ]);
+
+
+        $builder
+            // ── Champ multi-fichiers (non mappé, géré manuellement dans le contrôleur) ──
+            ->add('imageFiles', FileType::class, [
+                'label'       => "Images de l'excursion",
+                'mapped'      => false,
+                'required'    => false,
+                'multiple'    => true,
+                'attr'        => [
+                    'multiple' => 'multiple',
+                    'accept'   => 'image/jpeg,image/png,image/webp',
+                ],
                 'constraints' => [
-                    new File([
-                        'maxSize' => '5M',
-                        'mimeTypes' => ['image/jpeg', 'image/png', 'image/webp'],
-                        'mimeTypesMessage' => 'Veuillez uploader une image valide (JPG, PNG, WEBP)',
+                    new All([
+                        'constraints' => [
+                            new File([
+                                'maxSize'            => '30M',
+                                'mimeTypes'          => ['image/jpeg', 'image/png', 'image/webp'],
+                                'mimeTypesMessage'   => 'Veuillez uploader des images valides (JPG, PNG, WEBP)',
+                            ]),
+                        ],
                     ]),
                 ],
             ]);

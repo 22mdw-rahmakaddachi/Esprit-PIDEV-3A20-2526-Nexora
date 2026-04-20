@@ -1,24 +1,70 @@
 {% extends 'base.html.twig' %}
-{% block title %}Commande confirmée — TripShop{% endblock %}
+{% block title %}Commande confirmée — Nexora{% endblock %}
 
 {% block body %}
 <div class="container py-5">
-    <div class="text-center py-5" data-aos="fade-up">
-        <div style="font-size:5rem">✅</div>
-        <h2 class="mt-3" style="color:var(--primary)">Commande confirmée !</h2>
-        {% if commande %}
-        <p class="text-muted">Numéro de commande : <strong>#{{ commande.id }}</strong></p>
-        <p class="text-muted">Total : <strong style="color:var(--primary)">{{ commande.total|number_format(2) }} TND</strong></p>
-        {% endif %}
-        <p class="text-muted mt-2">Vous recevrez une confirmation par email.</p>
-        <div class="d-flex gap-3 justify-content-center mt-4">
-            <a href="{{ path('app_produits') }}" class="btn rounded-pill px-4"
-               style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">
-                <i class="bi bi-bag me-2"></i>Continuer les achats
-            </a>
-            <a href="{{ path('app_home') }}" class="btn btn-outline-secondary rounded-pill px-4">
-                <i class="bi bi-house me-2"></i>Accueil
-            </a>
+    <div class="row justify-content-center">
+        <div class="col-lg-6" data-aos="fade-up">
+
+            {% if commande and commande.statut == 'payee' %}
+            {# ── Déjà payée ── #}
+            <div class="bg-white rounded-4 p-5 shadow-sm text-center" style="border:2px solid #27ae60">
+                <div style="font-size:4rem">✅</div>
+                <h2 class="mt-3" style="color:#27ae60">Commande payée !</h2>
+                <p class="text-muted">Commande <strong>#{{ commande.id }}</strong> — {{ commande.total|number_format(2) }} TND</p>
+                <a href="{{ path('app_produits') }}" class="btn rounded-pill px-4 mt-3"
+                   style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">
+                    <i class="bi bi-bag me-2"></i>Continuer les achats
+                </a>
+            </div>
+
+            {% else %}
+            {# ── En attente de paiement ── #}
+            <div class="bg-white rounded-4 p-5 shadow-sm" style="border:1px solid #ede5ff">
+
+                <div class="text-center mb-4">
+                    <div style="font-size:3.5rem">🛍️</div>
+                    <h2 class="mt-2" style="font-family:'Playfair Display',serif;color:var(--primary-dark)">
+                        Commande confirmée !
+                    </h2>
+                    <p class="text-muted small">Finalisez votre commande en procédant au paiement</p>
+                </div>
+
+                {% if commande %}
+                <div class="rounded-3 p-3 mb-4" style="background:#f9f7ff;border:1px solid #ede5ff">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Numéro de commande</span>
+                        <span class="fw-bold" style="color:var(--primary)">#{{ commande.id }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Statut</span>
+                        <span class="badge rounded-pill" style="background:#fff3cd;color:#856404">En attente de paiement</span>
+                    </div>
+                    <div class="d-flex justify-content-between pt-2" style="border-top:1px solid #ede5ff">
+                        <span class="fw-semibold">Total à payer</span>
+                        <span class="fw-bold fs-5" style="color:var(--primary)">{{ commande.total|number_format(2) }} TND</span>
+                    </div>
+                </div>
+
+                <a href="{{ path('app_paiement_initier', {commandeId: commande.id}) }}"
+                   class="btn w-100 rounded-pill fw-bold py-3 mb-3"
+                   style="background:linear-gradient(135deg,#0066cc,#0099ff);color:#fff;font-size:1rem;border:none">
+                    <i class="bi bi-credit-card-fill me-2"></i>Payer {{ commande.total|number_format(2) }} TND avec Konnect
+                </a>
+                {% endif %}
+
+                <div class="text-center" style="font-size:0.75rem;color:#aaa">
+                    <i class="bi bi-shield-lock-fill me-1"></i>Paiement sécurisé SSL · Powered by Konnect
+                </div>
+
+                <hr style="border-color:#ede5ff;margin:20px 0">
+
+                <a href="{{ path('app_produits') }}" class="btn w-100 btn-outline-secondary rounded-pill">
+                    <i class="bi bi-bag me-2"></i>Continuer les achats sans payer maintenant
+                </a>
+            </div>
+            {% endif %}
+
         </div>
     </div>
 </div>

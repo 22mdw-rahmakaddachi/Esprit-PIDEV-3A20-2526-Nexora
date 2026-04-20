@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Users;
 use App\Repository\ActiviteRepository;
 use App\Repository\ParticipationDemandeRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -11,7 +12,11 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class ActiviteController extends AbstractController
 {
-    private function getClientId(): int { return 47; }
+    private function getClientId(): int
+    {
+        $user = $this->getUser();
+        return $user instanceof Users ? ($user->getId() ?? 0) : 0;
+    }
 
     #[Route('/activites', name: 'app_activites')]
     public function index(ActiviteRepository $repo, Request $request): Response

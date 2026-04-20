@@ -134,12 +134,14 @@
                     <i class="bi bi-arrow-left me-2"></i>Retour
                 </a>
 
-                {# Bouton réclamation si l'utilisateur a participé à cette activité #}
-                {% if demandeExistante %}
+                {# Bouton réclamation — visible pour tout utilisateur connecté #}
+                {% if app.user %}
                 <a href="{{ path('app_reclamation_new') }}?activite_id={{ activite.id }}"
                    class="btn btn-lg rounded-pill px-4"
-                   style="border:1.5px solid #e67e22;color:#e67e22;background:transparent">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Faire une réclamation
+                   style="background:linear-gradient(135deg,#fff3e0,#ffe0b2);color:#e65100;border:1.5px solid #ffb74d;font-weight:600;transition:all .2s"
+                   onmouseover="this.style.background='linear-gradient(135deg,#e65100,#ef6c00)';this.style.color='#fff';this.style.borderColor='transparent'"
+                   onmouseout="this.style.background='linear-gradient(135deg,#fff3e0,#ffe0b2)';this.style.color='#e65100';this.style.borderColor='#ffb74d'">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Réclamation
                 </a>
                 {% endif %}
             </div>

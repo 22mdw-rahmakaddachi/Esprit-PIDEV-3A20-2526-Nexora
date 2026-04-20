@@ -276,6 +276,14 @@
         <span class="sidebar-badge" id="sb-demandes" style="display:none">0</span>
     </a>
 
+    <div class="sidebar-section">Excursions</div>
+    <a href="{{ path('admin_destination_index') }}" class="sidebar-link {{ 'admin_destination' in app.request.get('_route') and app.request.get('_route') != 'admin_destination_new' ? 'active' : '' }}">
+        <i class="bi bi-geo-alt-fill"></i> Gérer les excursions
+    </a>
+    <a href="{{ path('admin_destination_new') }}" class="sidebar-link {{ app.request.get('_route') == 'admin_destination_new' ? 'active' : '' }}">
+        <i class="bi bi-plus-circle-fill"></i> Ajouter une excursion
+    </a>
+
     <div class="sidebar-section">Boutique</div>
     <a href="{{ path('admin_categories') }}" class="sidebar-link {{ 'admin_categorie' in app.request.get('_route') or 'admin_sous_categorie' in app.request.get('_route') ? 'active' : '' }}">
         <i class="bi bi-grid-fill"></i> Catégories
@@ -297,7 +305,21 @@
     </a>
     <a href="{{ path('admin_reclamations') }}" class="sidebar-link {{ 'admin_reclamation' in app.request.get('_route') ? 'active' : '' }}">
         <i class="bi bi-exclamation-triangle-fill"></i> Réclamations
-        {# badge réclamations en attente #}
+    </a>
+    <a href="{{ path('admin_notifications') }}" class="sidebar-link {{ 'admin_notification' in app.request.get('_route') ? 'active' : '' }}">
+        <i class="bi bi-bag-check-fill"></i> Commandes reçues
+        <span id="notif-badge-sidebar" class="sidebar-badge" style="display:none">0</span>
+    </a>
+
+    <div class="sidebar-section">Avis & Publications</div>
+    <a href="{{ path('admin_avis_activites') }}" class="sidebar-link {{ 'admin_avis' in app.request.get('_route') ? 'active' : '' }}">
+        <i class="bi bi-chat-square-text-fill"></i> Avis & Commentaires
+    </a>
+    <a href="{{ path('admin_publications') }}" class="sidebar-link {{ 'admin_publication' in app.request.get('_route') ? 'active' : '' }}">
+        <i class="bi bi-newspaper"></i> Publications
+    </a>
+    <a href="{{ path('admin_moderation') }}" class="sidebar-link {{ 'admin_moderation' in app.request.get('_route') ? 'active' : '' }}">
+        <i class="bi bi-shield-exclamation"></i> Modération
     </a>
 
     <div class="sidebar-section">Aperçu</div>
@@ -390,7 +412,7 @@
         });
     }, 4000);
 
-    // Badge notifications commandes — polling toutes les 15 secondes
+    // Badge notifications commandes — polling toutes les 5 secondes
     if (document.querySelector('.sidebar')) {
         function refreshNotifBadge() {
             fetch('/admin/notifications/api/count')
@@ -431,7 +453,7 @@
         }
 
         refreshNotifBadge();
-        setInterval(refreshNotifBadge, 15000);
+        setInterval(refreshNotifBadge, 5000);
     }
 </script>
 {% block javascripts %}{% endblock %}

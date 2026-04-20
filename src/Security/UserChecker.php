@@ -13,10 +13,12 @@ class UserChecker implements UserCheckerInterface
     {
         if (!$user instanceof Users) return;
 
-        if ($user->getBlockUntil() > time()) {
-            throw new CustomUserMessageAccountStatusException(
-                'Votre compte est bloqué. Veuillez contacter l\'administrateur.'
-            );
+        $remaining = $user->getBlockUntil() - time();
+        if ($remaining > 0) {
+            $msg = $remaining >= 60
+                ? sprintf('Compte temporairement bloqué. Réessayez dans %d minute(s).', ceil($remaining / 60))
+                : sprintf('Compte temporairement bloqué. Réessayez dans %d seconde(s).', $remaining);
+            throw new CustomUserMessageAccountStatusException($msg);
         }
     }
 

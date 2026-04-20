@@ -19,10 +19,29 @@
             --white:         #ffffff;
             --card-shadow:   0 6px 24px rgba(108,63,197,0.10);
             --card-shadow-hover: 0 16px 40px rgba(108,63,197,0.18);
+            --text:          #333333;
+            --text-muted:    #888888;
+            --border:        #ede5ff;
+            --card-bg:       #ffffff;
+            --nav-bg:        #ffffff;
+            --input-bg:      #ffffff;
+        }
+
+        [data-theme="dark"] {
+            --bg:            #0f0e17;
+            --white:         #1a1825;
+            --card-bg:       #1a1825;
+            --nav-bg:        #13111e;
+            --input-bg:      #221f33;
+            --text:          #e8e0ff;
+            --text-muted:    #9b8ec4;
+            --border:        #2e2850;
+            --card-shadow:   0 6px 24px rgba(0,0,0,0.4);
+            --card-shadow-hover: 0 16px 40px rgba(0,0,0,0.5);
         }
 
         * { box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #333; overflow-x: hidden; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; transition: background 0.3s, color 0.3s; }
         h1,h2,h3,.brand { font-family: 'Playfair Display', serif; }
 
         /* ── SCROLLBAR ── */
@@ -429,7 +448,73 @@
             border: none;
             margin: 40px 0;
         }
+        /* ── DARK MODE OVERRIDES ── */
+        [data-theme="dark"] body { background: var(--bg); color: var(--text); }
+        [data-theme="dark"] .navbar { background: var(--nav-bg) !important; border-color: var(--border) !important; }
+        [data-theme="dark"] .nav-link { color: var(--text) !important; }
+        [data-theme="dark"] .nav-link:hover, [data-theme="dark"] .nav-link.active { background: var(--border) !important; color: var(--primary) !important; }
+        [data-theme="dark"] .product-card, [data-theme="dark"] .activity-card { background: var(--card-bg) !important; border-color: var(--border) !important; }
+        [data-theme="dark"] .filter-sidebar { background: var(--card-bg); border-color: var(--border); }
+        [data-theme="dark"] .stats-bar { background: var(--card-bg); border-color: var(--border); }
+        [data-theme="dark"] .breadcrumb-section { background: var(--card-bg); border-color: var(--border); }
+        [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background: var(--input-bg); color: var(--text); border-color: var(--border); }
+        [data-theme="dark"] .card { background: var(--card-bg) !important; border-color: var(--border) !important; }
+        [data-theme="dark"] .text-muted { color: var(--text-muted) !important; }
+        [data-theme="dark"] .dropdown-menu { background: var(--card-bg); border-color: var(--border); }
+        [data-theme="dark"] .dropdown-item { color: var(--text); }
+        [data-theme="dark"] .dropdown-item:hover { background: var(--border); }
+        [data-theme="dark"] .section-title { color: #c9b8f0; }
+        [data-theme="dark"] .section-title::after { background: linear-gradient(90deg, var(--primary), var(--accent-light)); }
+        [data-theme="dark"] footer { background: linear-gradient(135deg, #0d0b18, #1a1530); }
+        [data-theme="dark"] .topbar { background: linear-gradient(90deg, #0d0b18, #1a1530); }
+        [data-theme="dark"] .stat-num { color: #c9b8f0; }
+        [data-theme="dark"] .price { color: var(--primary-light); }
+        [data-theme="dark"] .badge-cat { background: linear-gradient(135deg, var(--primary), var(--accent)); }
+        [data-theme="dark"] .nav-icon-btn { background: #221f33; color: var(--primary-light); }
+        [data-theme="dark"] .flash-container .alert { background: var(--card-bg); border-color: var(--border); color: var(--text); }
+
+        /* Language menu */
+        .lang-opt {
+            display:block;width:100%;text-align:left;padding:9px 16px;
+            background:none;border:none;font-size:0.85rem;color:var(--text,#333);
+            cursor:pointer;transition:background .15s;
+        }
+        .lang-opt:hover { background:var(--border,#f0ebff); }
+        .lang-opt.active { color:var(--primary);font-weight:700; }
+        [data-theme="dark"] #lang-menu { background:var(--card-bg);border-color:var(--border); }
+        [data-theme="dark"] .lang-opt { color:var(--text); }
+        [data-theme="dark"] #lang-btn { background:#221f33;color:#c9b8f0; }
+
+        /* Translation loading overlay */
+        #translate-overlay {
+            display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+            background:var(--primary);color:#fff;padding:10px 22px;border-radius:50px;
+            font-size:0.85rem;font-weight:600;z-index:99999;
+            box-shadow:0 4px 20px rgba(108,63,197,0.35);
+            animation:fadeInUp .3s ease;
+        }
+
+        /* Theme toggle button */
+        .theme-toggle {
+            width: 38px; height: 38px; border-radius: 50%;
+            background: #f0ebff; color: var(--primary);
+            border: none; display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+            flex-shrink: 0;
+        }
+        .theme-toggle:hover { background: var(--primary); color: #fff; transform: rotate(20deg); }
+        [data-theme="dark"] .theme-toggle { background: #221f33; color: #c9b8f0; }
+        [data-theme="dark"] .theme-toggle:hover { background: var(--primary); color: #fff; }
     </style>
+    <script>
+        /* Apply theme BEFORE render to avoid flash */
+        (function(){
+            var t = localStorage.getItem('nexora_theme') || 'light';
+            document.documentElement.setAttribute('data-theme', t);
+            document.documentElement.style.colorScheme = t;
+        })();
+    </script>
     {% block stylesheets %}{% endblock %}
 </head>
 <body>
@@ -583,6 +668,7 @@
 </script>
 
     {# TOPBAR #}
+    <div id="translate-overlay"><i class="bi bi-translate me-2"></i><span id="translate-msg">Traduction en cours…</span></div>
     <div class="topbar d-none d-md-block">
         <div class="container d-flex justify-content-between align-items-center">
             <div>
@@ -626,36 +712,92 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if 'destination' in app.request.get('_route') %}active{% endif %}"
+                           href="{{ path('client_destination_index') }}">
+                            <i class="bi bi-geo-alt-fill me-1"></i>Excursions
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'avis' in app.request.get('_route') %}active{% endif %}"
+                           href="{{ path('app_avis') }}">
+                            <i class="bi bi-chat-square-text-fill me-1"></i>Avis
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'publication' in app.request.get('_route') %}active{% endif %}"
+                           href="{{ path('app_publications') }}">
+                            <i class="bi bi-newspaper me-1"></i>Publications
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if 'offres' in app.request.get('_route') %}active{% endif %}"
                            href="{{ path('app_offres') }}">
                             🌍 Offres
                         </a>
                     </li>
                 </ul>
-                <div class="d-flex align-items-center gap-2">
-                    <a href="{{ path('app_panier') }}" class="btn btn-cart btn-pulse position-relative">
+                <div class="d-flex align-items-center gap-1">
+                    <button class="theme-toggle" id="theme-toggle" title="Mode sombre / clair"
+                            style="width:32px;height:32px;font-size:0.9rem">
+                        <i class="bi bi-moon-fill" id="theme-icon"></i>
+                    </button>
+
+                    {# ── SÉLECTEUR DE LANGUE ── #}
+                    <div class="position-relative" id="lang-wrapper">
+                        <button id="lang-btn" title="Changer la langue"
+                                style="width:32px;height:32px;border-radius:50%;background:#f0ebff;color:var(--primary);border:none;display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer;transition:background .2s,transform .2s;flex-shrink:0"
+                                onmouseenter="this.style.background='var(--primary)';this.style.color='#fff'"
+                                onmouseleave="this.style.background='#f0ebff';this.style.color='var(--primary)'"
+                                onclick="toggleLangMenu()">
+                            🌐
+                        </button>
+                        <div id="lang-menu" style="display:none;position:absolute;top:calc(100% + 8px);right:0;
+                             background:var(--card-bg,#fff);border:1px solid var(--border,#ede5ff);
+                             border-radius:12px;box-shadow:0 8px 24px rgba(108,63,197,0.15);
+                             min-width:150px;z-index:9999;overflow:hidden">
+                            <div style="padding:8px 12px;font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border,#ede5ff)">
+                                Langue
+                            </div>
+                            <button onclick="setLang('fr')" class="lang-opt" data-lang="fr">
+                                🇫🇷 Français
+                            </button>
+                            <button onclick="setLang('en')" class="lang-opt" data-lang="en">
+                                🇬🇧 English
+                            </button>
+                            <button onclick="setLang('ar')" class="lang-opt" data-lang="ar">
+                                🇹🇳 العربية
+                            </button>
+                        </div>
+                    </div>
+
+                    <a href="{{ path('app_panier') }}" class="btn btn-cart btn-pulse position-relative rounded-pill px-3 py-1"
+                       style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;font-size:0.78rem;border:none">
                         <i class="bi bi-cart3 me-1"></i>Panier
                         <span id="badge-panier" class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
-                              style="background:#e74c3c;font-size:0.65rem;display:none">0</span>
+                              style="background:#e74c3c;font-size:0.6rem;display:none">0</span>
                     </a>
                     {% if app.user %}
-                        <a href="{{ path('app_mes_reclamations') }}" class="btn btn-sm rounded-pill px-3"
-                           style="border:1.5px solid #e67e22;color:#e67e22"
-                           title="Mes réclamations">
-                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Réclamations
+                        <a href="{{ path('app_mes_reclamations') }}" class="btn rounded-pill px-2 py-1"
+                           style="border:1.5px solid #e67e22;color:#e67e22;font-size:0.75rem"
+                           title="Réclamations">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i><span class="d-none d-xl-inline">Réclamations</span>
                         </a>
-                        <a href="{{ path('app_profile') }}" class="btn btn-sm rounded-pill px-3"
-                           style="border:1.5px solid var(--primary);color:var(--primary)">
+                        <a href="{{ path('app_profile') }}" class="btn rounded-pill px-2 py-1"
+                           style="border:1.5px solid var(--primary);color:var(--primary);font-size:0.75rem">
                             <i class="bi bi-person-circle me-1"></i>{{ app.user.prenom }}
                         </a>
-                        <a href="{{ path('app_logout') }}" class="btn btn-sm rounded-pill px-3"
-                           style="border:1.5px solid #e74c3c;color:#e74c3c">
-                            <i class="bi bi-box-arrow-right me-1"></i>Déconnexion
+                        <a href="{{ path('app_logout') }}" class="btn rounded-pill px-2 py-1"
+                           style="border:1.5px solid #e74c3c;color:#e74c3c;font-size:0.75rem">
+                            <i class="bi bi-box-arrow-right"></i>
                         </a>
                     {% else %}
-                        <a href="{{ path('app_login') }}" class="btn btn-sm rounded-pill px-3"
-                           style="border:1.5px solid var(--primary);color:var(--primary)">
+                        <a href="{{ path('app_login') }}" class="btn rounded-pill px-3 py-1"
+                           style="border:1.5px solid var(--primary);color:var(--primary);font-size:0.78rem">
                             <i class="bi bi-person me-1"></i>Connexion
+                        </a>
+                        <a href="{{ path('app_register') }}" class="btn rounded-pill px-3 py-1"
+                           style="background:var(--primary);color:#fff;font-size:0.78rem;border:none">
+                            <i class="bi bi-person-plus me-1"></i>Inscription
                         </a>
                     {% endif %}
                 </div>
@@ -728,8 +870,162 @@
 
         // Navbar shadow on scroll
         window.addEventListener('scroll', () => {
-            document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 30);
+            const nav = document.getElementById('mainNav');
+            if (nav) nav.classList.toggle('scrolled', window.scrollY > 30);
         });
+
+        // ── LANGUAGE SWITCHER ──
+        (function() {
+            const LANGS = { fr: 'Français', en: 'English', ar: 'العربية' };
+            let currentLang = localStorage.getItem('nexora_lang') || 'fr';
+            let originalTexts = new Map();
+
+            function toggleLangMenu() {
+                const menu = document.getElementById('lang-menu');
+                if (!menu) return;
+                menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            }
+            window.toggleLangMenu = toggleLangMenu;
+
+            document.addEventListener('click', e => {
+                const wrapper = document.getElementById('lang-wrapper');
+                if (wrapper && !wrapper.contains(e.target)) {
+                    const menu = document.getElementById('lang-menu');
+                    if (menu) menu.style.display = 'none';
+                }
+            });
+
+            function markActive(lang) {
+                document.querySelectorAll('.lang-opt').forEach(b => {
+                    b.classList.toggle('active', b.dataset.lang === lang);
+                });
+                document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+            }
+
+            function showOverlay(msg) {
+                const el = document.getElementById('translate-overlay');
+                const msgEl = document.getElementById('translate-msg');
+                if (el) { el.style.display = 'block'; }
+                if (msgEl) msgEl.textContent = msg;
+            }
+            function hideOverlay() {
+                const el = document.getElementById('translate-overlay');
+                if (el) el.style.display = 'none';
+            }
+
+            // Get only meaningful text nodes (skip tiny/icon text)
+            function getTextNodes() {
+                const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+                    acceptNode(node) {
+                        const p = node.parentElement;
+                        if (!p) return NodeFilter.FILTER_REJECT;
+                        const tag = p.tagName;
+                        if (['SCRIPT','STYLE','NOSCRIPT','INPUT','TEXTAREA','SELECT'].includes(tag)) return NodeFilter.FILTER_REJECT;
+                        if (p.closest('#translate-overlay,#lang-menu,[data-notranslate]')) return NodeFilter.FILTER_REJECT;
+                        const text = node.textContent.trim();
+                        // Only translate meaningful text (letters, min 3 chars)
+                        if (text.length < 3 || !/[a-zA-ZÀ-ÿ\u0600-\u06FF]/.test(text)) return NodeFilter.FILTER_REJECT;
+                        return NodeFilter.FILTER_ACCEPT;
+                    }
+                });
+                const nodes = [];
+                let n;
+                while ((n = walker.nextNode())) nodes.push(n);
+                return nodes;
+            }
+
+            // Translate single text using Google Translate unofficial endpoint
+            async function translateOne(text, targetLang) {
+                try {
+                    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=fr&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    if (data && data[0]) {
+                        return data[0].map(item => item[0]).join('');
+                    }
+                } catch {}
+                return text;
+            }
+
+            // Translate all nodes in parallel batches
+            async function translateAll(nodes, targetLang) {
+                const BATCH = 5; // parallel requests
+                for (let i = 0; i < nodes.length; i += BATCH) {
+                    const batch = nodes.slice(i, i + BATCH);
+                    await Promise.all(batch.map(async node => {
+                        const orig = originalTexts.get(node) || node.textContent;
+                        if (!originalTexts.has(node)) originalTexts.set(node, orig);
+                        const translated = await translateOne(orig, targetLang);
+                        node.textContent = translated;
+                    }));
+                    const pct = Math.round(((i + BATCH) / nodes.length) * 100);
+                    showOverlay(`Traduction ${Math.min(pct,100)}%…`);
+                }
+            }
+
+            async function applyTranslation(lang) {
+                const nodes = getTextNodes();
+                if (lang === 'fr') {
+                    nodes.forEach(node => {
+                        const orig = originalTexts.get(node);
+                        if (orig) node.textContent = orig;
+                    });
+                    document.documentElement.setAttribute('dir', 'ltr');
+                    return;
+                }
+                nodes.forEach(node => {
+                    if (!originalTexts.has(node)) originalTexts.set(node, node.textContent);
+                });
+                await translateAll(nodes, lang);
+            }
+
+            async function setLang(lang) {
+                const menu = document.getElementById('lang-menu');
+                if (menu) menu.style.display = 'none';
+                if (lang === currentLang) return;
+                currentLang = lang;
+                localStorage.setItem('nexora_lang', lang);
+                markActive(lang);
+                if (lang === 'fr') {
+                    showOverlay('Restauration…');
+                    await applyTranslation('fr');
+                    hideOverlay();
+                } else {
+                    showOverlay(`Traduction 0%…`);
+                    await applyTranslation(lang);
+                    hideOverlay();
+                }
+            }
+            window.setLang = setLang;
+
+            // Init
+            document.addEventListener('DOMContentLoaded', () => {
+                markActive(currentLang);
+                if (currentLang !== 'fr') {
+                    showOverlay(`Traduction 0%…`);
+                    applyTranslation(currentLang).then(hideOverlay);
+                }
+            });
+        })();
+
+        // ── DARK MODE TOGGLE ──
+        (function() {
+            function applyTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                document.documentElement.style.colorScheme = theme;
+                localStorage.setItem('nexora_theme', theme);
+                const icon = document.getElementById('theme-icon');
+                if (icon) icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+            }
+            applyTheme(localStorage.getItem('nexora_theme') || 'light');
+            document.addEventListener('DOMContentLoaded', () => {
+                const btn = document.getElementById('theme-toggle');
+                if (btn) btn.addEventListener('click', () => {
+                    const current = document.documentElement.getAttribute('data-theme');
+                    applyTheme(current === 'dark' ? 'light' : 'dark');
+                });
+            });
+        })();
 
         // Auto-dismiss flash messages
         setTimeout(() => {
