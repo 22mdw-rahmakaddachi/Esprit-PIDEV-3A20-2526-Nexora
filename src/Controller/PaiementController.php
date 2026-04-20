@@ -219,7 +219,7 @@ final class PaiementController extends AbstractController
     }
 
     #[Route('/activite/succes/{demandeId}', name: 'app_paiement_activite_succes')]
-    public function sucresActivite(
+    public function successActivite(
         int $demandeId,
         Request $request,
         ParticipationDemandeRepository $demandeRepo,

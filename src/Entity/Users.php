@@ -219,6 +219,8 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
             $roles[] = 'ROLE_ADMIN';
         } elseif (in_array($role, ['partenaire', 'role_partenaire', 'partner'])) {
             $roles[] = 'ROLE_PARTENAIRE';
+        } elseif (in_array($role, ['participant', 'role_participant'])) {
+            $roles[] = 'ROLE_PARTICIPANT';
         }
 
         return array_unique($roles);

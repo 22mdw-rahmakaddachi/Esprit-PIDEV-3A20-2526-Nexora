@@ -30,6 +30,7 @@ class UsersType extends AbstractType
                     'Utilisateur' => 'ROLE_USER',
                     'Admin'       => 'ROLE_ADMIN',
                     'Partenaire'  => 'ROLE_PARTENAIRE',
+                    'Participant' => 'ROLE_PARTICIPANT',
                 ],
                 'placeholder'  => 'Choisir un rôle',
                 'empty_data'   => '',

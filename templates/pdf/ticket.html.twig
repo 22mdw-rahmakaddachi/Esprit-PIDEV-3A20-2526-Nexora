@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: sans-serif; color: #333; margin: 0; padding: 0; }
+        .ticket { width: 100%; border: 2px solid #6c3fc5; border-radius: 10px; overflow: hidden; }
+        .header { background: #6c3fc5; color: white; padding: 20px; text-align: center; }
+        .content { padding: 30px; }
+        .section { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .label { color: #888; font-size: 12px; text-transform: uppercase; margin-bottom: 5px; }
+        .value { font-size: 16px; font-weight: bold; }
+        .qr-section { text-align: center; margin-top: 30px; }
+        .footer { background: #f8f5ff; padding: 15px; font-size: 12px; text-align: center; color: #6c3fc5; }
+        .badge { display: inline-block; padding: 5px 10px; background: #e8f5e9; color: #2e7d32; border-radius: 5px; font-weight: bold; font-size: 14px; }
+        table { width: 100%; }
+        td { vertical-align: top; }
+    </style>
+</head>
+<body>
+    <div class="ticket">
+        <div class="header">
+            <h1 style="margin:0; font-size: 24px;">TICKET DE PARTICIPATION</h1>
+            <p style="margin:5px 0 0; opacity: 0.8;">NEXORA - Explorations & Activités</p>
+        </div>
+
+        <div class="content">
+            <div style="text-align: right; margin-bottom: 20px;">
+                <span class="badge">PAIEMENT CONFIRMÉ</span>
+            </div>
+
+            <table>
+                <tr>
+                    <td width="50%">
+                        <div class="section">
+                            <div class="label">Activité</div>
+                            <div class="value">{{ demande.activite.nom }}</div>
+                        </div>
+                        <div class="section">
+                            <div class="label">Type</div>
+                            <div class="value">{{ demande.activite.type }}</div>
+                        </div>
+                        <div class="section">
+                            <div class="label">Lieu</div>
+                            <div class="value">{{ demande.activite.lieu }}</div>
+                        </div>
+                    </td>
+                    <td width="50%">
+                        <div class="section">
+                            <div class="label">Participant</div>
+                            <div class="value">{{ demande.clientNom }}</div>
+                        </div>
+                        <div class="section">
+                            <div class="label">Date</div>
+                            <div class="value">
+                                {% if demande.activite.avecDate and demande.activite.dateActivite %}
+                                    {{ demande.activite.dateActivite|date('d/m/Y à H:i') }}
+                                {% else %}
+                                    Date flexible
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="section">
+                            <div class="label">Référence</div>
+                            <div class="value" style="color: #6c3fc5;">#{{ demande.id }}</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="qr-section">
+                <img src="{{ qrCodeUrl }}" width="150" height="150" alt="QR Code">
+                <p style="margin:10px 0 0; font-size: 14px; font-weight: bold; color: #6c3fc5;">
+                    NEXORA-{{ demande.id }}-{{ demande.activite.id }}
+                </p>
+                <p style="margin:5px 0 0; font-size: 11px; color: #888;">
+                    Présentez ce QR Code le jour de l'activité pour valider votre venue.
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            Nexora - Merci de votre confiance ! Emis le {{ "now"|date('d/m/Y H:i') }}
+        </div>
+    </div>
+</body>
+</html>

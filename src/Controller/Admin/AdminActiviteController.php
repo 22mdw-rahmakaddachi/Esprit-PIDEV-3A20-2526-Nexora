@@ -46,9 +46,9 @@ final class AdminActiviteController extends AbstractController
         return $partenaire;
     }
 
-    private function getPartenaireId(PartenaireRepository $repo): int
+    private function getPartenaireId(PartenaireRepository $repo, ?EntityManagerInterface $em = null): int
     {
-        return $this->getPartenaire($repo)?->getId() ?? 0;
+        return $this->getPartenaire($repo, $em)?->getId() ?? 0;
     }
 
     #[Route('/dashboard', name: 'admin_dashboard')]
@@ -60,14 +60,15 @@ final class AdminActiviteController extends AbstractController
         PartenaireRepository $partenaireRepo,
         ProduitParentRepository $produitRepo,
         CodePromoRepository $promoRepo,
-        ReclamationRepository $reclamationRepo
+        ReclamationRepository $reclamationRepo,
+        EntityManagerInterface $em
     ): Response {
         if ($this->isGranted('ROLE_ADMIN')) {
             $activites = $activiteRepo->findBy([], ['dateCreation' => 'DESC']);
             $reclamations = $reclamationRepo->findBy([], ['dateCreation' => 'DESC'], 5);
             $partenairesZoneRouge = $reclamationRepo->findPartenairesEnZoneRouge(3);
         } else {
-            $partenaireId = $this->getPartenaireId($partenaireRepo);
+            $partenaireId = $this->getPartenaireId($partenaireRepo, $em);
             $activites = $partenaireId ? $activiteRepo->findByPartenaire($partenaireId) : [];
             $reclamations = $partenaireId ? $reclamationRepo->findByPartenaire($partenaireId) : [];
             $reclamations = array_slice($reclamations, 0, 5);
@@ -128,12 +129,12 @@ final class AdminActiviteController extends AbstractController
     }
 
     #[Route('/activites', name: 'admin_activites')]
-    public function index(ActiviteRepository $repo, PartenaireRepository $partenaireRepo): Response
+    public function index(ActiviteRepository $repo, PartenaireRepository $partenaireRepo, EntityManagerInterface $em): Response
     {
         if ($this->isGranted('ROLE_ADMIN')) {
             $activites = $repo->findAll();
         } else {
-            $partenaireId = $this->getPartenaireId($partenaireRepo);
+            $partenaireId = $this->getPartenaireId($partenaireRepo, $em);
             $activites = $partenaireId ? $repo->findByPartenaire($partenaireId) : [];
         }
         return $this->render('admin/activite/index.html.twig', ['activites' => $activites]);
@@ -144,7 +145,7 @@ final class AdminActiviteController extends AbstractController
     {
         $errors = [];
 
-        $partenaire = $this->getPartenaire($partenaireRepo);
+        $partenaire = $this->getPartenaire($partenaireRepo, $em);
         if (!$partenaire && !$this->isGranted('ROLE_ADMIN')) {
             $this->addFlash('danger', '⚠️ Votre compte partenaire n\'est pas encore configuré. Contactez l\'administrateur.');
             return $this->redirectToRoute('admin_activites');
@@ -225,13 +226,13 @@ final class AdminActiviteController extends AbstractController
     }
 
     #[Route('/demandes', name: 'admin_demandes')]
-    public function demandes(ActiviteRepository $activiteRepo, ParticipationDemandeRepository $demandeRepo, NotificationRepository $notifRepo, PartenaireRepository $partenaireRepo): Response
+    public function demandes(ActiviteRepository $activiteRepo, ParticipationDemandeRepository $demandeRepo, NotificationRepository $notifRepo, PartenaireRepository $partenaireRepo, EntityManagerInterface $em): Response
     {
         if ($this->isGranted('ROLE_ADMIN')) {
             $activites = $activiteRepo->findAll();
             $partenaireUserId = 0;
         } else {
-            $partenaire = $this->getPartenaire($partenaireRepo);
+            $partenaire = $this->getPartenaire($partenaireRepo, $em);
             $activites = $partenaire ? $activiteRepo->findByPartenaire($partenaire->getId()) : [];
             $partenaireUserId = $partenaire?->getUser()?->getId() ?? 0;
         }
