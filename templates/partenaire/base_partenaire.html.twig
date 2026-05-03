@@ -81,6 +81,9 @@
     </a>
 
     <div class="sidebar-section">Aperçu</div>
+    <a href="{{ path('app_partenaire_avis') }}" class="sidebar-link {{ app.request.get('_route') == 'app_partenaire_avis' ? 'active' : '' }}">
+        <i class="bi bi-chat-square-quote-fill"></i> Avis clients
+    </a>
     <a href="{{ path('app_home') }}" class="sidebar-link" target="_blank">
         <i class="bi bi-box-arrow-up-right"></i> Voir le site
     </a>

@@ -13,40 +13,48 @@ class NotificationRepository extends ServiceEntityRepository
         parent::__construct($registry, Notification::class);
     }
 
-    public function findByUser(int $userId, string $userType): array
+    public function findByUser(int $userId, string $userType = ''): array
     {
         return $this->createQueryBuilder('n')
             ->where('n.userId = :uid')
-            ->andWhere('n.userType = :utype')
             ->setParameter('uid', $userId)
-            ->setParameter('utype', $userType)
-            ->orderBy('n.dateCreation', 'DESC')
-            ->getQuery()->getResult();
+            ->orderBy('n.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
     }
 
-    public function countUnread(int $userId, string $userType): int
+    public function countUnread(int $userId, string $userType = ''): int
     {
         return (int) $this->createQueryBuilder('n')
             ->select('COUNT(n.id)')
             ->where('n.userId = :uid')
-            ->andWhere('n.userType = :utype')
-            ->andWhere('n.lue = false')
+            ->andWhere('n.isRead = false')
             ->setParameter('uid', $userId)
-            ->setParameter('utype', $userType)
-            ->getQuery()->getSingleScalarResult();
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
-    public function findNewSince(int $userId, string $userType, int $lastId): array
+    public function findNewSince(int $userId, string $userType = '', int $lastId = 0): array
     {
         return $this->createQueryBuilder('n')
             ->where('n.userId = :uid')
-            ->andWhere('n.userType = :utype')
             ->andWhere('n.id > :lastId')
-            ->andWhere('n.lue = false')
+            ->andWhere('n.isRead = false')
             ->setParameter('uid', $userId)
-            ->setParameter('utype', $userType)
             ->setParameter('lastId', $lastId)
             ->orderBy('n.id', 'ASC')
-            ->getQuery()->getResult();
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findUnreadByUser(int $userId): array
+    {
+        return $this->createQueryBuilder('n')
+            ->where('n.userId = :uid')
+            ->andWhere('n.isRead = false')
+            ->setParameter('uid', $userId)
+            ->orderBy('n.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
     }
 }

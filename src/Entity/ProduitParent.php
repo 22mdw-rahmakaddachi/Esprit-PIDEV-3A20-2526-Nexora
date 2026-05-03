@@ -67,6 +67,7 @@ class ProduitParent
     #[ORM\Column(nullable: true)]
     private ?string $statut = null;
 
+    /** @var Collection<int, ProduitVariant> */
     #[ORM\OneToMany(targetEntity: ProduitVariant::class, mappedBy: 'produitParent', cascade: ['persist', 'remove'])]
     private Collection $variants;
 
@@ -110,6 +111,7 @@ class ProduitParent
     public function setDateAjout(?\DateTimeInterface $dateAjout): static { $this->dateAjout = $dateAjout; return $this; }
     public function getStatut(): ?string { return $this->statut; }
     public function setStatut(?string $statut): static { $this->statut = $statut; return $this; }
+    /** @return Collection<int, ProduitVariant> */
     public function getVariants(): Collection { return $this->variants; }
     public function addVariant(ProduitVariant $variant): static { if (!$this->variants->contains($variant)) { $this->variants->add($variant); $variant->setProduitParent($this); } return $this; }
     public function removeVariant(ProduitVariant $variant): static { $this->variants->removeElement($variant); return $this; }

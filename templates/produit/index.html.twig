@@ -34,29 +34,56 @@
                     {% endfor %}
                 </div>
                 <hr style="border-color:#ede5ff">
-                <h6><i class="bi bi-currency-dollar me-2"></i>Prix (TND)</h6>
-                <div class="d-flex gap-2">
-                    <input type="number" class="form-control form-control-sm" placeholder="Min">
-                    <input type="number" class="form-control form-control-sm" placeholder="Max">
-                </div>
-                <button class="btn btn-sm w-100 mt-2 rounded-pill"
-                        style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">
-                    Filtrer
-                </button>
+                <h6><i class="bi bi-search me-2"></i>Recherche</h6>
+                <input type="text"
+                       id="sidebar-search"
+                       class="form-control form-control-sm rounded-pill"
+                       placeholder="Ex: sac, tenue sport..."
+                       style="border-color:#ede5ff;"
+                       oninput="sidebarSearch(this.value)">
+                <div id="sidebar-search-count" class="text-muted small mt-1" style="font-size:0.75rem;"></div>
             </div>
         </div>
 
         {# PRODUITS #}
         <div class="col-lg-9">
-            <div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-left">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3" data-aos="fade-left">
                 <h2 class="section-title mb-0">Boutique</h2>
+
+                {# ── Barre de recherche vocale IA ── #}
+                <div style="display:flex;align-items:center;gap:8px;flex:1;max-width:420px;min-width:220px;">
+                    <div style="position:relative;flex:1;">
+                        <input type="text" id="vocal-input"
+                               placeholder="🔍 Rechercher un produit..."
+                               class="form-control rounded-pill"
+                               style="padding-right:42px;border-color:#ede5ff;font-size:0.9rem;"
+                               oninput="if(this.value.length>2) rechercheVocale(this.value)">
+                        <span id="vocal-spinner" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:0.85rem;">
+                            <i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite;color:var(--primary)"></i>
+                        </span>
+                    </div>
+                    <button id="mic-btn" onclick="startVoice()" title="Recherche vocale IA"
+                            style="width:42px;height:42px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;font-size:1.1rem;cursor:pointer;flex-shrink:0;transition:all .2s;box-shadow:0 2px 8px rgba(108,63,197,0.3)">
+                        🎙️
+                    </button>
+                </div>
+
                 <span class="badge rounded-pill px-3 py-2"
                       style="background:#f0ebff;color:var(--primary)">
-                    {{ produits|length }} produit(s)
+                    <span id="produit-count">{{ produits|length }}</span> produit(s)
                 </span>
             </div>
 
-            <div class="row g-4">
+            {# ── Bandeau résultat vocal ── #}
+            <div id="vocal-banner" style="display:none;margin-bottom:16px;padding:10px 16px;background:#f3eeff;border-radius:12px;border:1px solid #ede5ff;font-size:0.85rem;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                <span>🎙️ Résultats pour : <strong id="vocal-phrase"></strong>
+                    — mots-clés IA : <span id="vocal-keywords" style="color:var(--primary);font-weight:600;"></span>
+                </span>
+                <button onclick="resetRecherche()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:1rem;">✕</button>
+            </div>
+
+            {# ── Grille produits ── #}
+            <div class="row g-4" id="produits-grid">
                 {% for produit in produits %}
                 <div class="col-6 col-md-4" data-aos="fade-up" data-aos-delay="{{ (loop.index0 % 3) * 100 }}">
                     <div class="product-card card h-100">
@@ -106,6 +133,181 @@
 
 {% block javascripts %}
 {{ parent() }}
+<style>
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes micPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(220,53,69,0.6); }
+    70%  { box-shadow: 0 0 0 12px rgba(220,53,69,0); }
+    100% { box-shadow: 0 0 0 0 rgba(220,53,69,0); }
+}
+.mic-listening { background: linear-gradient(135deg,#dc3545,#e74c3c) !important; animation: micPulse 1s infinite !important; }
+</style>
+<script>
+// ── RECHERCHE VOCALE IA ──────────────────────────────────────────────────────
+const VOCAL_URL  = '{{ path('app_produits_vocal') }}';
+let _vocalTimer  = null;
+let _recognition = null;
+let _allProduits = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    _allProduits = document.getElementById('produits-grid').innerHTML;
+});
+
+function startVoice() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        alert('Votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome.');
+        return;
+    }
+    const btn = document.getElementById('mic-btn');
+    _recognition = new SpeechRecognition();
+    _recognition.lang = 'fr-FR';
+    _recognition.interimResults = false;
+    _recognition.maxAlternatives = 1;
+    _recognition.onstart = () => { btn.classList.add('mic-listening'); btn.textContent = '🔴'; };
+    _recognition.onresult = (e) => {
+        const texte = e.results[0][0].transcript;
+        document.getElementById('vocal-input').value = texte;
+        rechercheVocale(texte);
+    };
+    _recognition.onerror = () => { btn.classList.remove('mic-listening'); btn.textContent = '🎙️'; };
+    _recognition.onend   = () => { btn.classList.remove('mic-listening'); btn.textContent = '🎙️'; };
+    _recognition.start();
+}
+
+function rechercheVocale(texte) {
+    clearTimeout(_vocalTimer);
+    if (!texte || texte.length < 2) return;
+    document.getElementById('vocal-spinner').style.display = 'inline';
+    _vocalTimer = setTimeout(() => {
+        const fd = new FormData();
+        fd.append('texte', texte);
+        fetch(VOCAL_URL, { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('vocal-spinner').style.display = 'none';
+                if (data.error) return;
+                afficherResultats(data);
+            })
+            .catch(() => { document.getElementById('vocal-spinner').style.display = 'none'; });
+    }, 600);
+}
+
+function afficherResultats(data) {
+    const grid = document.getElementById('produits-grid');
+    const banner = document.getElementById('vocal-banner');
+    document.getElementById('vocal-phrase').textContent = '"' + data.texte + '"';
+    document.getElementById('vocal-keywords').textContent = (data.keywords || []).join(', ');
+    document.getElementById('produit-count').textContent = data.total;
+    banner.style.display = 'flex';
+    if (data.total === 0) {
+        grid.innerHTML = `<div class="col-12 text-center py-5 text-muted">
+            <div style="font-size:3rem">🔍</div>
+            <p class="mt-3">Aucun produit trouvé pour <strong>"${data.texte}"</strong></p>
+            <button onclick="resetRecherche()" class="btn rounded-pill px-4 mt-2" style="background:var(--primary);color:#fff">Voir tous les produits</button>
+        </div>`;
+        return;
+    }
+    grid.innerHTML = data.produits.map(p => `
+        <div class="col-6 col-md-4">
+            <div class="product-card card h-100">
+                <div class="img-wrap" style="height:200px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#f9f7ff;">
+                    ${p.image ? `<img src="${p.image}" alt="${p.nom}" style="width:100%;height:100%;object-fit:cover">` : `<span style="font-size:4.5rem">🛍️</span>`}
+                </div>
+                <div class="card-body p-3">
+                    <span class="badge-cat mb-2 d-inline-block">${p.categorie || 'Produit'}</span>
+                    <h6 class="card-title">${p.nom}</h6>
+                    <p class="text-muted small mb-2" style="font-size:0.8rem">${p.description}</p>
+                    ${p.prix_min ? `<div class="fw-bold" style="color:var(--primary)">${p.prix_min} TND</div>` : ''}
+                </div>
+                <div class="card-footer bg-transparent border-0 p-3 pt-0">
+                    <a href="${p.url}" class="btn w-100 rounded-pill btn-sm" style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">Voir le produit</a>
+                </div>
+            </div>
+        </div>`).join('');
+}
+
+function resetRecherche() {
+    document.getElementById('vocal-input').value = '';
+    document.getElementById('vocal-banner').style.display = 'none';
+    document.getElementById('produits-grid').innerHTML = _allProduits;
+    document.getElementById('produit-count').textContent = document.querySelectorAll('#produits-grid .col-6').length;
+    // Réinitialiser aussi la recherche sidebar
+    const sb = document.getElementById('sidebar-search');
+    if (sb) sb.value = '';
+    const sc = document.getElementById('sidebar-search-count');
+    if (sc) sc.textContent = '';
+}
+
+// ── RECHERCHE TEXTE SIDEBAR ──────────────────────────────────────────────────
+let _sidebarTimer = null;
+
+function sidebarSearch(texte) {
+    clearTimeout(_sidebarTimer);
+
+    // Réinitialiser la recherche vocale si active
+    document.getElementById('vocal-input').value = '';
+    document.getElementById('vocal-banner').style.display = 'none';
+
+    if (!texte || texte.trim().length < 1) {
+        document.getElementById('produits-grid').innerHTML = _allProduits;
+        document.getElementById('produit-count').textContent =
+            document.querySelectorAll('#produits-grid .col-6').length;
+        document.getElementById('sidebar-search-count').textContent = '';
+        return;
+    }
+
+    _sidebarTimer = setTimeout(() => {
+        const fd = new FormData();
+        fd.append('texte', texte.trim());
+
+        fetch(VOCAL_URL, { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) return;
+
+                document.getElementById('produit-count').textContent = data.total;
+                document.getElementById('sidebar-search-count').textContent =
+                    data.total > 0
+                        ? data.total + ' résultat(s)'
+                        : 'Aucun résultat';
+
+                if (data.total === 0) {
+                    document.getElementById('produits-grid').innerHTML = `
+                        <div class="col-12 text-center py-5 text-muted">
+                            <div style="font-size:3rem">🔍</div>
+                            <p class="mt-3">Aucun produit pour <strong>"${texte}"</strong></p>
+                            <button onclick="resetRecherche()" class="btn rounded-pill px-4 mt-2"
+                                    style="background:var(--primary);color:#fff">Voir tous les produits</button>
+                        </div>`;
+                    return;
+                }
+
+                document.getElementById('produits-grid').innerHTML = data.produits.map(p => `
+                    <div class="col-6 col-md-4">
+                        <div class="product-card card h-100">
+                            <div class="img-wrap" style="height:200px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#f9f7ff;">
+                                ${p.image ? `<img src="${p.image}" alt="${p.nom}" style="width:100%;height:100%;object-fit:cover">` : `<span style="font-size:4.5rem">🛍️</span>`}
+                            </div>
+                            <div class="card-body p-3">
+                                <span class="badge-cat mb-2 d-inline-block">${p.categorie || 'Produit'}</span>
+                                <h6 class="card-title">${p.nom}</h6>
+                                <p class="text-muted small mb-2" style="font-size:0.8rem">${p.description}</p>
+                                ${p.prix_min ? `<div class="fw-bold" style="color:var(--primary)">${p.prix_min} TND</div>` : ''}
+                            </div>
+                            <div class="card-footer bg-transparent border-0 p-3 pt-0">
+                                <a href="${p.url}" class="btn w-100 rounded-pill btn-sm"
+                                   style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">
+                                    Voir le produit
+                                </a>
+                            </div>
+                        </div>
+                    </div>`).join('');
+            })
+            .catch(() => {});
+    }, 400);
+}
+</script>
 <style>
 #chat-widget-btn {
     position: fixed; bottom: 28px; right: 28px; z-index: 9999;

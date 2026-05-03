@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Avis;
 use App\Repository\AvisRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,7 +15,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class AdminAvisController extends AbstractController
 {
     #[Route('', name: 'admin_avis_activites')]
-    public function activites(AvisRepository $repo, Request $request): Response
+    public function activites(AvisRepository $repo, Request $request, \Doctrine\DBAL\Connection $conn): Response
     {
         $search  = $request->query->get('search', '');
         $note    = $request->query->get('note', '');
@@ -42,13 +43,33 @@ final class AdminAvisController extends AbstractController
         $avgResult = $repo->createQueryBuilder('a')->select('AVG(a.rating)')->getQuery()->getSingleScalarResult();
         $moyenne   = round((float)$avgResult, 1);
 
+        // Charger les réponses existantes
+        $reponses = [];
+        if (!empty($avisList)) {
+            $ids  = array_map(fn($a) => $a->getId(), $avisList);
+            $rows = $conn->fetchAllAssociative(
+                'SELECT * FROM avis_reponse WHERE avis_id IN (' . implode(',', $ids) . ')'
+            );
+            foreach ($rows as $row) {
+                $reponses[$row['avis_id']] = $row;
+            }
+        }
+
+        // Charger les noms des activités
+        $activitesMap = [];
+        foreach ($conn->fetchAllAssociative('SELECT id, nom FROM activite ORDER BY nom') as $row) {
+            $activitesMap[$row['id']] = $row['nom'];
+        }
+
         return $this->render('admin/avis/activites.html.twig', [
-            'avisList' => $avisList,
-            'total'    => $repo->count([]),
-            'moyenne'  => $moyenne,
-            'search'   => $search,
-            'note'     => $note,
-            'sort'     => $sort,
+            'avisList'     => $avisList,
+            'total'        => $repo->count([]),
+            'moyenne'      => $moyenne,
+            'search'       => $search,
+            'note'         => $note,
+            'sort'         => $sort,
+            'reponses'     => $reponses,
+            'activitesMap' => $activitesMap,
         ]);
     }
 

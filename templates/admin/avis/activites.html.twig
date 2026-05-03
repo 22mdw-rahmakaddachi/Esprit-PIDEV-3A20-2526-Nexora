@@ -149,6 +149,15 @@
                 {{ avis.titre }}
             </div>
 
+            {# Activité concernée #}
+            {% if avis.activiteId and activitesMap[avis.activiteId] is defined %}
+            <div class="mb-2">
+                <span style="background:#f0ebff;color:var(--primary);border-radius:50px;padding:2px 10px;font-size:0.75rem;font-weight:600;">
+                    <i class="bi bi-calendar-event me-1"></i>{{ activitesMap[avis.activiteId] }}
+                </span>
+            </div>
+            {% endif %}
+
             {# Contenu #}
             <p class="text-muted mb-3 flex-grow-1" style="font-size:0.88rem;line-height:1.7;font-style:italic">
                 "{{ avis.contenu|length > 120 ? avis.contenu|slice(0,120) ~ '…' : avis.contenu }}"
@@ -181,6 +190,90 @@
                 </form>
             </div>
 
+            {# ── Réponse existante ── #}
+            {% if reponses[avis.id] is defined %}
+            {% set rep = reponses[avis.id] %}
+            <div id="reponse-affichee-{{ avis.id }}"
+                 style="margin-top:10px;padding:10px 14px;background:linear-gradient(135deg,#f3eeff,#faf8ff);border-left:3px solid var(--primary);border-radius:10px;">
+                <div style="font-size:0.72rem;font-weight:700;color:var(--primary);margin-bottom:4px;">
+                    🏢 Réponse publiée
+                    <span style="font-weight:400;color:#aaa;margin-left:6px;">{{ rep.created_at|date('d/m/Y') }}</span>
+                </div>
+                <p style="font-size:0.82rem;color:#444;margin:0;line-height:1.5;" id="reponse-texte-{{ avis.id }}">{{ rep.contenu }}</p>
+                <div class="d-flex gap-2 mt-2">
+                    <button onclick="modifierReponse({{ avis.id }})" class="btn btn-sm rounded-pill"
+                            style="background:#f0ebff;color:var(--primary);border:1px solid #d4c5f9;font-size:0.72rem;">
+                        <i class="bi bi-pencil me-1"></i>Modifier
+                    </button>
+                    <button onclick="supprimerReponse({{ avis.id }})" class="btn btn-sm rounded-pill"
+                            style="background:#fde8e8;color:#c0392b;border:none;font-size:0.72rem;">
+                        <i class="bi bi-trash me-1"></i>Supprimer
+                    </button>
+                </div>
+            </div>
+            {% else %}
+            <div id="reponse-affichee-{{ avis.id }}" style="display:none;"></div>
+            {% endif %}
+
+            {# ── Boutons action ── #}
+            <div class="d-flex gap-2 flex-wrap mt-2" id="actions-{{ avis.id }}">
+                {% if reponses[avis.id] is not defined %}
+                <button onclick="ouvrirFormulaire({{ avis.id }})" id="btn-repondre-{{ avis.id }}"
+                        class="btn btn-sm rounded-pill"
+                        style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border:none;font-size:0.75rem;font-weight:600;">
+                    <i class="bi bi-reply me-1"></i>Répondre
+                </button>
+                {% endif %}
+                <button onclick="suggererReponseIA({{ avis.id }}, this)" id="btn-ia-{{ avis.id }}"
+                        class="btn btn-sm rounded-pill"
+                        style="background:linear-gradient(135deg,#f3eeff,#ede5ff);color:var(--primary);border:1px solid #d4c5f9;font-size:0.75rem;font-weight:600;">
+                    <i class="bi bi-magic me-1"></i>💡 Suggestion IA
+                </button>
+            </div>
+
+            {# ── Suggestion IA ── #}
+            <div id="ia-box-{{ avis.id }}" style="display:none;margin-top:10px;">
+                <div id="ia-loading-{{ avis.id }}" style="padding:8px;color:#aaa;font-size:0.78rem;display:none;">
+                    <i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite;margin-right:4px;"></i>Génération en cours…
+                </div>
+                <div id="ia-result-{{ avis.id }}" style="display:none;background:#f9f7ff;border:1.5px solid #ede5ff;border-radius:10px;padding:12px;">
+                    <div style="font-size:0.72rem;font-weight:700;color:var(--primary);margin-bottom:6px;">💡 Réponse suggérée :</div>
+                    <p id="ia-text-{{ avis.id }}" style="font-size:0.82rem;color:#444;line-height:1.5;margin:0;font-style:italic;"></p>
+                    <div class="d-flex gap-2 mt-2">
+                        <button onclick="utiliserSuggestion({{ avis.id }})" class="btn btn-sm rounded-pill"
+                                style="background:linear-gradient(135deg,#28a745,#2ecc71);color:#fff;border:none;font-size:0.72rem;font-weight:600;">
+                            <i class="bi bi-check-circle me-1"></i>Utiliser
+                        </button>
+                        <button onclick="ignorerSuggestion({{ avis.id }})" class="btn btn-sm rounded-pill"
+                                style="background:#f8f9fa;color:#888;border:1px solid #ddd;font-size:0.72rem;">
+                            <i class="bi bi-x me-1"></i>Ignorer
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {# ── Formulaire de réponse ── #}
+            <div id="form-{{ avis.id }}" style="display:none;margin-top:10px;">
+                <textarea id="textarea-{{ avis.id }}" class="form-control" rows="3" maxlength="1000"
+                          placeholder="Rédigez votre réponse…"
+                          style="font-size:0.82rem;border-color:#ede5ff;border-radius:10px;resize:vertical;"
+                          oninput="updateCount({{ avis.id }}, this.value.length)"></textarea>
+                <div class="d-flex justify-content-between align-items-center mt-1">
+                    <span id="count-{{ avis.id }}" style="font-size:0.7rem;color:#aaa;">0 / 1000</span>
+                    <span id="err-{{ avis.id }}" style="font-size:0.72rem;color:#dc3545;display:none;"></span>
+                </div>
+                <div class="d-flex gap-2 mt-2">
+                    <button onclick="envoyerReponse({{ avis.id }})" class="btn btn-sm rounded-pill"
+                            style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border:none;font-size:0.75rem;font-weight:600;">
+                        <i class="bi bi-send me-1"></i>Publier
+                    </button>
+                    <button onclick="annulerFormulaire({{ avis.id }})" class="btn btn-sm rounded-pill"
+                            style="background:#f8f9fa;color:#888;border:1px solid #ddd;font-size:0.75rem;">
+                        Annuler
+                    </button>
+                </div>
+            </div>
+
         </div>
     </div>
     {% endfor %}
@@ -192,8 +285,138 @@
 
 {% block javascripts %}
 {{ parent() }}
+<style>
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+</style>
 <script>
-// Recherche dynamique côté client (filtre instantané sans rechargement)
+// ── Formulaire de réponse ────────────────────────────────────────────────────
+function ouvrirFormulaire(id) {
+    document.getElementById('form-' + id).style.display = 'block';
+    const btn = document.getElementById('btn-repondre-' + id);
+    if (btn) btn.style.display = 'none';
+    document.getElementById('textarea-' + id).focus();
+}
+
+function annulerFormulaire(id) {
+    document.getElementById('form-' + id).style.display = 'none';
+    const btn = document.getElementById('btn-repondre-' + id);
+    if (btn) btn.style.display = 'inline-flex';
+}
+
+function updateCount(id, len) {
+    document.getElementById('count-' + id).textContent = len + ' / 1000';
+}
+
+function modifierReponse(id) {
+    const texteEl = document.getElementById('reponse-texte-' + id);
+    const texte   = texteEl ? texteEl.textContent.trim() : '';
+    document.getElementById('textarea-' + id).value = texte;
+    updateCount(id, texte.length);
+    document.getElementById('reponse-affichee-' + id).style.display = 'none';
+    document.getElementById('form-' + id).style.display = 'block';
+}
+
+function envoyerReponse(id) {
+    const contenu = document.getElementById('textarea-' + id).value.trim();
+    const errEl   = document.getElementById('err-' + id);
+    if (contenu.length < 5) {
+        errEl.textContent = 'Minimum 5 caractères.';
+        errEl.style.display = 'inline';
+        return;
+    }
+    errEl.style.display = 'none';
+
+    const fd = new FormData();
+    fd.append('contenu', contenu);
+
+    fetch('/avis/' + id + '/repondre', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                errEl.textContent = data.error;
+                errEl.style.display = 'inline';
+                return;
+            }
+            const repBox = document.getElementById('reponse-affichee-' + id);
+            repBox.innerHTML = `
+                <div style="margin-top:10px;padding:10px 14px;background:linear-gradient(135deg,#f3eeff,#faf8ff);border-left:3px solid var(--primary);border-radius:10px;">
+                    <div style="font-size:0.72rem;font-weight:700;color:var(--primary);margin-bottom:4px;">
+                        🏢 Réponse publiée <span style="font-weight:400;color:#aaa;margin-left:6px;">${data.created_at}</span>
+                    </div>
+                    <p style="font-size:0.82rem;color:#444;margin:0;line-height:1.5;" id="reponse-texte-${id}">${data.contenu}</p>
+                    <div class="d-flex gap-2 mt-2">
+                        <button onclick="modifierReponse(${id})" class="btn btn-sm rounded-pill" style="background:#f0ebff;color:var(--primary);border:1px solid #d4c5f9;font-size:0.72rem;"><i class="bi bi-pencil me-1"></i>Modifier</button>
+                        <button onclick="supprimerReponse(${id})" class="btn btn-sm rounded-pill" style="background:#fde8e8;color:#c0392b;border:none;font-size:0.72rem;"><i class="bi bi-trash me-1"></i>Supprimer</button>
+                    </div>
+                </div>`;
+            repBox.style.display = 'block';
+            document.getElementById('form-' + id).style.display = 'none';
+            const btn = document.getElementById('btn-repondre-' + id);
+            if (btn) btn.style.display = 'none';
+        })
+        .catch(() => { errEl.textContent = 'Erreur.'; errEl.style.display = 'inline'; });
+}
+
+function supprimerReponse(id) {
+    if (!confirm('Supprimer cette réponse ?')) return;
+    fetch('/avis/' + id + '/reponse/supprimer', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('reponse-affichee-' + id).innerHTML = '';
+                document.getElementById('reponse-affichee-' + id).style.display = 'none';
+                const actions = document.getElementById('actions-' + id);
+                if (!document.getElementById('btn-repondre-' + id)) {
+                    const btn = document.createElement('button');
+                    btn.id = 'btn-repondre-' + id;
+                    btn.innerHTML = '<i class="bi bi-reply me-1"></i>Répondre';
+                    btn.className = 'btn btn-sm rounded-pill';
+                    btn.style.cssText = 'background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border:none;font-size:0.75rem;font-weight:600;';
+                    btn.onclick = () => ouvrirFormulaire(id);
+                    actions.prepend(btn);
+                } else {
+                    document.getElementById('btn-repondre-' + id).style.display = 'inline-flex';
+                }
+            }
+        });
+}
+
+// ── Suggestion IA ────────────────────────────────────────────────────────────
+function suggererReponseIA(id, btn) {
+    const box     = document.getElementById('ia-box-' + id);
+    const loading = document.getElementById('ia-loading-' + id);
+    const result  = document.getElementById('ia-result-' + id);
+    box.style.display     = 'block';
+    loading.style.display = 'block';
+    result.style.display  = 'none';
+    btn.disabled          = true;
+
+    const fd = new FormData();
+    fetch('/avis/' + id + '/suggerer-reponse', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            loading.style.display = 'none';
+            if (data.error) { box.innerHTML = '<div style="color:#dc3545;font-size:0.78rem;padding:6px;">❌ ' + data.error + '</div>'; return; }
+            document.getElementById('ia-text-' + id).textContent = data.reponse;
+            result.style.display = 'block';
+            btn.disabled = false;
+        })
+        .catch(() => { loading.style.display = 'none'; btn.disabled = false; });
+}
+
+function utiliserSuggestion(id) {
+    const texte = document.getElementById('ia-text-' + id).textContent;
+    document.getElementById('textarea-' + id).value = texte;
+    updateCount(id, texte.length);
+    document.getElementById('ia-box-' + id).style.display = 'none';
+    ouvrirFormulaire(id);
+}
+
+function ignorerSuggestion(id) {
+    document.getElementById('ia-box-' + id).style.display = 'none';
+}
+
+// Recherche dynamique côté client
 const searchInput = document.getElementById('search-input');
 if (searchInput) {
     searchInput.addEventListener('input', function() {
@@ -203,7 +426,6 @@ if (searchInput) {
             const contenu = card.dataset.contenu || '';
             card.style.display = (!q || titre.includes(q) || contenu.includes(q)) ? '' : 'none';
         });
-        // Mise à jour compteur
         const visible = document.querySelectorAll('.avis-item:not([style*="none"])').length;
         const counter = document.querySelector('#avis-grid')?.previousElementSibling?.querySelector('strong');
         if (counter) counter.textContent = visible;

@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\ParticipationDemande;
 use App\Entity\Users;
 use App\Repository\ActiviteRepository;
+use App\Repository\AvisRepository;
 use App\Repository\NotificationRepository;
 use App\Repository\ParticipationDemandeRepository;
 use App\Repository\PartenaireRepository;
@@ -191,5 +192,41 @@ final class ParticipationController extends AbstractController
         $emailService->sendRefus($demande);
         $this->addFlash('info', '❌ Demande refusée.');
         return $this->redirectToRoute('app_partenaire_demandes');
+    }
+
+    // ── AVIS DU PARTENAIRE ────────────────────────────────────────────────────
+
+    #[Route('/partenaire/avis', name: 'app_partenaire_avis')]
+    public function partenaireAvis(
+        AvisRepository $avisRepo,
+        ActiviteRepository $activiteRepo,
+        PartenaireRepository $partenaireRepo,
+        \Doctrine\DBAL\Connection $conn
+    ): Response {
+        $avisList = $avisRepo->findLatest(100);
+
+        // Charger les réponses existantes
+        $reponses = [];
+        if (!empty($avisList)) {
+            $ids  = array_map(fn($a) => $a->getId(), $avisList);
+            $rows = $conn->fetchAllAssociative(
+                'SELECT * FROM avis_reponse WHERE avis_id IN (' . implode(',', $ids) . ')'
+            );
+            foreach ($rows as $row) {
+                $reponses[$row['avis_id']] = $row;
+            }
+        }
+
+        $total   = count($avisList);
+        $moyenne = $total > 0
+            ? round(array_sum(array_map(fn($a) => $a->getRating(), $avisList)) / $total, 1)
+            : 0;
+
+        return $this->render('partenaire/avis.html.twig', [
+            'avisList' => $avisList,
+            'reponses' => $reponses,
+            'total'    => $total,
+            'moyenne'  => $moyenne,
+        ]);
     }
 }

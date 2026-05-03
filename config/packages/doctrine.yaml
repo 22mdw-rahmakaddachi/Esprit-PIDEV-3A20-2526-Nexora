@@ -12,6 +12,8 @@ doctrine:
             enum: Doctrine\DBAL\Types\StringType
         mapping_types:
             enum: string
+        # Tables gérées manuellement (non mappées par des entités Doctrine)
+        schema_filter: ~^(?!pub_notification|publication_commentaire|publication_reaction|publication_warning)~
     orm:
         auto_generate_proxy_classes: true
         enable_lazy_ghost_objects: true

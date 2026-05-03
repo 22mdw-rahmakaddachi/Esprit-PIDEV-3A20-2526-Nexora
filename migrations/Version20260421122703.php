@@ -20,11 +20,18 @@ final class Version20260421122703 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
+        // Tables déjà supprimées — on ignore si elles n'existent plus
+        $this->skipIf(
+            !$this->connection->createSchemaManager()->tablesExist(['publication_commentaire']),
+            'publication_commentaire already dropped'
+        );
         $this->addSql('ALTER TABLE publication_commentaire DROP FOREIGN KEY FK_PUB_COMM');
         $this->addSql('ALTER TABLE publication_reaction DROP FOREIGN KEY FK_PUB_REAC');
         $this->addSql('DROP TABLE publication_commentaire');
         $this->addSql('DROP TABLE publication_reaction');
+        $this->addSql('ALTER TABLE activite DROP FOREIGN KEY FK_B875551598DE13AC');
         $this->addSql('ALTER TABLE activite CHANGE partenaire_id partenaire_id INT NOT NULL, CHANGE date_activite date_activite DATETIME DEFAULT NULL, CHANGE created_at created_at DATETIME DEFAULT NULL');
+        $this->addSql('ALTER TABLE activite ADD CONSTRAINT FK_B875551598DE13AC FOREIGN KEY (partenaire_id) REFERENCES partenaire (id)');
         $this->addSql('ALTER TABLE candidature CHANGE created_at created_at DATETIME DEFAULT NULL');
         $this->addSql('ALTER TABLE code_promo CHANGE date_creation date_creation DATETIME DEFAULT NULL');
         $this->addSql('ALTER TABLE commande_item CHANGE produit_nom produit_nom VARCHAR(255) NOT NULL');

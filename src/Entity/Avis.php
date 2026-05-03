@@ -18,6 +18,9 @@ class Avis
     #[ORM\Column(name: 'user_id', type: 'integer')]
     private int $userId = 0;
 
+    #[ORM\Column(name: 'activite_id', type: 'integer', nullable: true)]
+    private ?int $activiteId = null;
+
     #[ORM\Column(type: 'integer')]
     #[Assert\Range(min: 1, max: 5, notInRangeMessage: 'La note doit être entre 1 et 5.')]
     #[Assert\NotBlank(message: 'La note est obligatoire.')]
@@ -56,6 +59,9 @@ class Avis
     public function getUserId(): int { return $this->userId; }
     public function setUserId(int $userId): static { $this->userId = $userId; return $this; }
 
+    public function getActiviteId(): ?int { return $this->activiteId; }
+    public function setActiviteId(?int $activiteId): static { $this->activiteId = $activiteId; return $this; }
+
     public function getRating(): int { return $this->rating; }
     public function setRating(int $rating): static { $this->rating = $rating; return $this; }
 
@@ -79,13 +85,6 @@ class Avis
     /** Alias: auteur — stored as userId, display as "User #id" */
     public function getAuteur(): string { return 'User #' . $this->userId; }
     public function setAuteur(string $auteur): static { return $this; }
-
-    /** Not in DB — kept for template compatibility */
-    public function getActiviteId(): int { return 0; }
-    public function setActiviteId(int $activiteId): static { return $this; }
-
-    public function getActiviteNom(): ?string { return null; }
-    public function setActiviteNom(?string $activiteNom): static { return $this; }
 
     public function getImage(): ?string { return $this->image; }
     public function setImage(?string $image): static { $this->image = $image; return $this; }

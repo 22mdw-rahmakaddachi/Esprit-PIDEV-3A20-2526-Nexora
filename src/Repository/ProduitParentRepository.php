@@ -32,7 +32,34 @@ class ProduitParentRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
-    /** Produits d'un partenaire */
+    /** Recherche par mots-clés (nom, description, marque) */
+    public function searchByKeywords(array $keywords): array
+    {
+        if (empty($keywords)) {
+            return $this->findActifs();
+        }
+
+        $qb = $this->createQueryBuilder('p')
+            ->where('p.statut = :statut')
+            ->setParameter('statut', 'actif');
+
+        $orX = $qb->expr()->orX();
+        foreach ($keywords as $i => $kw) {
+            $param = 'kw' . $i;
+            $orX->add($qb->expr()->orX(
+                $qb->expr()->like('LOWER(p.nom)',          ':' . $param),
+                $qb->expr()->like('LOWER(p.description)',  ':' . $param),
+                $qb->expr()->like('LOWER(p.marque)',       ':' . $param),
+                $qb->expr()->like('LOWER(p.descriptionCourte)', ':' . $param)
+            ));
+            $qb->setParameter($param, '%' . strtolower($kw) . '%');
+        }
+
+        return $qb->andWhere($orX)
+            ->orderBy('p.dateAjout', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
     public function findByPartenaire(int $partenaireId): array
     {
         return $this->createQueryBuilder('p')

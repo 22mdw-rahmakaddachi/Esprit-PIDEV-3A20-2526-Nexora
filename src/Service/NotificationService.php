@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\ParticipationDemande;
 use Doctrine\DBAL\Connection;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
@@ -29,9 +30,12 @@ class NotificationService
         ?string $relatedType = null
     ): void {
         $titre = match($type) {
-            'comment'  => '💬 Nouveau commentaire',
-            'reaction' => '❤️ Nouvelle réaction',
-            default    => '🔔 Notification',
+            'comment'    => '💬 Nouveau commentaire',
+            'reaction'   => '❤️ Nouvelle réaction',
+            'demande'    => '📋 Nouvelle demande de participation',
+            'acceptation'=> '✅ Demande acceptée',
+            'refus'      => '❌ Demande refusée',
+            default      => '🔔 Notification',
         };
 
         // ── 1. Stocker en base pour la cloche temps réel ──
@@ -140,6 +144,59 @@ class NotificationService
         return $this->conn->fetchAllAssociative(
             'SELECT * FROM pub_notification WHERE user_id = ? ORDER BY id DESC LIMIT ?',
             [$userId, $limit]
+        );
+    }
+
+    /**
+     * Notifie le partenaire qu'une nouvelle demande de participation a été soumise.
+     */
+    public function notifyNouvelleDemandePartenaire(ParticipationDemande $demande, int $partenaireUserId): void
+    {
+        $activiteNom = $demande->getActivite()?->getNom() ?? 'une activité';
+        $clientNom   = $demande->getClientNom();
+
+        $message = "📋 {$clientNom} a soumis une demande de participation pour « {$activiteNom} ».";
+
+        $this->create(
+            $partenaireUserId,
+            'demande',
+            $message,
+            $demande->getId(),
+            'participation_demande'
+        );
+    }
+
+    /**
+     * Notifie le client que sa demande a été acceptée.
+     */
+    public function notifyAcceptation(ParticipationDemande $demande): void
+    {
+        $activiteNom = $demande->getActivite()?->getNom() ?? 'une activité';
+        $message     = "✅ Votre demande de participation pour « {$activiteNom} » a été acceptée !";
+
+        $this->create(
+            $demande->getClientId(),
+            'acceptation',
+            $message,
+            $demande->getId(),
+            'participation_demande'
+        );
+    }
+
+    /**
+     * Notifie le client que sa demande a été refusée.
+     */
+    public function notifyRefus(ParticipationDemande $demande): void
+    {
+        $activiteNom = $demande->getActivite()?->getNom() ?? 'une activité';
+        $message     = "❌ Votre demande de participation pour « {$activiteNom} » a été refusée.";
+
+        $this->create(
+            $demande->getClientId(),
+            'refus',
+            $message,
+            $demande->getId(),
+            'participation_demande'
         );
     }
 }
