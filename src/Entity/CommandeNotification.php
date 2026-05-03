@@ -30,7 +30,7 @@ class CommandeNotification
     private string $details = '';
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
-    private float $montant = 0.0;
+    private string $montant = '0.00';
 
     #[ORM\Column(type: 'boolean')]
     private bool $lue = false;
@@ -60,8 +60,8 @@ class CommandeNotification
     public function getDetails(): string { return $this->details; }
     public function setDetails(string $v): static { $this->details = $v; return $this; }
 
-    public function getMontant(): float { return $this->montant; }
-    public function setMontant(float $v): static { $this->montant = $v; return $this; }
+    public function getMontant(): float { return (float)$this->montant; }
+    public function setMontant(float $v): static { $this->montant = (string)$v; return $this; }
 
     public function isLue(): bool { return $this->lue; }
     public function setLue(bool $v): static { $this->lue = $v; return $this; }

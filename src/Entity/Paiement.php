@@ -27,7 +27,7 @@ class Paiement
     private ?int $activiteId = null;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
-    private float $montant = 0.0;
+    private string $montant = '0.00';
 
     #[ORM\Column(length: 100)]
     private string $methodePaiement = '';
@@ -104,12 +104,12 @@ class Paiement
 
     public function getMontant(): float
     {
-        return $this->montant;
+        return (float)$this->montant;
     }
 
     public function setMontant(float $montant): static
     {
-        $this->montant = $montant;
+        $this->montant = (string)$montant;
         return $this;
     }
 

@@ -27,7 +27,7 @@ class Panier
     private ?string $produitNom = null;
 
     #[ORM\Column(type: 'decimal', nullable: true, precision: 10, scale: 2)]
-    private ?float $prixUnitaire = null;
+    private ?string $prixUnitaire = null;
 
     #[ORM\Column(type: 'integer')]
     private int $quantite = 0;
@@ -86,12 +86,12 @@ class Panier
 
     public function getPrixUnitaire(): ?float
     {
-        return $this->prixUnitaire;
+        return $this->prixUnitaire !== null ? (float)$this->prixUnitaire : null;
     }
 
     public function setPrixUnitaire(?float $prixUnitaire): static
     {
-        $this->prixUnitaire = $prixUnitaire;
+        $this->prixUnitaire = $prixUnitaire !== null ? (string)$prixUnitaire : null;
         return $this;
     }
 

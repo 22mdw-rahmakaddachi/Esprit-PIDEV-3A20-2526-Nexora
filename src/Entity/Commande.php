@@ -24,7 +24,7 @@ class Commande
     private ?\DateTimeInterface $dateCommande = null;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
-    private float $total = 0.0;
+    private string $total = '0.00';
 
     #[ORM\Column(nullable: true, length: 50)]
     private ?string $statut = null;
@@ -69,12 +69,12 @@ class Commande
 
     public function getTotal(): float
     {
-        return $this->total;
+        return (float)$this->total;
     }
 
     public function setTotal(float $total): static
     {
-        $this->total = $total;
+        $this->total = (string)$total;
         return $this;
     }
 

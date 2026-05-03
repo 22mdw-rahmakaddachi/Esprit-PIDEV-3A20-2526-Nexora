@@ -21,7 +21,7 @@ class UserWarnings
     private ?int $warningCount = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?int $isBlocked = null;
+    private ?bool $isBlocked = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $lastWarningAt = null;
@@ -56,12 +56,12 @@ class UserWarnings
         return $this;
     }
 
-    public function getIsBlocked(): ?int
+    public function getIsBlocked(): ?bool
     {
         return $this->isBlocked;
     }
 
-    public function setIsBlocked(?int $isBlocked): static
+    public function setIsBlocked(?bool $isBlocked): static
     {
         $this->isBlocked = $isBlocked;
         return $this;

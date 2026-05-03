@@ -46,3 +46,9 @@ services:
     App\Service\FingerprintBridgeService:
         arguments:
             $bridgeUrl: '%env(FINGERPRINT_BRIDGE_URL)%'
+
+    App\Controller\GoogleAuthController:
+        arguments:
+            $googleClientId:     '%env(GOOGLE_CLIENT_ID)%'
+            $googleClientSecret: '%env(GOOGLE_CLIENT_SECRET)%'
+        tags: ['controller.service_arguments']

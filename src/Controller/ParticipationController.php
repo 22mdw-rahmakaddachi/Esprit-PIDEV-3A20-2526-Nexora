@@ -70,10 +70,22 @@ final class ParticipationController extends AbstractController
     #[Route('/activites/{id}/inscrire', name: 'app_activite_inscrire', methods: ['POST'])]
     public function inscrire(int $id, Request $request, ActiviteRepository $activiteRepo, ParticipationDemandeRepository $demandeRepo, EntityManagerInterface $em, NotificationService $notif, ActivityEmailService $emailService): Response
     {
+        // Vérifier que l'utilisateur est connecté
+        if (!$this->getUser()) {
+            $this->addFlash('warning', 'Vous devez être connecté pour vous inscrire à une activité.');
+            return $this->redirectToRoute('app_login');
+        }
+
         $activite = $activiteRepo->find($id);
         if (!$activite) throw $this->createNotFoundException();
 
         $client = $this->getClientData();
+
+        // Sécurité supplémentaire : s'assurer que l'ID est valide
+        if ($client['id'] <= 0) {
+            $this->addFlash('danger', 'Impossible de récupérer votre identifiant. Veuillez vous reconnecter.');
+            return $this->redirectToRoute('app_login');
+        }
 
         if ($demandeRepo->findExisting($id, $client['id'])) {
             $this->addFlash('warning', 'Vous avez déjà une demande pour cette activité.');

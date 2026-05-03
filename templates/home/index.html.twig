@@ -107,6 +107,63 @@
     </div>
 </section>
 
+{# ══════════════════════════════════════════
+   FORMULAIRE PUBLICATION RAPIDE
+══════════════════════════════════════════ #}
+<section class="py-4" style="background:#f9f7ff;border-top:1px solid var(--border)">
+    <div class="container">
+        <div class="rounded-4 p-4" style="background:#fff;box-shadow:var(--card-shadow);border:1px solid var(--border)" data-aos="fade-up">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;flex-shrink:0">
+                    {{ app.user ? app.user.prenom|first|upper : '👤' }}
+                </div>
+                <div>
+                    <div class="fw-bold" style="color:var(--primary-dark)">Partagez avec la communauté</div>
+                    <div class="text-muted small">Racontez votre aventure, partagez une photo...</div>
+                </div>
+                <a href="{{ path('app_publications') }}" class="ms-auto btn btn-sm rounded-pill fw-semibold"
+                   style="background:#f0ebff;color:var(--primary);border:none;font-size:0.8rem">
+                    <i class="bi bi-grid me-1"></i>Voir tout
+                </a>
+            </div>
+            <form action="{{ path('app_publication_new') }}" method="POST" enctype="multipart/form-data">
+                <div class="row g-2">
+                    {% if not app.user %}
+                    <div class="col-12 text-center py-2">
+                        <a href="{{ path('app_login') }}" class="btn rounded-pill fw-semibold px-4"
+                           style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">
+                            <i class="bi bi-person-circle me-2"></i>Connectez-vous pour publier
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="col">
+                        <input type="text" name="contenu" class="form-control rounded-3"
+                               placeholder="Quoi de neuf ? Partagez votre expérience..." required
+                               style="border-color:var(--border);font-size:0.88rem">
+                    </div>
+                    <div class="col-auto">
+                        <label class="btn rounded-3" style="background:#f0ebff;color:var(--primary);border:none;cursor:pointer;padding:9px 14px" title="Ajouter une photo">
+                            <i class="bi bi-image fs-5"></i>
+                            <input type="file" name="image" accept="image/*" style="display:none"
+                                   onchange="document.getElementById('pub-filename').textContent = this.files[0]?.name ?? ''">
+                        </label>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn rounded-3 fw-semibold"
+                                style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:9px 20px">
+                            <i class="bi bi-send me-1"></i>Publier
+                        </button>
+                    </div>
+                    <div class="col-12">
+                        <span id="pub-filename" class="text-muted small"></span>
+                    </div>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
 {# PRODUITS VEDETTES #}
 <section class="py-5">
     <div class="container">
@@ -401,6 +458,71 @@
 </section>
 {% endif %}
 
+{# ══════════════════════════════════════════
+   PUBLICATIONS COMMUNAUTÉ
+══════════════════════════════════════════ #}
+{% if publications is defined and publications|length > 0 %}
+<section class="py-5" id="publications" style="background:#f9f7ff">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4" data-aos="fade-right">
+            <div>
+                <h2 class="section-title mb-1">Communauté</h2>
+                <p class="text-muted small mb-0">Ce que partagent nos aventuriers</p>
+            </div>
+            <a href="{{ path('app_publications') }}" class="text-decoration-none fw-semibold" style="color:var(--primary)">
+                Voir tout <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        <div class="row g-4">
+            {% for pub in publications %}
+            <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="{{ loop.index * 80 }}">
+                <div class="card h-100 border-0 rounded-4" style="box-shadow:var(--card-shadow);transition:transform .2s,box-shadow .2s"
+                     onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='var(--card-shadow-hover)'"
+                     onmouseout="this.style.transform='';this.style.boxShadow='var(--card-shadow)'">
+                    {% if pub.image %}
+                    <img src="/uploads/publications/{{ pub.image }}" alt="publication"
+                         class="card-img-top rounded-top-4"
+                         style="height:180px;object-fit:cover">
+                    {% endif %}
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.9rem;flex-shrink:0">
+                                {{ pub.auteur|first|upper }}
+                            </div>
+                            <div>
+                                <div class="fw-semibold small" style="color:var(--primary-dark)">{{ pub.auteur }}</div>
+                                <div class="text-muted" style="font-size:0.72rem">
+                                    <i class="bi bi-clock me-1"></i>{{ pub.created_at|date('d/m/Y') }}
+                                </div>
+                            </div>
+                        </div>
+                        <p class="card-text small text-muted mb-3" style="line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">
+                            {{ pub.contenu }}
+                        </p>
+                        <div class="d-flex align-items-center gap-3" style="font-size:0.8rem;color:#888">
+                            <span><i class="bi bi-heart me-1" style="color:var(--accent)"></i>{{ pub.total_reactions }}</span>
+                            <span><i class="bi bi-chat me-1" style="color:var(--primary)"></i>{{ pub.commentaires_count }}</span>
+                            <a href="{{ path('app_publications') }}" class="ms-auto text-decoration-none fw-semibold" style="color:var(--primary);font-size:0.78rem">
+                                Voir <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {# Lien vers toutes les publications #}
+        <div class="text-center mt-4" data-aos="fade-up">
+            <a href="{{ path('app_publications') }}" class="btn rounded-pill fw-semibold px-4"
+               style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">
+                <i class="bi bi-grid me-2"></i>Voir toutes les publications
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
 {# CTA BANNER #}
 <section class="py-5" data-aos="zoom-in">
     <div class="container">
@@ -418,6 +540,62 @@
     </div>
 </section>
 
+{# ══════════════════════════════════════════
+   BOUTON QR CODE FLOTTANT
+══════════════════════════════════════════ #}
+<div id="qr-fab" onclick="document.getElementById('qr-modal').style.display='flex'"
+     title="Scanner pour ouvrir sur mobile"
+     style="position:fixed;bottom:30px;right:30px;z-index:9999;
+            width:56px;height:56px;border-radius:50%;
+            background:linear-gradient(135deg,var(--primary-dark),var(--accent));
+            box-shadow:0 4px 20px rgba(108,63,197,0.5);
+            cursor:pointer;display:flex;align-items:center;justify-content:center;
+            transition:transform .2s,box-shadow .2s"
+     onmouseover="this.style.transform='scale(1.12)';this.style.boxShadow='0 6px 28px rgba(108,63,197,0.7)'"
+     onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 20px rgba(108,63,197,0.5)'">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/>
+        <rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/>
+        <rect x="18" y="18" width="3" height="3"/>
+    </svg>
+</div>
+
+{# MODAL QR CODE #}
+<div id="qr-modal"
+     onclick="if(event.target===this)this.style.display='none'"
+     style="display:none;position:fixed;inset:0;z-index:10000;
+            background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);
+            align-items:center;justify-content:center">
+    <div style="background:#fff;border-radius:24px;padding:36px 40px;text-align:center;
+                box-shadow:0 20px 60px rgba(0,0,0,0.3);max-width:320px;width:90%;
+                animation:qrPop .25s ease">
+        <button onclick="document.getElementById('qr-modal').style.display='none'"
+                style="position:absolute;top:12px;right:16px;background:none;border:none;
+                       font-size:1.4rem;cursor:pointer;color:#999;line-height:1">×</button>
+        <div style="font-size:2rem;margin-bottom:8px">📱</div>
+        <h5 style="margin:0 0 4px;color:#1a1a2e;font-weight:700">Ouvrir sur mobile</h5>
+        <p style="color:#888;font-size:0.82rem;margin:0 0 20px">Scannez ce QR code avec votre téléphone</p>
+        <div id="qrcode" style="display:inline-block;padding:12px;background:#f8f5ff;border-radius:16px;border:2px solid #e8deff"></div>
+        <p style="color:#aaa;font-size:0.75rem;margin:16px 0 0">
+            <i class="bi bi-shield-check me-1" style="color:#6c3fc5"></i>NEXORA — Votre aventure commence ici
+        </p>
+        {# Toggle localhost / mobile #}
+        <div style="margin-top:14px;display:flex;gap:8px;justify-content:center">
+            <button onclick="setQrUrl('http://localhost:8000')"
+                    id="btn-local"
+                    style="padding:6px 16px;border-radius:50px;border:2px solid #6c3fc5;background:#6c3fc5;color:#fff;font-size:0.78rem;font-weight:600;cursor:pointer">
+                💻 Localhost
+            </button>
+            <button onclick="setQrUrl('http://192.168.137.231:9000')"
+                    id="btn-mobile"
+                    style="padding:6px 16px;border-radius:50px;border:2px solid #6c3fc5;background:#fff;color:#6c3fc5;font-size:0.78rem;font-weight:600;cursor:pointer">
+                📱 Mobile
+            </button>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block javascripts %}
@@ -431,7 +609,37 @@
         0%, 100% { box-shadow: 0 0 0 0 rgba(231,76,60,0.5); }
         50%       { box-shadow: 0 0 0 8px rgba(231,76,60,0); }
     }
+    @keyframes qrPop {
+        from { transform: scale(0.85); opacity: 0; }
+        to   { transform: scale(1);    opacity: 1; }
+    }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+function setQrUrl(url) {
+    var container = document.getElementById('qrcode');
+    container.innerHTML = '';
+    new QRCode(container, {
+        text: url,
+        width: 180,
+        height: 180,
+        colorDark: '#3d1a8e',
+        colorLight: '#f8f5ff',
+        correctLevel: QRCode.CorrectLevel.H
+    });
+    var isLocal = url.indexOf('localhost') !== -1;
+    var btnLocal  = document.getElementById('btn-local');
+    var btnMobile = document.getElementById('btn-mobile');
+    if (btnLocal && btnMobile) {
+        btnLocal.style.background  = isLocal ? '#6c3fc5' : '#fff';
+        btnLocal.style.color       = isLocal ? '#fff'    : '#6c3fc5';
+        btnMobile.style.background = isLocal ? '#fff'    : '#6c3fc5';
+        btnMobile.style.color      = isLocal ? '#6c3fc5' : '#fff';
+    }
+}
+// Par défaut : mobile
+setQrUrl('http://192.168.137.231:9000');
+</script>
 <script>
 // -- Reconnaissance vocale --
 let recognition = null;
@@ -545,6 +753,7 @@ document.addEventListener('click', function(e) {
     }
 });
 </script>
+<script>
 (function () {
     const plane  = document.getElementById('plane');
     const canvas = document.getElementById('trail-canvas');

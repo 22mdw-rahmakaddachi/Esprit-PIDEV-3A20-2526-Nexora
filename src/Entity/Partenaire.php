@@ -47,7 +47,7 @@ class Partenaire
     private ?\DateTimeInterface $dateValidation = null;
 
     #[ORM\Column(type: 'decimal', nullable: true, precision: 5, scale: 2)]
-    private ?float $commission = null;
+    private ?string $commission = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $dateInscription = null;
@@ -169,12 +169,12 @@ class Partenaire
 
     public function getCommission(): ?float
     {
-        return $this->commission;
+        return $this->commission !== null ? (float)$this->commission : null;
     }
 
     public function setCommission(?float $commission): static
     {
-        $this->commission = $commission;
+        $this->commission = $commission !== null ? (string)$commission : null;
         return $this;
     }
 

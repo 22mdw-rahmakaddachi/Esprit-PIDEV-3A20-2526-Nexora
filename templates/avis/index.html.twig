@@ -52,18 +52,39 @@
             <h5 class="fw-bold mb-4" style="color:var(--primary-dark)">
                 <i class="bi bi-plus-circle-fill me-2" style="color:var(--primary)"></i>Laisser un avis
             </h5>
-            <form method="POST" action="{{ path('app_avis_new_public') }}">
+            <form method="POST" action="{{ path('app_avis_new_public') }}" enctype="multipart/form-data" novalidate>
+                {% set old = app.session.get('avis_old', {}) %}
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label small fw-semibold" style="color:var(--primary-dark)">Titre <span class="text-danger">*</span></label>
-                        <input type="text" name="titre" id="avis-titre" class="form-control" placeholder="Résumé de votre avis" required>
+                        <div style="position:relative;">
+                            <input type="text" name="titre" id="avis-titre" 
+                                   class="form-control" 
+                                   placeholder="Résumé de votre avis"
+                                   value="{{ old.titre ?? '' }}"
+                                   style="{% if app.session.flashBag.peek('error_titre') is not empty %}border:1px solid #dc3545 !important;background:#fff;padding-right:40px;border-radius:8px;{% elseif old.titre is defined and old.titre|length >= 3 %}border:1px solid #28a745 !important;border-radius:8px;{% else %}border-radius:8px;{% endif %}">
+                            {% if app.session.flashBag.peek('error_titre') is not empty %}
+                            <i class="bi bi-exclamation-circle-fill" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#dc3545;font-size:1.1rem;"></i>
+                            {% endif %}
+                        </div>
+                        {% for error in app.flashes('error_titre') %}
+                        <div style="display:flex;align-items:flex-start;gap:6px;margin-top:6px;font-size:0.8rem;color:#dc3545;">
+                            <i class="bi bi-exclamation-triangle-fill" style="margin-top:2px;"></i>
+                            <span>{{ error }}</span>
+                        </div>
+                        {% endfor %}
                     </div>
                     <div class="col-md-3">
                         <label class="form-label small fw-semibold" style="color:var(--primary-dark)">Note <span class="text-danger">*</span></label>
-                        <div class="star-rating-input" id="star-rating">
+                        <div class="star-rating-input" id="star-rating" style="{% if app.session.flashBag.peek('error_note') is not empty %}border:2px solid #e74c3c;border-radius:50px;{% endif %}">
                             {% for i in 1..5 %}<span class="star active" data-value="{{ i }}">★</span>{% endfor %}
                         </div>
                         <input type="hidden" name="note" id="avis-note" value="5">
+                        {% for error in app.flashes('error_note') %}
+                        <div style="margin-top:5px;font-size:0.85rem;color:#e74c3c;font-weight:500;">
+                            {{ error }}
+                        </div>
+                        {% endfor %}
                     </div>
                     <div class="col-md-3 d-flex align-items-end">
                         <button type="submit" class="btn w-100 fw-semibold"
@@ -76,19 +97,63 @@
                             Commentaire <span class="text-danger">*</span>
                             <span id="sc-status" class="ms-2" style="font-weight:400;font-size:0.75rem"></span>
                         </label>
-                        <div style="position:relative">
-                            <textarea name="commentaire" id="avis-commentaire" class="form-control" rows="4"
+                        <div style="position:relative;">
+                            <textarea name="commentaire" id="avis-commentaire" 
+                                      class="form-control" 
+                                      rows="4"
                                       placeholder="Partagez votre expérience (min. 5 caractères)…"
-                                      required minlength="5"
-                                      style="padding-bottom:36px"></textarea>
-                            {# Suggestions de correction #}
-                            <div id="sc-suggestions" style="display:none;position:absolute;bottom:6px;left:10px;right:10px;
-                                 background:var(--card-bg,#fff);border:1px solid var(--border,#ede5ff);
-                                 border-radius:10px;padding:8px 12px;font-size:0.8rem;
-                                 box-shadow:0 4px 16px rgba(108,63,197,0.12);z-index:10;max-height:120px;overflow-y:auto">
-                            </div>
+                                      spellcheck="true" lang="fr"
+                                      oninput="avisCheckSpelling(this.value)"
+                                      style="{% if app.session.flashBag.peek('error_commentaire') is not empty %}border:1px solid #dc3545 !important;background:#fff;padding-right:40px;border-radius:8px;{% elseif old.commentaire is defined and old.commentaire|length >= 5 %}border:1px solid #28a745 !important;border-radius:8px;{% else %}border-radius:8px;{% endif %}">{{ old.commentaire ?? '' }}</textarea>
+                            {% if app.session.flashBag.peek('error_commentaire') is not empty %}
+                            <i class="bi bi-exclamation-circle-fill" style="position:absolute;right:12px;top:12px;color:#dc3545;font-size:1.1rem;"></i>
+                            {% endif %}
                         </div>
-                        <div id="sc-errors" style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px"></div>
+                        {% for error in app.flashes('error_commentaire') %}
+                        <div style="display:flex;align-items:flex-start;gap:6px;margin-top:6px;font-size:0.8rem;color:#dc3545;">
+                            <i class="bi bi-exclamation-triangle-fill" style="margin-top:2px;"></i>
+                            <span>{{ error }}</span>
+                        </div>
+                        {% endfor %}
+                        {# Pills de correction #}
+                        <div id="avis-corrections" style="display:none;margin-top:8px;padding:10px 14px;background:#fff8f0;border:1px solid #fde8cc;border-radius:12px;font-size:0.82rem">
+                            <div style="color:#c0392b;font-weight:600;margin-bottom:6px">
+                                <i class="bi bi-magic me-1"></i>Corrections suggérées :
+                            </div>
+                            <div id="avis-pills" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold" style="color:var(--primary-dark)">
+                            <i class="bi bi-image me-1" style="color:var(--primary)"></i>Photo (optionnelle)
+                        </label>
+                        <label class="d-flex align-items-center gap-3" style="cursor:pointer">
+                            <div class="btn rounded-pill px-3" style="background:#f0ebff;color:var(--primary);border:none;font-size:0.85rem">
+                                <i class="bi bi-upload me-1"></i>Choisir une image
+                            </div>
+                            <span id="avis-fname" class="text-muted small">Aucun fichier choisi</span>
+                            <input type="file" name="image" accept="image/*" style="display:none"
+                                   onchange="
+                                       document.getElementById('avis-fname').textContent = this.files[0]?.name ?? 'Aucun fichier choisi';
+                                       const reader = new FileReader();
+                                       reader.onload = e => {
+                                           document.getElementById('avis-preview').src = e.target.result;
+                                           document.getElementById('avis-preview-wrap').style.display = 'block';
+                                       };
+                                       if(this.files[0]) reader.readAsDataURL(this.files[0]);
+                                   ">
+                        </label>
+                        <div id="avis-preview-wrap" style="display:none;margin-top:10px">
+                            <img id="avis-preview" src="" alt="preview"
+                                 style="max-height:160px;border-radius:12px;border:2px solid var(--border);object-fit:cover">
+                            <button type="button" onclick="
+                                document.querySelector('input[name=image]').value='';
+                                document.getElementById('avis-fname').textContent='Aucun fichier choisi';
+                                document.getElementById('avis-preview-wrap').style.display='none';"
+                                style="background:none;border:none;color:#e74c3c;font-size:0.8rem;cursor:pointer;margin-left:8px">
+                                <i class="bi bi-x-circle me-1"></i>Supprimer
+                            </button>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -119,6 +184,13 @@
                 <p class="text-muted mb-3 flex-grow-1" style="font-size:0.9rem;line-height:1.7;font-style:italic">
                     "{{ avis.contenu|length > 150 ? avis.contenu|slice(0,150) ~ '…' : avis.contenu }}"
                 </p>
+                {# Image si présente #}
+                {% if avis.image %}
+                <div class="mb-3">
+                    <img src="/uploads/avis/{{ avis.image }}" alt="photo avis"
+                         style="width:100%;max-height:180px;object-fit:cover;border-radius:12px;border:1px solid var(--border)">
+                </div>
+                {% endif %}
                 {# Footer #}
                 <div class="d-flex align-items-center gap-2 pt-3" style="border-top:1px solid var(--border,#ede5ff)">
                     <div class="avis-avatar">U</div>
@@ -152,99 +224,62 @@
     paint(current);
 })();
 
-// ── CORRECTION AUTOMATIQUE via LanguageTool API ──
-(function() {
-    const textarea  = document.getElementById('avis-commentaire');
-    const statusEl  = document.getElementById('sc-status');
-    const errorsEl  = document.getElementById('sc-errors');
-    const suggestEl = document.getElementById('sc-suggestions');
-    if (!textarea) return;
+// ── CORRECTION via LanguageTool — pills style ──
+let _avisTimer = null;
 
-    let debounceTimer = null;
-    let lastErrors    = [];
+function avisCheckSpelling(text) {
+    const corrDiv  = document.getElementById('avis-corrections');
+    const pillsDiv = document.getElementById('avis-pills');
+    clearTimeout(_avisTimer);
+    if (!text || text.trim().length < 5) { corrDiv.style.display = 'none'; return; }
 
-    function setStatus(msg, color) {
-        if (!statusEl) return;
-        statusEl.innerHTML = msg;
-        statusEl.style.color = color || 'var(--text-muted)';
-    }
-
-    function applyCorrection(original, replacement) {
-        const text = textarea.value;
-        // Replace first occurrence of the wrong word
-        textarea.value = text.replace(original, replacement);
-        errorsEl.innerHTML = '';
-        suggestEl.style.display = 'none';
-        setStatus('<i class="bi bi-check-circle-fill me-1" style="color:#1a7a4a"></i>Corrigé !', '#1a7a4a');
-        setTimeout(() => setStatus(''), 2000);
-        // Re-check after correction
-        checkText(textarea.value);
-    }
-
-    function renderErrors(matches) {
-        errorsEl.innerHTML = '';
-        suggestEl.style.display = 'none';
-        lastErrors = matches;
-
-        if (matches.length === 0) {
-            setStatus('<i class="bi bi-check-circle-fill me-1"></i>Aucune erreur détectée', '#1a7a4a');
-            return;
-        }
-
-        setStatus(`<i class="bi bi-exclamation-triangle-fill me-1"></i>${matches.length} erreur(s) détectée(s)`, '#e67e22');
-
-        matches.slice(0, 5).forEach(m => {
-            if (!m.replacements || m.replacements.length === 0) return;
-
-            const wrong   = textarea.value.substring(m.offset, m.offset + m.length);
-            const fixes   = m.replacements.slice(0, 3).map(r => r.value);
-            const pill    = document.createElement('span');
-            pill.style.cssText = 'display:inline-flex;align-items:center;gap:4px;background:#fff3cd;border:1px solid #f39c12;border-radius:50px;padding:3px 10px;font-size:0.78rem;cursor:default';
-            pill.innerHTML = `<span style="color:#c0392b;text-decoration:line-through">${wrong}</span>
-                <i class="bi bi-arrow-right" style="color:#888;font-size:0.7rem"></i>`;
-
-            fixes.forEach(fix => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.textContent = fix;
-                btn.style.cssText = 'background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border:none;border-radius:50px;padding:2px 8px;font-size:0.75rem;cursor:pointer';
-                btn.title = 'Cliquer pour corriger';
-                btn.addEventListener('click', () => applyCorrection(wrong, fix));
-                pill.appendChild(btn);
-            });
-
-            errorsEl.appendChild(pill);
-        });
-    }
-
-    function checkText(text) {
-        if (text.trim().length < 5) {
-            errorsEl.innerHTML = '';
-            setStatus('');
-            return;
-        }
-
-        setStatus('<i class="bi bi-hourglass-split me-1"></i>Vérification…', '#888');
-
-        const body = new URLSearchParams();
-        body.append('text', text);
-        body.append('language', 'fr');
-        body.append('enabledOnly', 'false');
-
+    _avisTimer = setTimeout(() => {
         fetch('https://api.languagetool.org/v2/check', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: body.toString()
+            body: `text=${encodeURIComponent(text)}&language=fr`
         })
         .then(r => r.json())
-        .then(data => renderErrors(data.matches || []))
-        .catch(() => setStatus(''));
-    }
+        .then(data => {
+            const matches = (data.matches || []).filter(m => m.replacements && m.replacements.length > 0);
+            if (matches.length === 0) { corrDiv.style.display = 'none'; return; }
 
-    textarea.addEventListener('input', function() {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => checkText(this.value), 800);
-    });
-})();
+            pillsDiv.innerHTML = '';
+            matches.forEach(m => {
+                const wrongWord = text.slice(m.offset, m.offset + m.length);
+                const pill = document.createElement('div');
+                pill.style.cssText = 'display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #fde8cc;border-radius:50px;padding:4px 10px';
+
+                const wrong = document.createElement('span');
+                wrong.style.cssText = 'text-decoration:line-through;color:#e74c3c;font-weight:600';
+                wrong.textContent = wrongWord;
+                pill.appendChild(wrong);
+
+                const arrow = document.createElement('span');
+                arrow.textContent = '→'; arrow.style.color = '#aaa';
+                pill.appendChild(arrow);
+
+                m.replacements.slice(0, 3).forEach(rep => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.textContent = rep.value;
+                    btn.style.cssText = 'background:#f0ebff;color:var(--primary);border:none;border-radius:50px;padding:2px 10px;font-size:0.78rem;font-weight:600;cursor:pointer';
+                    btn.onmouseover = () => { btn.style.background = 'var(--primary)'; btn.style.color = '#fff'; };
+                    btn.onmouseout  = () => { btn.style.background = '#f0ebff'; btn.style.color = 'var(--primary)'; };
+                    btn.onclick = () => {
+                        const ta = document.getElementById('avis-commentaire');
+                        ta.value = ta.value.slice(0, m.offset) + rep.value + ta.value.slice(m.offset + m.length);
+                        avisCheckSpelling(ta.value);
+                        ta.focus();
+                    };
+                    pill.appendChild(btn);
+                });
+                pillsDiv.appendChild(pill);
+            });
+            corrDiv.style.display = pillsDiv.children.length > 0 ? 'block' : 'none';
+        })
+        .catch(() => { corrDiv.style.display = 'none'; });
+    }, 800);
+}
 </script>
 {% endblock %}

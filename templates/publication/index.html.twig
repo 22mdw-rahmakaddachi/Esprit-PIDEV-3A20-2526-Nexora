@@ -45,21 +45,66 @@
     <div class="feed-wrap" id="feed">
 
         <div class="new-pub-card mb-4" data-aos="fade-down">
+            {% if app.user %}
             <div class="d-flex align-items-center gap-3 mb-3">
-                <div class="pub-avatar">?</div>
-                <input type="text" id="new-pub-auteur" placeholder="Votre nom..."
-                       class="form-control rounded-pill" style="border-color:#ede5ff;font-size:0.88rem">
+                <div class="pub-avatar">{{ app.user.prenom|first|upper }}</div>
+                <div>
+                    <div class="fw-bold" style="color:var(--primary-dark)">{{ app.user.prenom }} {{ app.user.nom }}</div>
+                    <div class="text-muted small"><i class="bi bi-globe me-1"></i>Visible par tous</div>
+                </div>
             </div>
-            <textarea id="new-pub-contenu" class="new-pub-textarea" rows="3"
-                      placeholder="Quoi de neuf ? Partagez votre expérience..."></textarea>
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <div class="text-muted small"><i class="bi bi-globe me-1"></i>Visible par tous</div>
-                <button onclick="publier()" class="btn rounded-pill px-4 fw-semibold"
-                        style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;font-size:0.88rem">
-                    <i class="bi bi-send me-2"></i>Publier
-                </button>
+            <form action="{{ path('app_publication_new') }}" method="POST" enctype="multipart/form-data" id="pub-form" novalidate>
+                {% set pub_old = app.session.get('pub_old', {}) %}
+                <div style="position:relative;">
+                    <textarea name="contenu" id="pub-contenu" 
+                              class="new-pub-textarea" 
+                              rows="3"
+                              placeholder="Quoi de neuf ? Partagez votre expérience..." 
+                              spellcheck="true" lang="fr"
+                              oninput="pubCheckSpelling(this.value)"
+                              style="{% if app.session.flashBag.peek('error_contenu') is not empty %}border:1px solid #dc3545 !important;background:#fff;padding-right:40px;border-radius:12px;{% elseif pub_old.contenu is defined and pub_old.contenu|length >= 2 %}border:1px solid #28a745 !important;border-radius:12px;{% else %}border-radius:12px;{% endif %}">{{ pub_old.contenu ?? '' }}</textarea>
+                    {% if app.session.flashBag.peek('error_contenu') is not empty %}
+                    <i class="bi bi-exclamation-circle-fill" style="position:absolute;right:12px;top:12px;color:#dc3545;font-size:1.1rem;"></i>
+                    {% endif %}
+                </div>
+                {% for error in app.flashes('error_contenu') %}
+                <div style="display:flex;align-items:flex-start;gap:6px;margin-top:6px;font-size:0.8rem;color:#dc3545;">
+                    <i class="bi bi-exclamation-triangle-fill" style="margin-top:2px;"></i>
+                    <span>{{ error }}</span>
+                </div>
+                {% endfor %}
+
+                {# Zone pills de correction #}
+                <div id="pub-corrections" style="display:none;margin-top:8px;padding:10px 14px;background:#fff8f0;border:1px solid #fde8cc;border-radius:12px;font-size:0.82rem">
+                    <div style="color:#c0392b;font-weight:600;margin-bottom:6px">
+                        <i class="bi bi-magic me-1"></i>Corrections suggérées :
+                    </div>
+                    <div id="pub-pills" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-3 gap-2">
+                    <label class="btn rounded-pill px-3" style="background:#f0ebff;color:var(--primary);border:none;cursor:pointer;font-size:0.85rem">
+                        <i class="bi bi-image me-1"></i>Photo
+                        <input type="file" name="image" accept="image/*" style="display:none"
+                               onchange="document.getElementById('pub-fname').textContent = this.files[0]?.name ?? ''">
+                    </label>
+                    <span id="pub-fname" class="text-muted small flex-grow-1"></span>
+                    <button type="submit" id="pub-submit-btn" class="btn rounded-pill px-4 fw-semibold"
+                            style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;font-size:0.88rem">
+                        <i class="bi bi-send me-2"></i>Publier
+                    </button>
+                </div>
+            </form>
+            {% else %}
+            <div class="text-center py-3">
+                <div style="font-size:2rem">✍️</div>
+                <p class="text-muted mt-2 mb-3">Connectez-vous pour partager avec la communauté</p>
+                <a href="{{ path('app_login') }}" class="btn rounded-pill px-4 fw-semibold"
+                   style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff">
+                    <i class="bi bi-person-circle me-2"></i>Se connecter
+                </a>
             </div>
-            <div id="pub-error" class="mt-2 small" style="color:#e74c3c;display:none"></div>
+            {% endif %}
         </div>
 
         {% for pub in publications %}
@@ -129,14 +174,26 @@
                     <div class="text-muted small text-center py-2" id="no-comment-{{ pub.id }}">Aucun commentaire.</div>
                     {% endfor %}
                 </div>
-                <div class="comment-input-wrap">
-                    <div class="comment-avatar" style="background:linear-gradient(135deg,#ccc,#aaa)">?</div>
-                    <input type="text" class="comment-input" id="c-auteur-{{ pub.id }}" placeholder="Votre nom">
-                    <input type="text" class="comment-input" id="c-text-{{ pub.id }}" placeholder="Écrire un commentaire..."
-                           onkeydown="if(event.key==='Enter') envoyerCommentaire({{ pub.id }})">
-                    <button class="comment-send-btn" onclick="envoyerCommentaire({{ pub.id }})">
-                        <i class="bi bi-send-fill"></i>
-                    </button>
+                <div class="comment-input-wrap" style="flex-direction:column;align-items:stretch;gap:8px">
+                    <div style="display:flex;gap:10px;align-items:center">
+                        <div class="comment-avatar">{{ app.user ? app.user.prenom|first|upper : '?' }}</div>
+                        {% if not app.user %}
+                        <input type="text" class="comment-input" id="c-auteur-{{ pub.id }}" placeholder="Votre nom">
+                        {% endif %}
+                        <input type="text" class="comment-input" id="c-text-{{ pub.id }}"
+                               placeholder="Écrire un commentaire..."
+                               spellcheck="true" lang="fr"
+                               oninput="commentCheckSpelling({{ pub.id }}, this.value)"
+                               onkeydown="if(event.key==='Enter') envoyerCommentaire({{ pub.id }})">
+                        <button class="comment-send-btn" onclick="envoyerCommentaire({{ pub.id }})">
+                            <i class="bi bi-send-fill"></i>
+                        </button>
+                    </div>
+                    {# Pills de correction commentaire #}
+                    <div id="c-corrections-{{ pub.id }}" style="display:none;margin:4px 0 0 52px;padding:8px 12px;background:#fff8f0;border:1px solid #fde8cc;border-radius:10px;font-size:0.78rem">
+                        <div style="color:#c0392b;font-weight:600;margin-bottom:5px"><i class="bi bi-magic me-1"></i>Corrections :</div>
+                        <div id="c-pills-{{ pub.id }}" style="display:flex;flex-wrap:wrap;gap:5px"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -154,33 +211,126 @@
 {% block javascripts %}
 {{ parent() }}
 <script>
-const userName = localStorage.getItem('tripshop_username') || '';
-document.addEventListener('DOMContentLoaded', () => {
-    if (userName) { const el = document.getElementById('new-pub-auteur'); if (el) el.value = userName; }
-});
+const loggedUser = "{{ app.user ? app.user.prenom ~ ' ' ~ app.user.nom : '' }}";
 
-function publier() {
-    const auteur  = document.getElementById('new-pub-auteur').value.trim();
-    const contenu = document.getElementById('new-pub-contenu').value.trim();
-    const err     = document.getElementById('pub-error');
-    if (auteur.length < 2) { err.textContent = '⚠ Le nom est obligatoire (min. 2 caractères).'; err.style.display='block'; return; }
-    if (contenu.length < 2) { err.textContent = '⚠ Le contenu est obligatoire (min. 2 caractères).'; err.style.display='block'; return; }
-    err.style.display = 'none';
-    localStorage.setItem('tripshop_username', auteur);
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '{{ path("app_publication_new") }}';
-    [['auteur', auteur], ['contenu', contenu]].forEach(([k, v]) => {
-        const i = document.createElement('input'); i.type = 'hidden'; i.name = k; i.value = v; form.appendChild(i);
-    });
-    document.body.appendChild(form);
-    form.submit();
+// ── Correction orthographique PUBLICATION ──
+let _pubTimer = null;
+let _pubMatches = [];
+
+function pubCheckSpelling(text) {
+    const corrDiv  = document.getElementById('pub-corrections');
+    const pillsDiv = document.getElementById('pub-pills');
+    clearTimeout(_pubTimer);
+    if (!text || text.length < 5) { corrDiv.style.display = 'none'; _pubMatches = []; return; }
+
+    _pubTimer = setTimeout(() => {
+        fetch('https://api.languagetool.org/v2/check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `text=${encodeURIComponent(text)}&language=fr`
+        })
+        .then(r => r.json())
+        .then(data => {
+            _pubMatches = data.matches || [];
+            if (_pubMatches.length === 0) { corrDiv.style.display = 'none'; return; }
+
+            pillsDiv.innerHTML = '';
+            _pubMatches.forEach((m, idx) => {
+                if (!m.replacements || m.replacements.length === 0) return;
+                const wrongWord = text.slice(m.offset, m.offset + m.length);
+                const pill = document.createElement('div');
+                pill.style.cssText = 'display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #fde8cc;border-radius:50px;padding:4px 10px';
+                // Mot barré en rouge
+                const wrong = document.createElement('span');
+                wrong.style.cssText = 'text-decoration:line-through;color:#e74c3c;font-weight:600';
+                wrong.textContent = wrongWord;
+                pill.appendChild(wrong);
+                const arrow = document.createElement('span');
+                arrow.textContent = '→';
+                arrow.style.color = '#aaa';
+                pill.appendChild(arrow);
+                // Boutons suggestions (max 3)
+                m.replacements.slice(0, 3).forEach(rep => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.textContent = rep.value;
+                    btn.style.cssText = 'background:#f0ebff;color:var(--primary);border:none;border-radius:50px;padding:2px 10px;font-size:0.78rem;font-weight:600;cursor:pointer';
+                    btn.onmouseover = () => btn.style.background = 'var(--primary)', btn.style.color = '#fff';
+                    btn.onmouseout  = () => { btn.style.background = '#f0ebff'; btn.style.color = 'var(--primary)'; };
+                    btn.onclick = () => pubApplyFix(m.offset, m.length, rep.value);
+                    pill.appendChild(btn);
+                });
+                pillsDiv.appendChild(pill);
+            });
+            corrDiv.style.display = pillsDiv.children.length > 0 ? 'block' : 'none';
+        })
+        .catch(() => { corrDiv.style.display = 'none'; });
+    }, 800);
+}
+
+function pubApplyFix(offset, length, replacement) {
+    const ta = document.getElementById('pub-contenu');
+    ta.value = ta.value.slice(0, offset) + replacement + ta.value.slice(offset + length);
+    pubCheckSpelling(ta.value);
+    ta.focus();
+}
+
+// ── Correction orthographique COMMENTAIRES (pills) ──
+let _cTimers = {};
+
+function commentCheckSpelling(pubId, text) {
+    const corrDiv  = document.getElementById(`c-corrections-${pubId}`);
+    const pillsDiv = document.getElementById(`c-pills-${pubId}`);
+    clearTimeout(_cTimers[pubId]);
+    if (!text || text.length < 5) { corrDiv.style.display = 'none'; return; }
+
+    _cTimers[pubId] = setTimeout(() => {
+        fetch('https://api.languagetool.org/v2/check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `text=${encodeURIComponent(text)}&language=fr`
+        })
+        .then(r => r.json())
+        .then(data => {
+            const matches = (data.matches || []).filter(m => m.replacements && m.replacements.length > 0);
+            if (matches.length === 0) { corrDiv.style.display = 'none'; return; }
+            pillsDiv.innerHTML = '';
+            matches.forEach(m => {
+                const wrongWord = text.slice(m.offset, m.offset + m.length);
+                const pill = document.createElement('div');
+                pill.style.cssText = 'display:flex;align-items:center;gap:5px;background:#fff;border:1px solid #fde8cc;border-radius:50px;padding:3px 10px';
+                const wrong = document.createElement('span');
+                wrong.style.cssText = 'text-decoration:line-through;color:#e74c3c;font-weight:600';
+                wrong.textContent = wrongWord;
+                pill.appendChild(wrong);
+                const arrow = document.createElement('span');
+                arrow.textContent = '→'; arrow.style.color = '#aaa';
+                pill.appendChild(arrow);
+                m.replacements.slice(0, 3).forEach(rep => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.textContent = rep.value;
+                    btn.style.cssText = 'background:#f0ebff;color:var(--primary);border:none;border-radius:50px;padding:2px 10px;font-size:0.75rem;font-weight:600;cursor:pointer';
+                    btn.onclick = () => {
+                        const input = document.getElementById(`c-text-${pubId}`);
+                        input.value = input.value.slice(0, m.offset) + rep.value + input.value.slice(m.offset + m.length);
+                        commentCheckSpelling(pubId, input.value);
+                        input.focus();
+                    };
+                    pill.appendChild(btn);
+                });
+                pillsDiv.appendChild(pill);
+            });
+            corrDiv.style.display = pillsDiv.children.length > 0 ? 'block' : 'none';
+        })
+        .catch(() => { corrDiv.style.display = 'none'; });
+    }, 800);
 }
 
 function reagir(pubId, type, btn) {
-    const auteur = prompt('Votre prénom pour réagir ?', localStorage.getItem('tripshop_username') || '');
+    const auteur = loggedUser || prompt('Votre prénom pour réagir ?', localStorage.getItem('tripshop_username') || '');
     if (!auteur || auteur.trim().length < 2) return;
-    localStorage.setItem('tripshop_username', auteur.trim());
+    if (!loggedUser) localStorage.setItem('tripshop_username', auteur.trim());
     const fd = new FormData();
     fd.append('auteur', auteur.trim());
     fd.append('type', type);
@@ -207,32 +357,67 @@ function reagir(pubId, type, btn) {
 function toggleComments(pubId) {
     const el = document.getElementById(`comments-${pubId}`);
     el.style.display = el.style.display === 'none' ? 'block' : 'none';
-    if (el.style.display === 'block') {
-        const auteurInput = document.getElementById(`c-auteur-${pubId}`);
-        if (auteurInput && localStorage.getItem('tripshop_username')) auteurInput.value = localStorage.getItem('tripshop_username');
-    }
 }
 
 function envoyerCommentaire(pubId) {
     const auteurEl  = document.getElementById(`c-auteur-${pubId}`);
     const contenuEl = document.getElementById(`c-text-${pubId}`);
-    const auteur    = auteurEl.value.trim();
+    const sendBtn   = contenuEl.closest('.comment-input-wrap').querySelector('.comment-send-btn');
+    const auteur    = loggedUser || (auteurEl ? auteurEl.value.trim() : '');
     const contenu   = contenuEl.value.trim();
+
     if (auteur.length < 2 || contenu.length < 2) {
-        auteurEl.style.borderColor  = auteur.length < 2  ? '#e74c3c' : '#ede5ff';
+        if (auteurEl) auteurEl.style.borderColor = auteur.length < 2 ? '#e74c3c' : '#ede5ff';
         contenuEl.style.borderColor = contenu.length < 2 ? '#e74c3c' : '#ede5ff';
         return;
     }
-    localStorage.setItem('tripshop_username', auteur);
+
+    // Désactiver le bouton pendant la correction
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+
+    // Corriger d'abord, puis envoyer
+    fetch('https://api.languagetool.org/v2/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `text=${encodeURIComponent(contenu)}&language=fr`
+    })
+    .then(r => r.json())
+    .then(data => {
+        let texteCorrige = contenu;
+        if (data.matches && data.matches.length > 0) {
+            let offset = 0;
+            data.matches.forEach(m => {
+                if (m.replacements && m.replacements.length > 0) {
+                    const fix = m.replacements[0].value;
+                    texteCorrige = texteCorrige.slice(0, m.offset + offset) + fix + texteCorrige.slice(m.offset + offset + m.length);
+                    offset += fix.length - m.length;
+                }
+            });
+        }
+        _envoyerCommentaireAvecTexte(pubId, auteur, texteCorrige, contenuEl, sendBtn);
+    })
+    .catch(() => {
+        // Si l'API échoue, envoyer le texte original
+        _envoyerCommentaireAvecTexte(pubId, auteur, contenu, contenuEl, sendBtn);
+    });
+}
+
+function _envoyerCommentaireAvecTexte(pubId, auteur, contenu, contenuEl, sendBtn) {
     const fd = new FormData();
     fd.append('auteur', auteur);
     fd.append('contenu', contenu);
     fetch(`/publications/${pubId}/commenter`, { method: 'POST', body: fd })
         .then(r => r.json())
         .then(data => {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="bi bi-send-fill"></i>';
             if (data.error) return;
             contenuEl.value = '';
             contenuEl.style.borderColor = '#ede5ff';
+            // Cacher les pills si visibles
+            const corrDiv = document.getElementById(`c-corrections-${pubId}`);
+            if (corrDiv) corrDiv.style.display = 'none';
             const noComment = document.getElementById(`no-comment-${pubId}`);
             if (noComment) noComment.remove();
             const list = document.getElementById(`comments-list-${pubId}`);
@@ -242,6 +427,10 @@ function envoyerCommentaire(pubId) {
             list.appendChild(div);
             const nb = document.getElementById(`nb-comments-${pubId}`);
             if (nb) nb.textContent = parseInt(nb.textContent || 0) + 1;
+        })
+        .catch(() => {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="bi bi-send-fill"></i>';
         });
 }
 </script>

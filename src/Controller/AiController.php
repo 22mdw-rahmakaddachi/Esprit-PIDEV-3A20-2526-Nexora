@@ -46,6 +46,20 @@ class AIController extends AbstractController
             ], $result['produits']);
         }
 
+        // Sérialiser les excursions
+        if (isset($result['excursions']) && is_array($result['excursions'])) {
+            $result['excursions'] = array_map(fn($d) => [
+                'id'            => $d->getId(),
+                'nom'           => $d->getNom(),
+                'localisation'  => $d->getLocalisation(),
+                'statut'        => $d->getStatut(),
+                'capaciteMax'   => $d->getCapaciteMax(),
+                'nbParticipants'=> $d->getNbParticipants(),
+                'image'         => $d->getFirstImage(),
+                'dateLancement' => $d->getDateLancement()?->format('d/m/Y'),
+            ], $result['excursions']);
+        }
+
         return new JsonResponse($result);
     }
 

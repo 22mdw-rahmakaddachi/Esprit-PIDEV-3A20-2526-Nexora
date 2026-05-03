@@ -24,7 +24,7 @@ class UtilisationCodePromo
     private int $commandeId = 0;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
-    private float $montantReduction = 0.0;
+    private string $montantReduction = '0.00';
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $dateUtilisation = null;
@@ -69,12 +69,12 @@ class UtilisationCodePromo
 
     public function getMontantReduction(): float
     {
-        return $this->montantReduction;
+        return (float)$this->montantReduction;
     }
 
     public function setMontantReduction(float $montantReduction): static
     {
-        $this->montantReduction = $montantReduction;
+        $this->montantReduction = (string)$montantReduction;
         return $this;
     }
 

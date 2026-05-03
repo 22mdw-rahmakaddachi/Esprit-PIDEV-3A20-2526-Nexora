@@ -80,6 +80,10 @@ final class UsersController extends AbstractController
                 $hashedPassword = $passwordHasher->hashPassword($user, $user->getMdp());
                 $user->setMdp($hashedPassword);
             }
+            // S'assurer que le rôle n'est jamais null
+            if (!$user->getRole()) {
+                $user->setRole('ROLE_USER');
+            }
             $entityManager->flush();
 
             return $this->redirectToRoute('app_users_index', [], Response::HTTP_SEE_OTHER);
@@ -95,6 +99,25 @@ final class UsersController extends AbstractController
     public function delete(Request $request, Users $user, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->getPayload()->getString('_token'))) {
+            // Supprimer via DBAL pour éviter les FK violations
+            $conn = $entityManager->getConnection();
+            $userId = $user->getId();
+
+            // 1. Nullifier les notifications liées aux demandes de cet user (FK demande_id)
+            $conn->executeStatement(
+                'UPDATE notification SET demande_id = NULL WHERE demande_id IN (SELECT id FROM participation_demande WHERE client_id = ?)',
+                [$userId]
+            );
+            // 2. Supprimer les demandes de participation
+            $conn->executeStatement('DELETE FROM participation_demande WHERE client_id = ?', [$userId]);
+            // 3. Supprimer les avis destination (CASCADE mais on force)
+            $conn->executeStatement('DELETE FROM destination_avis WHERE user_id = ?', [$userId]);
+            // 4. Supprimer les empreintes
+            $conn->executeStatement('DELETE FROM fingerprint WHERE user_id = ?', [$userId]);
+            // 5. Nullifier les FK nullable
+            $conn->executeStatement('UPDATE partenaire SET user_id = NULL WHERE user_id = ?', [$userId]);
+            $conn->executeStatement('UPDATE notification SET user_id = NULL WHERE user_id = ?', [$userId]);
+
             $entityManager->remove($user);
             $entityManager->flush();
         }

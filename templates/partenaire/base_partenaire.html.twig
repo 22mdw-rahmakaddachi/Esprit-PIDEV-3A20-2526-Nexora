@@ -105,12 +105,15 @@
 
 <div class="flash-p">
     {% for type, messages in app.flashes %}
-        {% for message in messages %}
-        <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show shadow-sm rounded-3">
+        {# Ignorer les messages d'erreur de validation qui s'affichent sous les champs #}
+        {% if type not in ['error_titre', 'error_commentaire', 'error_note', 'error_contenu'] %}
+            {% for message in messages %}
+            <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show shadow-sm rounded-3">
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-        {% endfor %}
+            {% endfor %}
+        {% endif %}
     {% endfor %}
 </div>
 

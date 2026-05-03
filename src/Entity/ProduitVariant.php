@@ -30,18 +30,17 @@ class ProduitVariant
     #[ORM\Column(length: 100)]
     private string $sku = '';
 
-    #[Assert\PositiveOrZero(message: 'Le prix d\'achat doit être positif ou zéro.')]
     #[ORM\Column(type: 'decimal', nullable: true, precision: 10, scale: 2)]
-    private ?float $prixAchat = null;
+    private ?string $prixAchat = null;
 
     #[Assert\NotBlank(message: 'Le prix de vente est obligatoire.')]
     #[Assert\Positive(message: 'Le prix de vente doit être supérieur à zéro.')]
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
-    private float $prixVente = 0.0;
+    private string $prixVente = '0.00';
 
     #[Assert\Positive(message: 'Le prix promo doit être supérieur à zéro.')]
     #[ORM\Column(type: 'decimal', nullable: true, precision: 10, scale: 2)]
-    private ?float $prixPromo = null;
+    private ?string $prixPromo = null;
 
     #[Assert\NotNull(message: 'Le stock est obligatoire.')]
     #[Assert\PositiveOrZero(message: 'Le stock doit être positif ou zéro.')]
@@ -87,14 +86,14 @@ class ProduitVariant
     public function getSku(): string { return $this->sku; }
     public function setSku(string $sku): static { $this->sku = $sku; return $this; }
 
-    public function getPrixAchat(): ?float { return $this->prixAchat; }
-    public function setPrixAchat(?float $prixAchat): static { $this->prixAchat = $prixAchat; return $this; }
+    public function getPrixAchat(): ?float { return $this->prixAchat !== null ? (float)$this->prixAchat : null; }
+    public function setPrixAchat(?float $prixAchat): static { $this->prixAchat = $prixAchat !== null ? (string)$prixAchat : null; return $this; }
 
-    public function getPrixVente(): float { return $this->prixVente; }
-    public function setPrixVente(float $prixVente): static { $this->prixVente = $prixVente; return $this; }
+    public function getPrixVente(): float { return (float)$this->prixVente; }
+    public function setPrixVente(float $prixVente): static { $this->prixVente = (string)$prixVente; return $this; }
 
-    public function getPrixPromo(): ?float { return $this->prixPromo; }
-    public function setPrixPromo(?float $prixPromo): static { $this->prixPromo = $prixPromo; return $this; }
+    public function getPrixPromo(): ?float { return $this->prixPromo !== null ? (float)$this->prixPromo : null; }
+    public function setPrixPromo(?float $prixPromo): static { $this->prixPromo = $prixPromo !== null ? (string)$prixPromo : null; return $this; }
 
     public function getQuantiteStock(): int { return $this->quantiteStock; }
     public function setQuantiteStock(int $quantiteStock): static { $this->quantiteStock = $quantiteStock; return $this; }

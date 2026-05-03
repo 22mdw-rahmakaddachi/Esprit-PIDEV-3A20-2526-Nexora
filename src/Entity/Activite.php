@@ -57,7 +57,7 @@ class Activite
     #[Assert\NotNull(message: 'Le prix est obligatoire.')]
     #[Assert\Positive(message: 'Le prix doit être supérieur à 0.')]
     #[Assert\LessThanOrEqual(value: 99999.99, message: 'Le prix ne peut pas dépasser 99 999,99 TND.')]
-    private float $prix = 0.0;
+    private string $prix = '0.00';
 
     #[ORM\Column(type: 'integer')]
     #[Assert\NotNull(message: 'Le nombre de places est obligatoire.')]
@@ -112,7 +112,7 @@ class Activite
     }
 
     public function getPrix(): float { return (float)$this->prix; }
-    public function setPrix(float $prix): static { $this->prix = $prix; return $this; }
+    public function setPrix(float $prix): static { $this->prix = (string)$prix; return $this; }
 
     public function getNombrePlaces(): int { return $this->nombrePlaces; }
     public function setNombrePlaces(int $nombrePlaces): static { $this->nombrePlaces = $nombrePlaces; return $this; }

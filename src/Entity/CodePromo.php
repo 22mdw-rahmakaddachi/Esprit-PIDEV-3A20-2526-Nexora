@@ -33,11 +33,11 @@ class CodePromo
     #[Assert\Positive(message: 'La valeur de réduction doit être positive.')]
     #[Assert\LessThanOrEqual(value: 100, message: 'Un pourcentage ne peut pas dépasser 100%.', groups: ['pourcentage'])]
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
-    private float $valeurReduction = 0.0;
+    private string $valeurReduction = '0.00';
 
     #[Assert\PositiveOrZero(message: 'Le montant minimum doit être positif ou zéro.')]
     #[ORM\Column(type: 'decimal', nullable: true, precision: 10, scale: 2)]
-    private ?float $montantMinimum = null;
+    private ?string $montantMinimum = null;
 
     #[Assert\NotNull(message: 'La date de début est obligatoire.')]
     #[ORM\Column(type: 'date')]
@@ -56,7 +56,7 @@ class CodePromo
     private ?int $nombreUtilisations = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?int $actif = null;
+    private ?bool $actif = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $partenaireId = null;
@@ -65,7 +65,7 @@ class CodePromo
     private ?int $categorieId = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?int $premiereCommandeSeulement = null;
+    private ?bool $premiereCommandeSeulement = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $dateCreation = null;
@@ -110,23 +110,23 @@ class CodePromo
 
     public function getValeurReduction(): float
     {
-        return $this->valeurReduction;
+        return (float)$this->valeurReduction;
     }
 
     public function setValeurReduction(float $valeurReduction): static
     {
-        $this->valeurReduction = $valeurReduction;
+        $this->valeurReduction = (string)$valeurReduction;
         return $this;
     }
 
     public function getMontantMinimum(): ?float
     {
-        return $this->montantMinimum;
+        return $this->montantMinimum !== null ? (float)$this->montantMinimum : null;
     }
 
     public function setMontantMinimum(?float $montantMinimum): static
     {
-        $this->montantMinimum = $montantMinimum;
+        $this->montantMinimum = $montantMinimum !== null ? (string)$montantMinimum : null;
         return $this;
     }
 
@@ -174,12 +174,12 @@ class CodePromo
         return $this;
     }
 
-    public function getActif(): ?int
+    public function getActif(): ?bool
     {
         return $this->actif;
     }
 
-    public function setActif(?int $actif): static
+    public function setActif(?bool $actif): static
     {
         $this->actif = $actif;
         return $this;
@@ -207,12 +207,12 @@ class CodePromo
         return $this;
     }
 
-    public function getPremiereCommandeSeulement(): ?int
+    public function getPremiereCommandeSeulement(): ?bool
     {
         return $this->premiereCommandeSeulement;
     }
 
-    public function setPremiereCommandeSeulement(?int $premiereCommandeSeulement): static
+    public function setPremiereCommandeSeulement(?bool $premiereCommandeSeulement): static
     {
         $this->premiereCommandeSeulement = $premiereCommandeSeulement;
         return $this;

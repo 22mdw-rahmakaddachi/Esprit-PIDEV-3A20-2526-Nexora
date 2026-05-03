@@ -24,10 +24,10 @@ class CommandeItem
     private int $quantite = 0;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
-    private float $prixUnitaire = 0.0;
+    private string $prixUnitaire = '0.00';
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
-    private float $sousTotal = 0.0;
+    private string $sousTotal = '0.00';
 
     public function getId(): ?int
     {
@@ -69,23 +69,23 @@ class CommandeItem
 
     public function getPrixUnitaire(): float
     {
-        return $this->prixUnitaire;
+        return (float)$this->prixUnitaire;
     }
 
     public function setPrixUnitaire(float $prixUnitaire): static
     {
-        $this->prixUnitaire = $prixUnitaire;
+        $this->prixUnitaire = (string)$prixUnitaire;
         return $this;
     }
 
     public function getSousTotal(): float
     {
-        return $this->sousTotal;
+        return (float)$this->sousTotal;
     }
 
     public function setSousTotal(float $sousTotal): static
     {
-        $this->sousTotal = $sousTotal;
+        $this->sousTotal = (string)$sousTotal;
         return $this;
     }
 

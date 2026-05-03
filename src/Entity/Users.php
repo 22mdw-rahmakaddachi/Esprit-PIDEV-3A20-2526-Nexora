@@ -38,7 +38,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     private int $tentative = 0;
 
     #[ORM\Column(type: 'boolean')]
-    private int $validation = 0;
+    private bool $validation = false;
 
     #[ORM\Column(type: 'bigint')]
     private int $blockUntil = 0;
@@ -137,12 +137,12 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getValidation(): int
+    public function getValidation(): bool
     {
         return $this->validation;
     }
 
-    public function setValidation(int $validation): static
+    public function setValidation(bool $validation): static
     {
         $this->validation = $validation;
         return $this;

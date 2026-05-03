@@ -51,7 +51,7 @@ class ProduitParent
     #[Assert\NotNull(message: 'Le poids est obligatoire.')]
     #[Assert\PositiveOrZero(message: 'Le poids doit être un nombre positif ou zéro.')]
     #[ORM\Column(type: 'decimal', nullable: true, precision: 5, scale: 2)]
-    private ?float $poidsKg = null;
+    private ?string $poidsKg = null;
 
     #[Assert\Length(max: 50, maxMessage: 'Les dimensions ne peuvent pas dépasser {{ limit }} caractères.')]
     #[ORM\Column(nullable: true, length: 50)]
@@ -100,8 +100,8 @@ class ProduitParent
     public function setMarque(?string $marque): static { $this->marque = $marque; return $this; }
     public function getMateriau(): ?string { return $this->materiau; }
     public function setMateriau(?string $materiau): static { $this->materiau = $materiau; return $this; }
-    public function getPoidsKg(): ?float { return $this->poidsKg; }
-    public function setPoidsKg(?float $poidsKg): static { $this->poidsKg = $poidsKg; return $this; }
+    public function getPoidsKg(): ?float { return $this->poidsKg !== null ? (float)$this->poidsKg : null; }
+    public function setPoidsKg(?float $poidsKg): static { $this->poidsKg = $poidsKg !== null ? (string)$poidsKg : null; return $this; }
     public function getDimensionsCm(): ?string { return $this->dimensionsCm; }
     public function setDimensionsCm(?string $dimensionsCm): static { $this->dimensionsCm = $dimensionsCm; return $this; }
     public function getImagePrincipale(): ?string { return $this->imagePrincipale; }

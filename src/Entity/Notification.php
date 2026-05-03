@@ -2,82 +2,63 @@
 
 namespace App\Entity;
 
-use App\Repository\NotificationRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity(repositoryClass: NotificationRepository::class)]
+#[ORM\Entity]
 #[ORM\Table(name: 'notification')]
 class Notification
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'integer')]
-    #[Assert\NotNull(message: 'L\'identifiant utilisateur est obligatoire.')]
-    #[Assert\Positive(message: 'L\'identifiant utilisateur doit être positif.')]
-    private int $userId = 0;
+    #[ORM\Column(name: 'user_id', type: 'integer')]
+    private int $userId;
 
-    #[ORM\Column(length: 20)]
-    #[Assert\NotBlank(message: 'Le type d\'utilisateur est obligatoire.')]
-    #[Assert\Choice(choices: ['CLIENT','PARTENAIRE','ADMIN'], message: 'Type utilisateur invalide.')]
-    private string $userType = '';
-
-    #[ORM\Column(length: 50)]
-    #[Assert\NotBlank(message: 'Le type de notification est obligatoire.')]
-    private string $type = '';
-
-    #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: 'Le titre est obligatoire.')]
-    #[Assert\Length(max: 255, maxMessage: 'Le titre ne peut pas dépasser {{ limit }} caractères.')]
-    private string $titre = '';
+    #[ORM\Column(type: 'string', length: 50)]
+    private string $type;
 
     #[ORM\Column(type: 'text')]
-    #[Assert\NotBlank(message: 'Le message est obligatoire.')]
-    private string $message = '';
+    private string $message;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $lue = false;
+    #[ORM\Column(name: 'related_id', type: 'integer', nullable: true)]
+    private ?int $relatedId = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTimeInterface $dateCreation = null;
+    #[ORM\Column(name: 'related_type', type: 'string', length: 50, nullable: true)]
+    private ?string $relatedType = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
-    #[Assert\Positive(message: 'L\'identifiant activité doit être positif.')]
-    private ?int $activiteId = null;
+    #[ORM\Column(name: 'is_read', type: 'boolean')]
+    private bool $isRead = false;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
-    #[Assert\Positive(message: 'L\'identifiant demande doit être positif.')]
-    private ?int $demandeId = null;
+    #[ORM\Column(name: 'created_at', type: 'datetime')]
+    private \DateTimeInterface $createdAt;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTime();
+    }
 
     public function getId(): ?int { return $this->id; }
 
     public function getUserId(): int { return $this->userId; }
-    public function setUserId(int $userId): static { $this->userId = $userId; return $this; }
-
-    public function getUserType(): string { return $this->userType; }
-    public function setUserType(string $userType): static { $this->userType = $userType; return $this; }
+    public function setUserId(int $userId): self { $this->userId = $userId; return $this; }
 
     public function getType(): string { return $this->type; }
-    public function setType(string $type): static { $this->type = $type; return $this; }
-
-    public function getTitre(): string { return $this->titre; }
-    public function setTitre(string $titre): static { $this->titre = $titre; return $this; }
+    public function setType(string $type): self { $this->type = $type; return $this; }
 
     public function getMessage(): string { return $this->message; }
-    public function setMessage(string $message): static { $this->message = $message; return $this; }
+    public function setMessage(string $message): self { $this->message = $message; return $this; }
 
-    public function getLue(): ?bool { return $this->lue; }
-    public function setLue(?bool $lue): static { $this->lue = $lue; return $this; }
+    public function getRelatedId(): ?int { return $this->relatedId; }
+    public function setRelatedId(?int $relatedId): self { $this->relatedId = $relatedId; return $this; }
 
-    public function getDateCreation(): ?\DateTimeInterface { return $this->dateCreation; }
-    public function setDateCreation(?\DateTimeInterface $dateCreation): static { $this->dateCreation = $dateCreation; return $this; }
+    public function getRelatedType(): ?string { return $this->relatedType; }
+    public function setRelatedType(?string $relatedType): self { $this->relatedType = $relatedType; return $this; }
 
-    public function getActiviteId(): ?int { return $this->activiteId; }
-    public function setActiviteId(?int $activiteId): static { $this->activiteId = $activiteId; return $this; }
+    public function isRead(): bool { return $this->isRead; }
+    public function setIsRead(bool $isRead): self { $this->isRead = $isRead; return $this; }
 
-    public function getDemandeId(): ?int { return $this->demandeId; }
-    public function setDemandeId(?int $demandeId): static { $this->demandeId = $demandeId; return $this; }
+    public function getCreatedAt(): \DateTimeInterface { return $this->createdAt; }
+    public function setCreatedAt(\DateTimeInterface $createdAt): self { $this->createdAt = $createdAt; return $this; }
 }

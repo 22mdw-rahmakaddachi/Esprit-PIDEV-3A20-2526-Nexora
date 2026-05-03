@@ -33,7 +33,8 @@ class UsersType extends AbstractType
                     'Participant' => 'ROLE_PARTICIPANT',
                 ],
                 'placeholder'  => 'Choisir un rôle',
-                'empty_data'   => '',
+                'empty_data'   => 'ROLE_USER',
+                'required'     => true,
                 'constraints'  => [
                     new NotBlank(message: 'Le rôle est obligatoire.'),
                 ],

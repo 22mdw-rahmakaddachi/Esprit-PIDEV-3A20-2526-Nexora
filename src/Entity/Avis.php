@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\AvisRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AvisRepository::class)]
 #[ORM\Table(name: 'avis')]
@@ -18,16 +19,35 @@ class Avis
     private int $userId = 0;
 
     #[ORM\Column(type: 'integer')]
+    #[Assert\Range(min: 1, max: 5, notInRangeMessage: 'La note doit être entre 1 et 5.')]
+    #[Assert\NotBlank(message: 'La note est obligatoire.')]
     private int $rating = 0;
 
     #[ORM\Column(length: 100)]
+    #[Assert\NotBlank(message: 'Le titre est obligatoire.')]
+    #[Assert\Length(
+        min: 3,
+        max: 100,
+        minMessage: 'Le titre doit contenir au moins {{ limit }} caractères.',
+        maxMessage: 'Le titre ne peut pas dépasser {{ limit }} caractères.'
+    )]
     private string $titre = '';
 
     #[ORM\Column(type: 'text')]
+    #[Assert\NotBlank(message: 'Le commentaire est obligatoire.')]
+    #[Assert\Length(
+        min: 5,
+        max: 2000,
+        minMessage: 'Le commentaire doit contenir au moins {{ limit }} caractères.',
+        maxMessage: 'Le commentaire ne peut pas dépasser {{ limit }} caractères.'
+    )]
     private string $contenu = '';
 
     #[ORM\Column(name: 'created_at', type: 'datetime')]
     private ?\DateTimeInterface $createdAt = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $image = null;
 
     // ── Compatibility aliases used by base project templates ──
 
@@ -67,6 +87,6 @@ class Avis
     public function getActiviteNom(): ?string { return null; }
     public function setActiviteNom(?string $activiteNom): static { return $this; }
 
-    public function getImage(): ?string { return null; }
-    public function setImage(?string $image): static { return $this; }
+    public function getImage(): ?string { return $this->image; }
+    public function setImage(?string $image): static { $this->image = $image; return $this; }
 }

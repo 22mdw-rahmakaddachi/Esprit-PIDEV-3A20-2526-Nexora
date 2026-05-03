@@ -38,7 +38,8 @@ final class AvisController extends AbstractController
         EntityManagerInterface $em,
         Connection $conn,
         ModerationService $moderation,
-        MailerInterface $mailer
+        MailerInterface $mailer,
+        \Symfony\Component\Validator\Validator\ValidatorInterface $validator
     ): Response {
         /** @var Users|null $user */
         $user    = $this->getUser();
@@ -46,10 +47,34 @@ final class AvisController extends AbstractController
         $titre   = trim($request->request->get('titre', 'Avis'));
         $contenu = trim($request->request->get('commentaire', $request->request->get('contenu', '')));
 
-        if (strlen($contenu) < 5 || $rating < 1 || $rating > 5) {
-            $this->addFlash('error', 'Données invalides. Vérifiez tous les champs.');
+        // ── VALIDATION CÔTÉ SERVEUR (entité) ──
+        $avisTest = new Avis();
+        $avisTest->setRating($rating);
+        $avisTest->setTitre($titre);
+        $avisTest->setContenu($contenu);
+        $avisTest->setCreatedAt(new \DateTime());
+
+        $violations = $validator->validate($avisTest);
+        if (count($violations) > 0) {
+            // Stocker les valeurs saisies pour les réafficher
+            $request->getSession()->set('avis_old', [
+                'titre' => $titre,
+                'commentaire' => $contenu,
+                'note' => $rating
+            ]);
+            
+            foreach ($violations as $v) {
+                $field = $v->getPropertyPath();
+                // Map entity field names to form field names
+                $fieldMap = ['titre' => 'error_titre', 'contenu' => 'error_commentaire', 'rating' => 'error_note'];
+                $flashKey = $fieldMap[$field] ?? 'error';
+                $this->addFlash($flashKey, $v->getMessage());
+            }
             return $this->redirectToRoute('app_avis');
         }
+        
+        // Nettoyer les anciennes valeurs si validation OK
+        $request->getSession()->remove('avis_old');
 
         // ── MODÉRATION ──
         if ($user instanceof Users) {
@@ -119,12 +144,26 @@ final class AvisController extends AbstractController
         // ── ENREGISTREMENT ──
         $userId = $user instanceof Users ? $user->getId() : 0;
 
+        // Gestion upload image
+        $imageFilename = null;
+        $file = $request->files->get('image');
+        if ($file) {
+            $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (in_array($file->getMimeType(), $allowed) && $file->getSize() <= 5 * 1024 * 1024) {
+                $imageFilename = uniqid('avis_') . '.' . $file->guessExtension();
+                $file->move($this->getParameter('kernel.project_dir') . '/public/uploads/avis', $imageFilename);
+            }
+        }
+
         $avis = new Avis();
         $avis->setUserId($userId);
         $avis->setRating($rating);
         $avis->setTitre($titre ?: 'Avis');
         $avis->setContenu($contenu);
         $avis->setCreatedAt(new \DateTime());
+        if ($imageFilename) {
+            $avis->setImage($imageFilename);
+        }
 
         $em->persist($avis);
         $em->flush();
