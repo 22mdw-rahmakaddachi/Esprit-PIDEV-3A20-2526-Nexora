@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controller.GestionAttributsController"
+            style="-fx-background-color: #F3F4F6;">
+
+    <top>
+        <VBox style="-fx-background-color: white; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+            <Label text="🎨 Gestion des Attributs de Variation" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
+            <Label text="Définissez les attributs (Taille, Couleur, etc.) et leurs options" style="-fx-font-size: 14px; -fx-text-fill: #6B7280; -fx-padding: 5 0 0 0;"/>
+        </VBox>
+    </top>
+
+    <center>
+        <HBox spacing="20" style="-fx-padding: 20;">
+            
+            <!-- Liste des attributs -->
+            <VBox spacing="15" style="-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="Attributs" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="➕ Nouvel Attribut" onAction="#handleAjouterAttribut" 
+                            style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-padding: 8 16; -fx-cursor: hand;"/>
+                </HBox>
+                
+                <ScrollPane fitToWidth="true" style="-fx-background: transparent;">
+                    <VBox fx:id="attributsContainer" spacing="10" style="-fx-padding: 10;"/>
+                </ScrollPane>
+            </VBox>
+
+            <!-- Formulaire attribut/option -->
+            <VBox fx:id="formContainer" spacing="15" visible="false" 
+                  style="-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2); -fx-min-width: 400;">
+                
+                <Label fx:id="formTitle" text="Nouvel Attribut" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                
+                <VBox spacing="5">
+                    <Label text="Nom *" style="-fx-font-weight: bold;"/>
+                    <TextField fx:id="nomField" promptText="Ex: Taille, Couleur, Capacité"/>
+                    <Label fx:id="nomError" visible="false" style="-fx-text-fill: #e74c3c; -fx-font-size: 12px;"/>
+                </VBox>
+
+                <VBox spacing="5" fx:id="typeAffichageBox">
+                    <Label text="Type d'affichage *" style="-fx-font-weight: bold;"/>
+                    <ComboBox fx:id="typeAffichageCombo" prefWidth="360"/>
+                </VBox>
+
+                <VBox spacing="5" fx:id="attributParentBox" visible="false" managed="false">
+                    <Label text="Attribut *" style="-fx-font-weight: bold;"/>
+                    <ComboBox fx:id="attributParentCombo" prefWidth="360"/>
+                </VBox>
+
+                <VBox spacing="5" fx:id="valeurBox" visible="false" managed="false">
+                    <Label text="Valeur *" style="-fx-font-weight: bold;"/>
+                    <TextField fx:id="valeurField" promptText="Ex: S, M, L, XL"/>
+                </VBox>
+
+                <VBox spacing="5" fx:id="couleurBox" visible="false" managed="false">
+                    <Label text="Code Couleur (Hex)" style="-fx-font-weight: bold;"/>
+                    <TextField fx:id="couleurField" promptText="Ex: #FF0000"/>
+                </VBox>
+
+                <HBox spacing="10" alignment="CENTER">
+                    <Button text="💾 Enregistrer" onAction="#handleSave" 
+                            style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-padding: 10 20; -fx-cursor: hand; -fx-font-weight: bold;"/>
+                    <Button text="❌ Annuler" onAction="#handleCancel" 
+                            style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-padding: 10 20; -fx-cursor: hand;"/>
+                </HBox>
+            </VBox>
+
+        </HBox>
+    </center>
+
+</BorderPane>

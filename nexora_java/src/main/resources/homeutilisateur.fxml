@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane prefHeight="600.0" prefWidth="900.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/20" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.HomeUtilisateurController">
+
+    <!-- TOP BAR -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20" styleClass="top-bar-white">
+            <padding><Insets top="12" right="24" bottom="12" left="24"/></padding>
+            <Button styleClass="btn-back" text="← Retour" />
+            <Text styleClass="logo-top-white" text="NEXORA" />
+            <Text styleClass="version-top-white" text="• Utilisateur" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Button text="🔄" onAction="#refreshButton" styleClass="btn-success" />
+        </HBox>
+    </top>
+
+    <!-- MAIN CONTENT -->
+    <center>
+        <VBox spacing="16" style="-fx-background-color: #F8FAFC; -fx-padding: 20;">
+            
+            <Text text="📌 Liste des Activités" styleClass="section-title" />
+            
+            <VBox styleClass="panel-white" VBox.vgrow="ALWAYS">
+                <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+                <ListView fx:id="feedList" VBox.vgrow="ALWAYS" style="-fx-background-color: white;" />
+            </VBox>
+            
+        </VBox>
+    </center>
+
+</BorderPane>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane prefHeight="700.0" prefWidth="1000.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/20" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.ActivitesClientController">
+
+    <!-- TOP BAR -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20" styleClass="top-bar-white">
+            <padding><Insets top="16" right="32" bottom="16" left="32"/></padding>
+            <Text styleClass="logo-top-white" text="NEXORA" />
+            <Text styleClass="version-top-white" text="• Activités" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="welcomeClientLabel" style="-fx-text-fill: #6B7280; -fx-font-size: 14px; -fx-font-weight: 600;" />
+            <Label fx:id="notificationBadge" styleClass="notification-badge" visible="false" />
+        </HBox>
+    </top>
+
+    <!-- MAIN CONTENT -->
+    <center>
+        <StackPane>
+            <!-- LISTE DES ACTIVITÉS -->
+            <ScrollPane fx:id="listeView" fitToWidth="true" style="-fx-background-color: #F8FAFC;">
+                <VBox spacing="20" style="-fx-padding: 30;">
+                    <HBox alignment="CENTER_LEFT" spacing="15">
+                        <Text text="🎯 Activités Disponibles" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1F2937;" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label fx:id="countLabel" text="0 activités" style="-fx-text-fill: #6B7280; -fx-font-size: 14px;" />
+                    </HBox>
+                    
+                    <!-- Filtres de recherche -->
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <TextField fx:id="searchField" promptText="🔍 Rechercher une activité..." prefWidth="300" styleClass="search-field" />
+                        <ComboBox fx:id="searchTypeCombo" promptText="Type" prefWidth="150" />
+                        <ComboBox fx:id="searchLieuCombo" promptText="Lieu" prefWidth="150" />
+                        <Button text="🔄 Réinitialiser" onAction="#resetFilters" styleClass="btn-secondary" />
+                    </HBox>
+                    
+                    <!-- Container des activités -->
+                    <VBox fx:id="activitesContainer" spacing="15" />
+                </VBox>
+            </ScrollPane>
+            
+            <!-- DÉTAILS DE L'ACTIVITÉ -->
+            <ScrollPane fx:id="detailsView" fitToWidth="true" style="-fx-background-color: white;" visible="false" managed="false">
+                <VBox spacing="20" style="-fx-padding: 30;">
+                    <HBox alignment="CENTER_LEFT" spacing="15">
+                        <Button text="← Retour" onAction="#retourListe" styleClass="btn-back" />
+                        <Region HBox.hgrow="ALWAYS" />
+                    </HBox>
+                    
+                    <VBox spacing="15" styleClass="panel-white">
+                        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                        
+                        <Label fx:id="nomLabel" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1F2937;" />
+                        
+                        <HBox spacing="30">
+                            <VBox spacing="8">
+                                <Label text="Type" style="-fx-text-fill: #6B7280; -fx-font-size: 12px;" />
+                                <Label fx:id="typeLabel" style="-fx-font-size: 16px; -fx-font-weight: 600;" />
+                            </VBox>
+                            <VBox spacing="8">
+                                <Label text="Lieu" style="-fx-text-fill: #6B7280; -fx-font-size: 12px;" />
+                                <Label fx:id="lieuLabel" style="-fx-font-size: 16px; -fx-font-weight: 600;" />
+                            </VBox>
+                            <VBox spacing="8">
+                                <Label text="Date" style="-fx-text-fill: #6B7280; -fx-font-size: 12px;" />
+                                <Label fx:id="dateLabel" style="-fx-font-size: 16px; -fx-font-weight: 600;" />
+                            </VBox>
+                        </HBox>
+                        
+                        <Separator />
+                        
+                        <VBox spacing="8">
+                            <Label text="Description" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+                            <Label fx:id="descriptionLabel" wrapText="true" style="-fx-text-fill: #4B5563;" />
+                        </VBox>
+                        
+                        <HBox spacing="30" alignment="CENTER_LEFT">
+                            <VBox spacing="5">
+                                <Label text="Prix" style="-fx-text-fill: #6B7280; -fx-font-size: 12px;" />
+                                <Label fx:id="prixLabel" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #7C3AED;" />
+                            </VBox>
+                            <VBox spacing="5">
+                                <Label text="Places disponibles" style="-fx-text-fill: #6B7280; -fx-font-size: 12px;" />
+                                <Label fx:id="placesLabel" style="-fx-font-size: 20px; -fx-font-weight: 600; -fx-text-fill: #10B981;" />
+                            </VBox>
+                        </HBox>
+                        
+                        <Separator />
+                        
+                        <VBox spacing="8">
+                            <Label text="Organisateur" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+                            <Label fx:id="partenaireNomLabel" style="-fx-font-size: 14px;" />
+                            <Label fx:id="partenaireEmailLabel" style="-fx-font-size: 14px; -fx-text-fill: #6B7280;" />
+                            <Label fx:id="partenaireTelLabel" style="-fx-font-size: 14px; -fx-text-fill: #6B7280;" />
+                        </VBox>
+                        
+                        <Separator />
+                        
+                        <VBox spacing="10">
+                            <Label text="Méthode de paiement" style="-fx-font-weight: bold;" />
+                            <ComboBox fx:id="methodePaiementCombo" prefWidth="300" />
+                        </VBox>
+                        
+                        <HBox spacing="15">
+                            <Button text="✅ Participer" onAction="#participerActivite" styleClass="btn-primary" prefWidth="150" />
+                            <Button text="❌ Annuler" onAction="#retourListe" styleClass="btn-secondary" prefWidth="150" />
+                        </HBox>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+        </StackPane>
+    </center>
+
+</BorderPane>

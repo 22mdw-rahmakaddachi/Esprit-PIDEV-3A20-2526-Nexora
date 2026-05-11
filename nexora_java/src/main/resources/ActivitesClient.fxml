@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controller.ActivitesClientController"
+            prefHeight="800.0" prefWidth="1200.0"
+            style="-fx-background-color: #F9FAFB;">
+
+    <!-- HEADER -->
+    <top>
+        <VBox spacing="15" style="-fx-background-color: white; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+            <padding><Insets top="20" right="30" bottom="20" left="30"/></padding>
+
+            <!-- Titre et notifications -->
+            <HBox alignment="CENTER_LEFT" spacing="20">
+                <Label text="Activités Disponibles" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <!-- Badge notifications -->
+                <HBox alignment="CENTER" spacing="5" style="-fx-cursor: hand; -fx-padding: 8;" onMouseClicked="#ouvrirNotifications">
+                    <Label text="🔔" style="-fx-font-size: 24px;"/>
+                    <Label fx:id="notificationBadge" text="0"
+                           style="-fx-background-color: #EF4444; -fx-text-fill: white; -fx-padding: 3 10; -fx-background-radius: 12; -fx-font-weight: bold; -fx-font-size: 12px;"
+                           visible="false" managed="false"/>
+                </HBox>
+
+                <Label fx:id="welcomeClientLabel" style="-fx-text-fill: #6B7280; -fx-font-size: 14px; -fx-font-weight: 600;"/>
+            </HBox>
+
+            <!-- FILTRES -->
+            <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-background-color: #F3F4F6; -fx-padding: 15; -fx-background-radius: 8;">
+                <Label text="Filtres:" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
+
+                <ComboBox fx:id="searchTypeCombo" promptText="Type" prefWidth="150"
+                          style="-fx-background-radius: 6;"/>
+
+                <ComboBox fx:id="searchLieuCombo" promptText="Lieu" prefWidth="150"
+                          style="-fx-background-radius: 6;"/>
+
+                <DatePicker fx:id="searchDatePicker" promptText="Date" prefWidth="150"
+                            style="-fx-background-radius: 6;"/>
+
+                <Button text="🔍 Rechercher" onAction="#rechercherActivites"
+                        style="-fx-background-color: #3B82F6; -fx-text-fill: white; -fx-background-radius: 6; -fx-padding: 8 20; -fx-cursor: hand;"/>
+
+                <Button text="🔄 Réinitialiser" onAction="#reinitialiserRecherche"
+                        style="-fx-background-color: #6B7280; -fx-text-fill: white; -fx-background-radius: 6; -fx-padding: 8 20; -fx-cursor: hand;"/>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <Label fx:id="countLabel" text="(0 activités)"
+                       style="-fx-text-fill: #6B7280; -fx-font-size: 14px;"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- CONTENU PRINCIPAL -->
+    <center>
+        <StackPane>
+
+            <!-- VUE LISTE DES ACTIVITÉS -->
+            <ScrollPane fx:id="listeView" fitToWidth="true" style="-fx-background-color: transparent;">
+                <VBox spacing="20" style="-fx-padding: 30;" alignment="TOP_CENTER">
+                    <VBox spacing="15" maxWidth="900"
+                          style="-fx-background-color: white; -fx-padding: 25; -fx-background-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 3);">
+
+                        <Label text="Toutes les Activités"
+                               style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
+
+                        <Separator/>
+
+                        <!-- Container pour les cartes d'activités en liste verticale -->
+                        <VBox fx:id="activitesContainer" spacing="15" style="-fx-padding: 10;"/>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+
+            <!-- VUE DÉTAILS DE L'ACTIVITÉ -->
+            <ScrollPane fx:id="detailsView" fitToWidth="true" style="-fx-background-color: transparent;" visible="false" managed="false">
+                <VBox spacing="20" style="-fx-padding: 30;">
+
+                    <!-- Bouton retour -->
+                    <Button text="← Retour à la liste" onAction="#retourListe"
+                            style="-fx-background-color: #6B7280; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 10 20; -fx-font-size: 14px; -fx-cursor: hand;"/>
+
+                    <VBox fx:id="detailsPane" spacing="20"
+                          style="-fx-background-color: white; -fx-padding: 30; -fx-background-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 3);">
+
+                        <!-- Image et infos principales -->
+                        <VBox spacing="15">
+                            <Label text="Détails de l'activité"
+                                   style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
+
+                            <Separator/>
+
+                            <HBox spacing="30" alignment="TOP_LEFT">
+                                <!-- Image -->
+                                <VBox alignment="CENTER">
+                                    <ImageView fx:id="imageView" fitWidth="450" fitHeight="300" preserveRatio="true"
+                                               style="-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0, 0, 2);"/>
+                                </VBox>
+
+                                <!-- Informations -->
+                                <VBox spacing="15" HBox.hgrow="ALWAYS">
+                                    <Label fx:id="nomLabel" wrapText="true"
+                                           style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
+
+                                    <HBox spacing="30">
+                                        <VBox spacing="5">
+                                            <Label text="Type:" style="-fx-font-weight: bold; -fx-text-fill: #6B7280; -fx-font-size: 12px;"/>
+                                            <Label fx:id="typeLabel" style="-fx-font-size: 16px; -fx-text-fill: #1F2937;"/>
+                                        </VBox>
+                                        <VBox spacing="5">
+                                            <Label text="Lieu:" style="-fx-font-weight: bold; -fx-text-fill: #6B7280; -fx-font-size: 12px;"/>
+                                            <Label fx:id="lieuLabel" style="-fx-font-size: 16px; -fx-text-fill: #1F2937;"/>
+                                        </VBox>
+                                        <VBox spacing="5">
+                                            <Label text="Date:" style="-fx-font-weight: bold; -fx-text-fill: #6B7280; -fx-font-size: 12px;"/>
+                                            <Label fx:id="dateLabel" style="-fx-font-size: 16px; -fx-text-fill: #1F2937;"/>
+                                        </VBox>
+                                    </HBox>
+
+                                    <HBox spacing="30" alignment="CENTER_LEFT">
+                                        <Label fx:id="prixLabel" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #10B981;"/>
+                                        <Label fx:id="placesLabel" style="-fx-font-size: 16px;"/>
+                                    </HBox>
+
+                                    <!-- Description -->
+                                    <VBox spacing="8" style="-fx-background-color: #F9FAFB; -fx-padding: 15; -fx-background-radius: 8;">
+                                        <Label text="📝 Description:" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
+                                        <Label fx:id="descriptionLabel" wrapText="true"
+                                               style="-fx-text-fill: #4B5563; -fx-font-size: 14px;"/>
+                                    </VBox>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+
+                        <Separator/>
+
+                        <!-- Informations du Partenaire -->
+                        <VBox spacing="10" style="-fx-background-color: #F3F4F6; -fx-padding: 20; -fx-background-radius: 8;">
+                            <Label text="📍 Informations du Partenaire"
+                                   style="-fx-font-weight: bold; -fx-font-size: 18px; -fx-text-fill: #1F2937;"/>
+                            <Label fx:id="partenaireNomLabel" style="-fx-text-fill: #374151; -fx-font-size: 14px;"/>
+                            <Label fx:id="partenaireEmailLabel" style="-fx-text-fill: #374151; -fx-font-size: 14px;"/>
+                            <Label fx:id="partenaireTelLabel" style="-fx-text-fill: #374151; -fx-font-size: 14px;"/>
+                        </VBox>
+
+                        <Separator/>
+
+                        <!-- Formulaire de participation -->
+                        <VBox spacing="20">
+                            <Label text="📝 Demande de Participation"
+                                   style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
+
+                            <Label text="ℹ️ Vos informations sont automatiquement remplies depuis votre compte"
+                                   style="-fx-text-fill: #6B7280; -fx-font-size: 13px; -fx-font-style: italic; -fx-background-color: #EFF6FF; -fx-padding: 12; -fx-background-radius: 6;"/>
+
+                            <GridPane hgap="20" vgap="15">
+                                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                    <Label text="Votre nom *" style="-fx-font-weight: bold;"/>
+                                    <TextField fx:id="nomClientField" promptText="Nom complet" prefWidth="300"
+                                               style="-fx-padding: 12; -fx-background-radius: 6; -fx-font-size: 14px;"/>
+                                    <Label fx:id="nomErrorLabel" style="-fx-text-fill: #DC2626; -fx-font-size: 12px;"
+                                           visible="false" managed="false"/>
+                                </VBox>
+
+                                <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                    <Label text="Email *" style="-fx-font-weight: bold;"/>
+                                    <TextField fx:id="emailClientField" promptText="email@example.com" prefWidth="300"
+                                               style="-fx-padding: 12; -fx-background-radius: 6; -fx-font-size: 14px;"/>
+                                    <Label fx:id="emailErrorLabel" style="-fx-text-fill: #DC2626; -fx-font-size: 12px;"
+                                           visible="false" managed="false"/>
+                                </VBox>
+
+                                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                    <Label text="Téléphone *" style="-fx-font-weight: bold;"/>
+                                    <TextField fx:id="telephoneClientField" promptText="+216 XX XXX XXX" prefWidth="300"
+                                               style="-fx-padding: 12; -fx-background-radius: 6; -fx-font-size: 14px;"/>
+                                    <Label fx:id="telephoneErrorLabel" style="-fx-text-fill: #DC2626; -fx-font-size: 12px;"
+                                           visible="false" managed="false"/>
+                                </VBox>
+
+                                <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                    <Label text="Méthode de paiement *" style="-fx-font-weight: bold;"/>
+                                    <ComboBox fx:id="methodePaiementCombo" prefWidth="300"
+                                              style="-fx-background-radius: 6;"/>
+                                    <Label fx:id="paiementErrorLabel" style="-fx-text-fill: #DC2626; -fx-font-size: 12px;"
+                                           visible="false" managed="false"/>
+                                </VBox>
+                            </GridPane>
+
+                            <!-- Statut de la demande -->
+                            <VBox fx:id="statutBox" spacing="10"
+                                  style="-fx-background-color: #FEF3C7; -fx-padding: 15; -fx-background-radius: 8;"
+                                  visible="false" managed="false">
+                                <Label text="📊 Statut de votre demande" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
+                                <Label fx:id="statutLabel" style="-fx-font-size: 13px;"/>
+                            </VBox>
+
+                            <Separator/>
+
+                            <!-- Boutons d'action -->
+                            <HBox spacing="15" alignment="CENTER">
+                                <Button fx:id="participerBtn" text="✉️ Envoyer Demande" onAction="#envoyerDemande"
+                                        style="-fx-background-color: #10B981; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 15 30; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;"/>
+                                <Button fx:id="annulerBtn" text="❌ Annuler Demande" onAction="#annulerDemande"
+                                        style="-fx-background-color: #EF4444; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 15 30; -fx-font-size: 15px; -fx-cursor: hand;"
+                                        visible="false" managed="false"/>
+                                <Button text="📋 Voir Statut" onAction="#voirStatutDemande"
+                                        style="-fx-background-color: #3B82F6; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 15 30; -fx-font-size: 15px; -fx-cursor: hand;"/>
+                                <Button fx:id="payerBtn" text="💳 Payer" onAction="#effectuerPaiement"
+                                        style="-fx-background-color: #8B5CF6; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 15 30; -fx-font-size: 15px; -fx-cursor: hand;"
+                                        disable="true"/>
+                                <Button text="📝 Soumettre Réclamation" onAction="#ouvrirReclamation"
+                                        style="-fx-background-color: #F59E0B; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 15 30; -fx-font-size: 15px; -fx-cursor: hand;"/>
+                            </HBox>
+                        </VBox>
+
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+
+        </StackPane>
+    </center>
+</BorderPane>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox spacing="16" style="-fx-background-color: #F8FAFC; -fx-padding: 16;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.ProduitsClientController">
+
+    <!-- HEADER -->
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <Button styleClass="btn-back" text="← Retour" />
+        <Text text="PRODUITS DISPONIBLES" styleClass="section-title" />
+        <Region HBox.hgrow="ALWAYS" />
+        <TextField fx:id="searchField" promptText="Rechercher..." prefWidth="200" styleClass="field-white-simple" />
+        <Button onAction="#handleSearch" styleClass="btn-secondary" text="🔍" />
+    </HBox>
+
+    <!-- TABLE -->
+    <VBox spacing="8" VBox.vgrow="ALWAYS" styleClass="panel-white">
+        <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+        
+        <TableView fx:id="produitsTable" styleClass="table-white-simple" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="nomColumn" prefWidth="250" text="Nom du Produit" />
+                <TableColumn fx:id="descriptionColumn" prefWidth="280" text="Description" />
+                <TableColumn fx:id="prixColumn" prefWidth="100" text="Prix (DH)" />
+                <TableColumn fx:id="stockColumn" prefWidth="80" text="Stock" />
+                <TableColumn fx:id="actionColumn" prefWidth="120" text="Action" />
+            </columns>
+        </TableView>
+        
+        <HBox alignment="CENTER_RIGHT">
+            <Button onAction="#handleRefresh" styleClass="btn-success" text="🔄 Actualiser" />
+        </HBox>
+    </VBox>
+
+</VBox>

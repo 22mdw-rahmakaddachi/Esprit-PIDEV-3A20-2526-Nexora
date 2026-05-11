@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controller.NotificationsController" prefHeight="600.0" prefWidth="500.0"
+            style="-fx-background-color: white;">
+
+    <top>
+        <VBox spacing="0">
+            <!-- Header -->
+            <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 20; -fx-background-color: white;">
+                <Label text="Notifications" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="closeBtn" text="✕" onAction="#fermer"
+                        style="-fx-background-color: transparent; -fx-text-fill: #6B7280; -fx-font-size: 20px; -fx-cursor: hand;"/>
+            </HBox>
+
+            <!-- Onglets -->
+            <HBox spacing="0" style="-fx-padding: 0 20 10 20; -fx-background-color: white;">
+                <Button fx:id="toutBtn" text="Tout" onAction="#afficherTout"
+                        styleClass="tab-button-active" prefWidth="100"/>
+                <Button fx:id="nonLuBtn" text="Non lu" onAction="#afficherNonLu"
+                        styleClass="tab-button" prefWidth="100"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="Marquer toutes comme lues" onAction="#marquerToutesLues"
+                        style="-fx-background-color: transparent; -fx-text-fill: #3B82F6; -fx-cursor: hand; -fx-font-size: 12px;"/>
+            </HBox>
+
+            <Separator/>
+        </VBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: white; -fx-background: white;">
+            <VBox fx:id="notificationsContainer" spacing="0" style="-fx-background-color: white; -fx-padding: 10;"/>
+        </ScrollPane>
+    </center>
+
+    <bottom>
+        <HBox alignment="CENTER" style="-fx-padding: 15; -fx-background-color: #F9FAFB;">
+            <Label fx:id="emptyLabel" text="Aucune notification"
+                   style="-fx-text-fill: #9CA3AF; -fx-font-size: 14px;" visible="false"/>
+        </HBox>
+    </bottom>
+</BorderPane>

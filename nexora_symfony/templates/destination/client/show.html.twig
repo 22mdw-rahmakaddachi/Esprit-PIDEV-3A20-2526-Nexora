@@ -1,0 +1,1922 @@
+{# templates/destination/client/show.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ destination.nom }} — Excursion{% endblock %}
+
+{% block stylesheets %}
+<style>
+    :root {
+        --primary: #6c3fc5;
+        --primary-dark: #4e2d9a;
+        --success: #16A34A;
+        --danger: #DC2626;
+        --warning: #D97706;
+        --gray-50: #F9FAFB;
+        --gray-100: #F3F4F6;
+        --gray-200: #E5E7EB;
+        --gray-600: #4B5563;
+        --gray-800: #1F2937;
+    }
+
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--gray-50); }
+
+    .back-bar {
+        background: white;
+        border-bottom: 1px solid var(--gray-200);
+        padding: 14px 32px;
+    }
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--gray-600);
+        text-decoration: none;
+        font-size: .9rem;
+        padding: 8px 14px;
+        border-radius: 6px;
+        transition: background .2s;
+        font-weight: 500;
+    }
+    .back-btn:hover { background: var(--gray-100); color: var(--gray-800); }
+
+    .container { max-width: 1100px; margin: 40px auto; padding: 0 24px; }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,.08);
+        overflow: hidden;
+    }
+    @media (max-width: 768px) {
+        .detail-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ─── Galerie ─── */
+    .detail-image-side { position: relative; display: flex; flex-direction: column; }
+
+    .main-image-wrapper {
+        position: relative;
+        overflow: hidden;
+        flex: 1;
+        min-height: 340px;
+    }
+    .main-image {
+        width: 100%;
+        height: 100%;
+        min-height: 340px;
+        object-fit: cover;
+        display: block;
+        transition: opacity .3s;
+    }
+    .image-placeholder {
+        width: 100%;
+        min-height: 340px;
+        background: linear-gradient(135deg, #f0ebff, #ede5ff);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 5rem;
+    }
+
+    /* Nav arrows */
+    .gallery-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0,0,0,.45);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 38px;
+        height: 38px;
+        font-size: 1.1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background .2s;
+        z-index: 10;
+    }
+    .gallery-nav:hover { background: rgba(0,0,0,.7); }
+    .gallery-nav.prev { left: 12px; }
+    .gallery-nav.next { right: 12px; }
+
+    /* Counter */
+    .gallery-counter {
+        position: absolute;
+        bottom: 12px;
+        right: 14px;
+        background: rgba(0,0,0,.5);
+        color: white;
+        font-size: .75rem;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 999px;
+    }
+
+    /* Thumbnails strip */
+    .thumbnails-strip {
+        display: flex;
+        gap: 8px;
+        padding: 10px 12px;
+        background: var(--gray-50);
+        border-top: 1px solid var(--gray-100);
+        overflow-x: auto;
+        scrollbar-width: thin;
+    }
+    .thumb-item {
+        width: 64px;
+        height: 48px;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 2px solid transparent;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: border-color .2s, transform .2s;
+    }
+    .thumb-item:hover { transform: scale(1.05); }
+    .thumb-item.active { border-color: var(--primary); }
+
+    /* Badge overlay */
+    .badge-overlay {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        padding: 6px 16px;
+        border-radius: 999px;
+        font-size: .8rem;
+        font-weight: 700;
+    }
+    .badge-disponible { background: #16A34A; color: white; }
+    .badge-complet    { background: #DC2626; color: white; }
+    .badge-attente    { background: #D97706; color: white; }
+
+    /* ─── VR 360 STYLES ─── */
+    .vr-toggle-btn {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        z-index: 30;
+        background: rgba(0,0,0,0.7);
+        color: white;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 30px;
+        padding: 8px 18px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        backdrop-filter: blur(8px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    .vr-toggle-btn:hover {
+        background: var(--primary);
+        border-color: white;
+        transform: scale(1.05);
+    }
+    .vr-toggle-btn.active {
+        background: #EF4444;
+        border-color: white;
+    }
+    .vr-icon { font-size: 1.2rem; }
+    #vr-viewer {
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .pnlm-container { border-radius: 0; }
+
+    /* ─── Info side ─── */
+    .detail-info-side { padding: 40px; }
+    .detail-info-side h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--gray-800);
+        margin-bottom: 20px;
+    }
+    .info-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+    .info-label {
+        font-size: .75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        color: var(--gray-600);
+        margin-bottom: 4px;
+    }
+    .info-value { font-size: 1rem; color: var(--gray-800); line-height: 1.6; }
+    .maps-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+        padding: 10px 20px;
+        background: var(--primary);
+        color: white;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: .85rem;
+        font-weight: 600;
+        transition: background .2s, transform .2s;
+    }
+    .maps-btn:hover { background: #4e2d9a; transform: translateY(-1px); }
+
+    /* ─── Rejoindre ─── */
+    .join-section {
+        margin-top: 28px;
+        padding: 24px;
+        background: linear-gradient(135deg, #f9f7ff, #f0ebff);
+        border-radius: 14px;
+        border: 1px solid #ede5ff;
+    }
+    .join-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--gray-800);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .progress-bar-wrap {
+        background: var(--gray-200);
+        border-radius: 999px;
+        height: 10px;
+        overflow: hidden;
+        margin-bottom: 8px;
+    }
+    .progress-bar-fill {
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #6c3fc5, #16A34A);
+        transition: width .6s ease;
+    }
+    .progress-label {
+        font-size: .8rem;
+        color: var(--gray-600);
+        margin-bottom: 16px;
+    }
+    .btn-rejoindre {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all .25s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    .btn-rejoindre.primary {
+        background: linear-gradient(135deg, #6c3fc5, #4e2d9a);
+        color: white;
+        box-shadow: 0 4px 14px rgba(108,63,197,.35);
+    }
+    .btn-rejoindre.primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(108,63,197,.45);
+    }
+    .btn-rejoindre.joined {
+        background: #f0fdf4;
+        color: #16A34A;
+        border: 2px solid #BBF7D0;
+        cursor: default;
+    }
+    .btn-rejoindre.full {
+        background: #fee2e2;
+        color: #DC2626;
+        border: 2px solid #FECACA;
+        cursor: not-allowed;
+    }
+    .btn-rejoindre.loading { opacity: .7; pointer-events: none; }
+
+    .status-badge-join {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: .78rem;
+        font-weight: 700;
+        margin-left: 8px;
+    }
+    .status-dispo { background: #dcfce7; color: #15803d; }
+    .status-attente { background: #fef3c7; color: #92400e; }
+    .status-complet { background: #fee2e2; color: #991b1b; }
+
+    /* ─── Chat widget ─── */
+    .chat-toggle-btn {
+        position: fixed;
+        bottom: 28px;
+        left: 28px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6c3fc5, #7C3AED);
+        color: white;
+        font-size: 1.5rem;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 4px 20px rgba(108,63,197,.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        transition: transform .25s, box-shadow .25s;
+    }
+    .chat-toggle-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 28px rgba(108,63,197,.6);
+    }
+    .chat-unread-dot {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 12px;
+        height: 12px;
+        background: #EF4444;
+        border-radius: 50%;
+        border: 2px solid white;
+        display: none;
+    }
+
+    .chat-window {
+        position: fixed;
+        bottom: 96px;
+        left: 28px;
+        width: 360px;
+        height: 520px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        display: flex;
+        flex-direction: column;
+        z-index: 999;
+        transform: translateY(20px) scale(.95);
+        opacity: 0;
+        pointer-events: none;
+        transition: all .4s cubic-bezier(.34,1.56,.64,1);
+        border: 1px solid rgba(255,255,255,0.4);
+        overflow: hidden;
+    }
+    .chat-window.open {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    /* ─── ESSENTIALS WIDGET (Float Right) ─── */
+    .essentials-toggle-btn {
+        position: fixed;
+        bottom: 28px;
+        right: 28px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: white;
+        color: var(--primary);
+        font-size: 1.4rem;
+        border: 2px solid var(--primary);
+        cursor: pointer;
+        box-shadow: 0 4px 20px rgba(0,0,0,.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        transition: all .25s cubic-bezier(.34,1.56,.64,1);
+    }
+    .essentials-toggle-btn:hover {
+        transform: scale(1.1) rotate(12deg);
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 6px 28px rgba(108,63,197,.25);
+    }
+    .essentials-toggle-btn.active {
+        background: var(--primary);
+        color: white;
+        transform: rotate(90deg);
+    }
+
+    .essentials-card {
+        position: fixed;
+        bottom: 96px;
+        right: 28px;
+        width: 320px;
+        max-height: 80vh;
+        overflow-y: auto;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        z-index: 999;
+        padding: 24px;
+        transform: translateY(20px) scale(.95);
+        opacity: 0;
+        pointer-events: none;
+        transition: all .4s cubic-bezier(.34,1.56,.64,1);
+        border: 1px solid rgba(255,255,255,0.4);
+        scrollbar-width: none;
+    }
+    .essentials-card::-webkit-scrollbar { display: none; }
+    .essentials-card.open {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+        pointer-events: all;
+    }
+    .essentials-card h4 {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--gray-800);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .essential-item {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 18px;
+    }
+    .essential-item:last-child { margin-bottom: 0; }
+    .essential-icon {
+        width: 40px;
+        height: 40px;
+        background: #f0ebff;
+        color: var(--primary);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    .essential-content { flex: 1; }
+    .essential-label {
+        font-size: .7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--gray-600);
+        margin-bottom: 2px;
+        letter-spacing: .02em;
+    }
+    .essential-value {
+        font-size: .9rem;
+        font-weight: 600;
+        color: var(--gray-800);
+        line-height: 1.4;
+    }
+
+    .chat-header {
+        background: linear-gradient(135deg, #6c3fc5, #7C3AED);
+        padding: 16px 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+    .chat-header-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+    .chat-header-info { flex: 1; }
+    .chat-header-title { color: white; font-weight: 700; font-size: .95rem; }
+    .chat-header-sub   { color: rgba(255,255,255,.75); font-size: .75rem; }
+    .chat-close-btn {
+        background: rgba(255,255,255,.2);
+        border: none;
+        color: white;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: .9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background .2s;
+    }
+    .chat-close-btn:hover { background: rgba(255,255,255,.35); }
+
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        scrollbar-width: thin;
+        scrollbar-color: #e2e8f0 transparent;
+    }
+    .chat-empty {
+        text-align: center;
+        color: var(--gray-600);
+        font-size: .85rem;
+        margin-top: 40px;
+    }
+    .chat-bubble-wrap {
+        display: flex;
+        flex-direction: column;
+    }
+    .chat-bubble-wrap.mine { align-items: flex-end; }
+    .chat-author {
+        font-size: .7rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        margin-bottom: 3px;
+        padding: 0 4px;
+    }
+    .chat-bubble {
+        max-width: 78%;
+        padding: 10px 14px;
+        border-radius: 16px;
+        font-size: .875rem;
+        line-height: 1.45;
+        word-break: break-word;
+    }
+    .chat-bubble-wrap:not(.mine) .chat-bubble {
+        background: var(--gray-100);
+        color: var(--gray-800);
+        border-bottom-left-radius: 4px;
+    }
+    .chat-bubble-wrap.mine .chat-bubble {
+        background: linear-gradient(135deg, #6c3fc5, #7C3AED);
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+    .chat-time {
+        font-size: .65rem;
+        color: var(--gray-600);
+        margin-top: 3px;
+        padding: 0 4px;
+    }
+
+    .chat-input-area {
+        padding: 12px;
+        border-top: 1px solid var(--gray-100);
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+        background: white;
+    }
+    .chat-input {
+        flex: 1;
+        padding: 10px 14px;
+        border: 1.5px solid var(--gray-200);
+        border-radius: 999px;
+        font-size: .875rem;
+        outline: none;
+        transition: border-color .2s;
+        font-family: inherit;
+    }
+    .chat-input:focus { border-color: var(--primary); }
+    .chat-send-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6c3fc5, #7C3AED);
+        color: white;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        transition: transform .2s, box-shadow .2s;
+        flex-shrink: 0;
+    }
+    .chat-send-btn:hover { transform: scale(1.1); box-shadow: 0 2px 10px rgba(108,63,197,.4); }
+    .chat-login-notice {
+        padding: 14px;
+        background: #FEF3C7;
+        text-align: center;
+        font-size: .8rem;
+        color: #92400E;
+        border-top: 1px solid #FDE68A;
+    }
+
+    /* Animation d'entrée des messages */
+    @keyframes msgIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .chat-bubble-wrap { animation: msgIn .25s ease; }
+    /* ─── Weather Widget ─── */
+    .weather-widget {
+        margin-top: 16px;
+        background: #f8fafc;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    .weather-main {
+        padding: 16px;
+        background: linear-gradient(135deg, #6c3fc5, #9b59b6);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .weather-temp {
+        font-size: 2.2rem;
+        font-weight: 800;
+        display: flex;
+        align-items: flex-start;
+    }
+    .weather-temp span { font-size: 1.1rem; margin-top: 6px; margin-left: 2px; }
+    .weather-icon-lg {
+        width: 64px;
+        height: 64px;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    }
+    .weather-details {
+        padding: 12px 16px;
+        display: flex;
+        gap: 16px;
+        font-size: 0.8rem;
+        color: #64748b;
+        background: white;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .weather-detail-item { display: flex; align-items: center; gap: 4px; }
+
+    .forecast-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        background: white;
+    }
+    .forecast-item {
+        padding: 12px 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        border-right: 1px solid #f1f5f9;
+    }
+    .forecast-item:last-child { border-right: none; }
+    .forecast-day { font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase; }
+    .forecast-icon { width: 32px; height: 32px; }
+    .forecast-temp { font-size: 0.9rem; font-weight: 700; color: #1e293b; }
+
+    .weather-loading {
+        padding: 30px;
+        text-align: center;
+        color: #94a3b8;
+        font-size: 0.9rem;
+    }
+    .weather-loading .spinner {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(59, 130, 246, 0.2);
+        border-top-color: #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    /* ─── Reviews & Social Proof : GOOGLE MAPS STYLE ─── */
+    .social-proof-section {
+        margin-top: 50px;
+        padding: 40px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 24px rgba(0,0,0,.04);
+        border: 1px solid var(--gray-100);
+    }
+    .social-proof-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--gray-800);
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    /* Stats Header (Maps Style) */
+    .maps-stats-container {
+        display: flex;
+        gap: 60px;
+        margin-bottom: 40px;
+        padding-bottom: 30px;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    @media (max-width: 768px) {
+        .maps-stats-container { flex-direction: column; gap: 30px; }
+    }
+    .main-rating-box {
+        text-align: center;
+        min-width: 140px;
+    }
+    .big-score {
+        font-size: 4rem;
+        font-weight: 700;
+        color: var(--gray-800);
+        line-height: 1;
+    }
+    .stars-total {
+        color: #FABB05;
+        font-size: 1.1rem;
+        margin: 8px 0;
+    }
+    .total-count {
+        font-size: .85rem;
+        color: var(--gray-600);
+    }
+
+    .rating-bars {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .bar-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: .8rem;
+        color: var(--gray-600);
+    }
+    .bar-label { width: 12px; font-weight: 600; }
+    .bar-bg {
+        flex: 1;
+        height: 8px;
+        background: var(--gray-100);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .bar-fill {
+        height: 100%;
+        background: #FABB05;
+        border-radius: 4px;
+        transition: width 1s ease;
+    }
+
+    /* Social Proof Grid */
+    .social-proof-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 12px;
+        margin-bottom: 40px;
+    }
+    .proof-item {
+        aspect-ratio: 1;
+        border-radius: 12px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform .3s;
+        border: 1px solid var(--gray-100);
+    }
+    .proof-item:hover { transform: scale(1.04); }
+    .proof-item img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* Review Card */
+    .review-card {
+        padding: 24px 0;
+        border-bottom: 1px solid var(--gray-100);
+        display: flex;
+        gap: 16px;
+    }
+    .review-card:last-child { border-bottom: none; }
+    .review-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #1a73e8; /* Google Blue */
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: .9rem;
+        flex-shrink: 0;
+    }
+    .review-main { flex: 1; }
+    .review-top {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 8px;
+    }
+    .author-name {
+        font-weight: 700;
+        font-size: .9rem;
+        color: var(--gray-800);
+    }
+    .review-metadata {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: .78rem;
+        color: var(--gray-600);
+    }
+    .stars-small {
+        color: #FABB05;
+        letter-spacing: -2px;
+        font-size: 1rem;
+    }
+    .review-text {
+        font-size: 1rem;
+        color: var(--gray-800);
+        line-height: 1.5;
+        margin: 12px 0;
+    }
+    .review-images-inline {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+    }
+    .review-img-thumb {
+        width: 120px;
+        height: 90px;
+        border-radius: 10px;
+        object-fit: cover;
+        cursor: pointer;
+        border: 1px solid var(--gray-200);
+        transition: opacity .2s;
+    }
+    .review-img-thumb:hover { opacity: .9; }
+
+    /* Review Form (Modal-like/Clean) */
+    .btn-maps-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        background: white;
+        color: #1a73e8;
+        border: 1px solid var(--gray-200);
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: .88rem;
+        cursor: pointer;
+        transition: all .2s;
+        text-decoration: none;
+    }
+    .btn-maps-action:hover {
+        background: #f8fbff;
+        border-color: #1a73e8;
+        box-shadow: 0 1px 3px rgba(0,0,0,.1);
+    }
+    .btn-maps-primary {
+        background: #1a73e8;
+        color: white;
+        border: none;
+    }
+    .btn-maps-primary:hover {
+        background: #1557b0;
+        box-shadow: 0 2px 8px rgba(26,115,232,.3);
+    }
+
+    .review-form-box {
+        margin-top: 30px;
+        padding: 40px;
+        background: #f8f9fa;
+        border-radius: 16px;
+        border: 1px solid var(--gray-200);
+        display: none; /* Collapsed by default */
+    }
+    .review-form-box.open { display: block; }
+
+    /* Star Picker Custom */
+    .star-picker {
+        display: flex;
+        gap: 4px;
+        margin: 12px 0;
+    }
+    .star-picker-item {
+        font-size: 2rem;
+        cursor: pointer;
+        color: var(--gray-200);
+        transition: color .15s;
+    }
+    .star-picker-item.active, .star-picker-item.hover { color: #FABB05; }
+
+    .form-input-maps {
+        width: 100%;
+        padding: 16px;
+        border: 1px solid var(--gray-300);
+        border-radius: 8px;
+        font-size: 1rem;
+        outline: none;
+    }
+    .form-input-maps:focus { border: 2px solid #1a73e8; padding: 15px; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="back-bar">
+    <a href="{{ path('client_destination_index') }}" class="back-btn">← Retour aux excursions</a>
+</div>
+
+<div class="container">
+    <div class="detail-grid">
+
+        {# ─── IMAGE / GALERIE ─── #}
+        <div class="detail-image-side">
+            {% set images = destination.imagesList %}
+
+            <div class="main-image-wrapper">
+                {% if destination.panoramaUrl is not empty %}
+                <button class="vr-toggle-btn" id="vrToggleButton" onclick="toggleVR()" style="display: flex !important;">
+                    <span class="vr-icon">🕶️</span>
+                    <span class="vr-text">Vue 360°</span>
+                </button>
+                {% endif %}
+
+                <div id="photo-viewer" style="height:100%;">
+                    {% if images|length > 0 %}
+                        <img src="{{ images[0] }}" alt="{{ destination.nom }}" class="main-image" id="mainImage">
+
+                        {# Navigation flèches (si + d'une image) #}
+                        {% if images|length > 1 %}
+                            <button class="gallery-nav prev" onclick="prevImage()" title="Précédente">&#8249;</button>
+                            <button class="gallery-nav next" onclick="nextImage()" title="Suivante">&#8250;</button>
+                            <span class="gallery-counter" id="galleryCounter">1 / {{ images|length }}</span>
+                        {% endif %}
+                    {% else %}
+                        <div class="image-placeholder">🏔️</div>
+                    {% endif %}
+                </div>
+
+                {% if destination.panoramaUrl is not empty %}
+                <div id="vr-viewer" style="display:none; position:absolute; inset:0; z-index:10; height:100%;">
+                    {# Contenu injecté par JS #}
+                </div>
+                {% endif %}
+
+                {% if destination.statut %}
+                    <span class="badge-overlay {{ destination.statut == 'Disponible' ? 'badge-disponible' : 'badge-complet' }}" id="statusBadgeImg">
+                        {{ destination.statut == 'Disponible' ? '✅ Disponible' : '🔴 Complet' }}
+                    </span>
+                {% endif %}
+            </div>
+
+            {# Bande de miniatures #}
+            {% if images|length > 1 %}
+            <div class="thumbnails-strip" id="thumbStrip">
+                {% for img in images %}
+                    <img src="{{ img }}"
+                         alt="Vue {{ loop.index }}"
+                         class="thumb-item {% if loop.first %}active{% endif %}"
+                         onclick="goToImage({{ loop.index0 }})"
+                         id="thumb-{{ loop.index0 }}">
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {# COUNTDOWN WIDGET #}
+            {% if destination.dateLancement and not destination.isExpired %}
+            <div style="margin-top:20px; padding:20px; background:white; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.05); text-align:center;">
+                <div style="font-size:0.75rem; font-weight:700; color:var(--gray-600); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px;">🛫 Départ dans</div>
+                <div id="countdown" style="display:flex; justify-content:center; gap:15px;">
+                    <div class="cd-item"><div id="days" style="font-size:1.5rem; font-weight:800; color:var(--primary);">00</div><div style="font-size:0.65rem; color:var(--gray-600);">JOURS</div></div>
+                    <div class="cd-item"><div id="hours" style="font-size:1.5rem; font-weight:800; color:var(--primary);">00</div><div style="font-size:0.65rem; color:var(--gray-600);">HEURES</div></div>
+                    <div class="cd-item"><div id="minutes" style="font-size:1.5rem; font-weight:800; color:var(--primary);">00</div><div style="font-size:0.65rem; color:var(--gray-600);">MINS</div></div>
+                    <div class="cd-item"><div id="seconds" style="font-size:1.5rem; font-weight:800; color:var(--primary);">00</div><div style="font-size:0.65rem; color:var(--gray-600);">SECS</div></div>
+                </div>
+            </div>
+            {% elseif destination.isExpired %}
+            <div style="margin-top:20px; padding:15px; background:#F3F4F6; border-radius:12px; text-align:center; color:#4B5563; font-weight:600;">
+                ⌛ Cette excursion est déjà partie (Vécu)
+            </div>
+            {% endif %}
+        </div>
+
+        {# ─── INFO ─── #}
+        <div class="detail-info-side">
+            <h1>{{ destination.nom }}</h1>
+
+            {# LOCALISATION #}
+            {% if destination.localisation %}
+            <div class="info-row">
+                <span class="info-icon">📍</span>
+                <div>
+                    <div class="info-label">Localisation</div>
+                    <div class="info-value">{{ destination.localisation }}</div>
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ destination.localisation|url_encode }}"
+                       target="_blank" class="maps-btn">
+                        🗺️ Voir sur Google Maps
+                    </a>
+
+                    {# WEATHER WIDGET #}
+                    <div id="weather-root" class="weather-widget" style="display:none">
+                        <div class="weather-loading" id="weather-loader">
+                            <div class="spinner"></div>
+                            <div>Chargement météo...</div>
+                        </div>
+                        <div id="weather-content" style="display:none">
+                            <div class="weather-main">
+                                <div>
+                                    <div class="weather-temp" id="curr-temp">--<span>°C</span></div>
+                                    <div style="font-size:0.85rem; font-weight:500; opacity:0.9" id="curr-desc">--</div>
+                                </div>
+                                <img id="curr-icon" src="" class="weather-icon-lg" alt="Weather">
+                            </div>
+                            <div class="weather-details">
+                                <div class="weather-detail-item">💧 <span id="curr-hum">--</span>%</div>
+                                <div class="weather-detail-item">💨 <span id="curr-wind">--</span> km/h</div>
+                            </div>
+                            <div class="forecast-grid" id="forecast-body">
+                                {# Forecast items here #}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {# DESCRIPTION #}
+            {% if destination.description %}
+            <div class="info-row">
+                <span class="info-icon">📝</span>
+                <div>
+                    <div class="info-label">Description</div>
+                    <div class="info-value">{{ destination.description }}</div>
+                </div>
+            </div>
+            {% endif %}
+
+            {# GALERIE (compteur) #}
+            {% if images|length > 0 or destination.panoramaUrl is not empty %}
+            <div class="info-row">
+                <span class="info-icon">🖼️</span>
+                <div>
+                    <div class="info-label">Contenu visuel</div>
+                    <div class="info-value">
+                        {{ images|length }} photo{{ images|length > 1 ? 's' : '' }}
+                        {% if destination.panoramaUrl is not empty %}
+                            <span style="color:var(--primary); font-weight:700; margin-left:8px;">🕶️ 360° Dispo</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {# ─── REJOINDRE ─── #}
+            <div class="join-section">
+                <div class="join-title">
+                    👥 Participants
+                    <span class="status-badge-join {{ destination.statut == 'Disponible' ? 'status-dispo' : 'status-attente' }}" id="statusBadgeJoin">
+                        {{ destination.statut ?? 'En attente' }}
+                    </span>
+                </div>
+
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" id="progressFill"
+                         style="width: {{ min((destination.nbParticipants / destination.capaciteMax) * 100, 100) }}%"></div>
+                </div>
+                <div class="progress-label">
+                    <span id="nbParticipants">{{ destination.nbParticipants }}</span> / {{ destination.capaciteMax }} participants
+                </div>
+
+                {% if app.user %}
+                    {% set isFull = destination.nbParticipants >= destination.capaciteMax %}
+                    <button class="btn-rejoindre {{ hasJoined ? 'joined' : (isFull ? 'full' : 'primary') }}"
+                            id="btnRejoindre"
+                            onclick="{{ not hasJoined and not isFull ? 'rejoindreDestination()' : '' }}"
+                            {% if hasJoined or isFull %}disabled{% endif %}>
+                        {% if hasJoined %}
+                            ✅ Vous avez déjà rejoint cette excursion
+                        {% elseif isFull %}
+                            🚫 Désolé, cette excursion est complète
+                        {% else %}
+                            ✈️ Rejoindre cette excursion
+                        {% endif %}
+                    </button>
+                {% else %}
+                    <a href="#" class="btn-rejoindre primary" style="text-decoration:none;">
+                        🔐 Se connecter pour rejoindre
+                    </a>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+    {# ─── RÉSEAUX SOCIAUX & PREUVE SOCIALE (GOOGLE MAPS STYLE) ─── #}
+    <div class="social-proof-section" id="reviews-section">
+        <div class="social-proof-title">
+            <span>⭐ Avis et photos des voyageurs</span>
+            {% if app.user %}
+                <button class="btn-maps-action btn-maps-primary" onclick="toggleReviewForm()">
+                    🖊️ Donner un avis
+                </button>
+            {% endif %}
+        </div>
+
+        {# 1. Statistiques des avis #}
+        {% set totalReviews = destination.reviews|length %}
+        {% set avgRating = 0 %}
+        {% set ratingCounts = {'s5':0, 's4':0, 's3':0, 's2':0, 's1':0} %}
+        
+        {% if totalReviews > 0 %}
+            {% set sumRating = 0 %}
+            {% for r in destination.reviews %}
+                {% set sumRating = sumRating + r.rating %}
+                {% set key = 's' ~ r.rating %}
+                {% set rCount = attribute(ratingCounts, key) + 1 %}
+                {% set ratingCounts = ratingCounts|merge({(key): rCount}) %}
+            {% endfor %}
+            {% set avgRating = (sumRating / totalReviews)|number_format(1) %}
+        {% endif %}
+
+        <div class="maps-stats-container">
+            <div class="main-rating-box">
+                <div class="big-score">{{ avgRating }}</div>
+                <div class="stars-total">
+                    {% for i in 1..5 %}
+                        {{ i <= avgRating|round(0, 'floor') ? '★' : '☆' }}
+                    {% endfor %}
+                </div>
+                <div class="total-count">{{ totalReviews }} avis</div>
+            </div>
+
+            <div class="rating-bars">
+                {% for i in 5..1 %}
+                    {% set count = attribute(ratingCounts, 's' ~ i) %}
+                    {% set percent = totalReviews > 0 ? (count / totalReviews * 100) : 0 %}
+                    <div class="bar-row">
+                        <div class="bar-label">{{ i }}</div>
+                        <div class="bar-bg">
+                            <div class="bar-fill" style="width: {{ percent }}%"></div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# 2. Galerie Social Proof (Photos agrégées) #}
+        <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:16px;">Photos partagées</h3>
+        <div class="social-proof-grid">
+            {% set allProofPhotos = [] %}
+            {% for review in destination.reviews %}
+                {% for img in review.images %}
+                    {% set allProofPhotos = allProofPhotos|merge([img.chemin]) %}
+                {% endfor %}
+            {% endfor %}
+
+            {% if allProofPhotos|length > 0 %}
+                {% for photo in allProofPhotos %}
+                    <div class="proof-item" onclick="viewProofPhoto('{{ photo }}')">
+                        <img src="{{ photo }}" alt="Preuve sociale {{ loop.index }}">
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div style="grid-column: 1/-1; text-align: center; padding: 30px; background: #f8f9fa; border-radius: 12px; color: var(--gray-600); font-size: .95rem;">
+                    Aucune photo partagée pour l'instant. ✨
+                </div>
+            {% endif %}
+        </div>
+
+        {# 3. Formulaire d'Avis (Collapsé) #}
+        {% if app.user %}
+        <div class="review-form-box" id="reviewFormArea">
+            <h3 style="font-weight: 800; margin-bottom: 24px;">Racontez votre expérience</h3>
+            
+            {{ form_start(reviewForm) }}
+                <div style="margin-bottom: 24px;">
+                    <label class="author-name">Votre note globale</label>
+                    <div class="star-picker" id="starPicker">
+                        <span class="star-picker-item" data-value="1">★</span>
+                        <span class="star-picker-item" data-value="2">★</span>
+                        <span class="star-picker-item" data-value="3">★</span>
+                        <span class="star-picker-item" data-value="4">★</span>
+                        <span class="star-picker-item" data-value="5">★</span>
+                    </div>
+                    {{ form_widget(reviewForm.rating, {'id': 'rating_input'}) }}
+                    {{ form_errors(reviewForm.rating) }}
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label class="author-name">Votre commentaire</label>
+                    {{ form_widget(reviewForm.commentaire, {
+                        'attr': {
+                            'class': 'form-input-maps',
+                            'placeholder': 'Dites-nous ce que vous avez aimé (ou pas)...'
+                        }
+                    }) }}
+                    {{ form_errors(reviewForm.commentaire) }}
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label class="author-name">Photos du lieu</label>
+                    <div style="background: white; padding: 20px; border-radius: 12px; border: 2px dashed #e2e8f0; margin-top: 8px;">
+                        {{ form_widget(reviewForm.imageFiles) }}
+                        <div style="margin-top: 10px; font-size: .85rem; color: var(--gray-600);">
+                            Astuce : Les photos aident beaucoup les autres voyageurs !
+                        </div>
+                    </div>
+                    {{ form_errors(reviewForm.imageFiles) }}
+                </div>
+
+                <div style="display:flex; justify-content: flex-end; gap: 12px;">
+                    <button type="button" class="btn-maps-action" onclick="toggleReviewForm()">Annuler</button>
+                    <button type="submit" class="btn-maps-action btn-maps-primary">Publier l'avis</button>
+                </div>
+            {{ form_end(reviewForm) }}
+        </div>
+        {% endif %}
+
+        <hr style="border:none; border-top:1px solid var(--gray-100); margin: 30px 0;">
+
+        {# 4. Liste des Avis #}
+        <div class="reviews-list">
+            {% for review in destination.reviews %}
+                <div class="review-card">
+                    <div class="review-avatar">
+                        {{ review.user.prenom|first|upper }}{{ review.user.nom|first|upper }}
+                    </div>
+                    <div class="review-main">
+                        <div class="review-top">
+                            <span class="author-name">{{ review.user.prenom }} {{ review.user.nom }}</span>
+                            <div class="review-metadata">
+                                <div class="stars-small">
+                                    {% for i in 1..5 %}
+                                        {{ i <= review.rating ? '★' : '☆' }}
+                                    {% endfor %}
+                                </div>
+                                <span class="dot">·</span>
+                                <span>{{ review.createdAt|date('d/m/Y') }}</span>
+                            </div>
+                        </div>
+                        <div class="review-text">{{ review.commentaire }}</div>
+                        
+                        {% if review.images|length > 0 %}
+                            <div class="review-images-inline">
+                                {% for img in review.images %}
+                                    <img src="{{ img.chemin }}" class="review-img-thumb" onclick="viewProofPhoto('{{ img.chemin }}')" alt="Avis photo">
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div style="margin-top: 16px; display: flex; gap: 16px;">
+                            <button class="btn-maps-action" style="padding: 6px 12px; font-size: .75rem;">👍 Utile</button>
+                            <button class="btn-maps-action" style="padding: 6px 12px; font-size: .75rem;">🚩 Signaler</button>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: 40px; color: var(--gray-600);">
+                    Aucun avis détaillé n'a été rédigé pour le moment.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{# ─── CHAT FLOTTANT ─── #}
+{# ─── TRAVEL ASSISTANT WIDGET (WEATHER + ESSENTIALS) ─── #}
+<button class="essentials-toggle-btn" id="essentialsToggle" onclick="toggleEssentials()" title="Assistant de Voyage">
+    🌍
+</button>
+
+<div class="essentials-card" id="essentialsCard">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h4 style="margin:0">✨ Infos Voyage</h4>
+        <button onclick="toggleEssentials()" style="background:none; border:none; cursor:pointer; font-size:1.2rem; color:var(--gray-600);">✕</button>
+    </div>
+    
+    {# ─── ESSENTIALS SECTION ─── #}
+    <div class="essentials-list">
+        {% if destination.currency %}
+        <div class="essential-item">
+            <div class="essential-icon">💰</div>
+            <div class="essential-content">
+                <div class="essential-label">Monnaie</div>
+                <div class="essential-value">{{ destination.currency }}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if destination.plugType %}
+        <div class="essential-item">
+            <div class="essential-icon">🔌</div>
+            <div class="essential-content">
+                <div class="essential-label">Prise Électrique</div>
+                <div class="essential-value">{{ destination.plugType }}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if destination.survivalPhrases %}
+        <div class="essential-item">
+            <div class="essential-icon">🗣️</div>
+            <div class="essential-content">
+                <div class="essential-label">Phrases</div>
+                <div class="essential-value">{{ destination.survivalPhrases }}</div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div style="margin-top:20px; padding-top:15px; border-top:1px solid #f1f5f9; text-align:center;">
+        <small style="color:#94a3b8; font-size:0.7rem;">Bon voyage à {{ destination.nom }} ! ✈️</small>
+    </div>
+</div>
+
+<button class="chat-toggle-btn" id="chatToggleBtn" onclick="toggleChat()" title="Discuter avec les voyageurs">
+    💬
+    <span class="chat-unread-dot" id="chatUnreadDot"></span>
+</button>
+
+<div class="chat-window" id="chatWindow">
+    <div class="chat-header">
+        <div class="chat-header-avatar">🏔️</div>
+        <div class="chat-header-info">
+            <div class="chat-header-title">{{ destination.nom }}</div>
+            <div class="chat-header-sub">Discussion des voyageurs</div>
+        </div>
+        <button class="chat-close-btn" onclick="toggleChat()">✕</button>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+        <div class="chat-empty" id="chatEmpty">Soyez le premier à écrire un message ! ✨</div>
+    </div>
+
+    {% if app.user %}
+    <div class="chat-input-area">
+        <input type="text" class="chat-input" id="chatInput"
+               placeholder="Votre message…"
+               maxlength="500"
+               onkeydown="if(event.key==='Enter') sendMessage()">
+        <button class="chat-send-btn" onclick="sendMessage()" title="Envoyer">➤</button>
+    </div>
+    {% else %}
+    <div class="chat-login-notice">
+        🔐 <a href="#" style="color:#92400E;font-weight:700;">Connectez-vous</a> pour participer au chat
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// ─── Données globales ─────────────────────────────────────────────
+const DEST_ID         = {{ destination.id }};
+const CURRENT_USER_ID = {{ app.user ? app.user.id : 'null' }};
+const CAPACITE_MAX    = {{ destination.capaciteMax }};
+const URL_REJOINDRE   = "{{ path('client_destination_rejoindre', {id: destination.id}) }}";
+const URL_MESSAGES    = "{{ path('client_destination_messages', {id: destination.id}) }}";
+const URL_MSG_SEND    = "{{ path('client_destination_messages_send', {id: destination.id}) }}";
+const URL_WEATHER     = "{{ path('client_destination_weather', {id: destination.id}) }}";
+const DATE_LANCEMENT = "{{ destination.dateLancement ? destination.dateLancement|date('c') : '' }}";
+
+// ─── Countdown Logic ─────────────────────────────────────────────
+function initCountdown() {
+    if (!DATE_LANCEMENT) return;
+    const targetDate = new Date(DATE_LANCEMENT).getTime();
+    
+    const timer = setInterval(() => {
+        const now = new Date().getTime();
+        const diff = targetDate - now;
+        
+        if (diff <= 0) {
+            clearInterval(timer);
+            const cd = document.getElementById('countdown');
+            if (cd) cd.innerHTML = '<div style="font-weight:700; color:var(--success);">C\'est le moment ! 🛫</div>';
+            return;
+        }
+        
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        const dEl = document.getElementById('days');
+        const hEl = document.getElementById('hours');
+        const mEl = document.getElementById('minutes');
+        const sEl = document.getElementById('seconds');
+        
+        if (dEl) dEl.innerText = d.toString().padStart(2, '0');
+        if (hEl) hEl.innerText = h.toString().padStart(2, '0');
+        if (mEl) mEl.innerText = m.toString().padStart(2, '0');
+        if (sEl) sEl.innerText = s.toString().padStart(2, '0');
+    }, 1000);
+}
+initCountdown();
+
+// ─── Weather Logic ───────────────────────────────────────────────
+async function loadWeather() {
+    const root = document.getElementById('weather-root');
+    if (!root) return;
+    
+    root.style.display = 'block';
+    
+    try {
+        const response = await fetch(URL_WEATHER);
+        const data = await response.json();
+        
+        if (data.error) {
+            console.error('Weather error:', data.error);
+            document.getElementById('weather-loader').innerHTML = `
+                <div style="color:#ef4444; font-size:0.8rem; padding:10px">
+                    ⚠️ ${data.error}
+                </div>`;
+            return;
+        }
+
+        // Current
+        document.getElementById('curr-temp').innerHTML = `${data.current.temp}<span>°C</span>`;
+        document.getElementById('curr-desc').textContent = data.current.description;
+        document.getElementById('curr-icon').src = `https://openweathermap.org/img/wn/${data.current.icon}@2x.png`;
+        document.getElementById('curr-hum').textContent = data.current.humidity;
+        document.getElementById('curr-wind').textContent = data.current.wind;
+
+        // Forecast
+        const forecastBody = document.getElementById('forecast-body');
+        forecastBody.innerHTML = '';
+        data.forecast.forEach(day => {
+            const item = document.createElement('div');
+            item.className = 'forecast-item';
+            item.innerHTML = `
+                <div class="forecast-day">${day.dayName}</div>
+                <img src="https://openweathermap.org/img/wn/${day.icon}.png" class="forecast-icon" alt="${day.description}">
+                <div class="forecast-temp">${day.temp}°</div>
+            `;
+            forecastBody.appendChild(item);
+        });
+
+        document.getElementById('weather-loader').style.display = 'none';
+        document.getElementById('weather-content').style.display = 'block';
+    } catch (e) {
+        console.error('Failed to load weather', e);
+        document.getElementById('weather-loader').innerHTML = `
+            <div style="color:#ef4444; font-size:0.8rem; padding:10px">
+                ❌ Erreur de connexion météo.
+            </div>`;
+    }
+}
+
+// ─── Review System Logic (Maps Style) ──────────────────────────────
+function toggleReviewForm() {
+    const box = document.getElementById('reviewFormArea');
+    if (!box) return;
+    box.classList.toggle('open');
+    if (box.classList.contains('open')) {
+        box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+function initStarPicker() {
+    const stars = document.querySelectorAll('.star-picker-item');
+    const input = document.getElementById('rating_input');
+    if (!stars.length || !input) return;
+
+    stars.forEach(star => {
+        star.addEventListener('mouseover', () => {
+            const val = parseInt(star.dataset.value);
+            highlightStars(val, 'hover');
+        });
+        star.addEventListener('mouseout', () => {
+            const currentVal = parseInt(input.value) || 0;
+            highlightStars(currentVal, 'active');
+        });
+        star.addEventListener('click', () => {
+            const val = parseInt(star.dataset.value);
+            input.value = val;
+            highlightStars(val, 'active');
+        });
+    });
+
+    function highlightStars(val, className) {
+        stars.forEach(s => {
+            const sVal = parseInt(s.dataset.value);
+            s.classList.remove('hover', 'active');
+            if (sVal <= val) s.classList.add(className);
+        });
+    }
+
+    if (input.value) highlightStars(parseInt(input.value), 'active');
+}
+
+function viewProofPhoto(url) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position:fixed; top:0; left:0; width:100%; height:100%;
+        background:rgba(0,0,0,.9); z-index:10000;
+        display:flex; align-items:center; justify-content:center;
+        cursor:pointer; padding:20px;
+    `;
+    const img = document.createElement('img');
+    img.src = url;
+    img.style.cssText = 'max-width:90%; max-height:90%; border-radius:12px; box-shadow:0 0 40px rgba(0,0,0,.5);';
+    
+    overlay.appendChild(img);
+    overlay.onclick = () => overlay.remove();
+    document.body.appendChild(overlay);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadWeather();
+    initStarPicker();
+
+    if (document.querySelector('.review-form-box .alert-danger') || document.querySelector('.review-form-box .invalid-feedback')) {
+        toggleReviewForm();
+        document.getElementById('reviewFormArea')?.scrollIntoView({ behavior: 'smooth' });
+    }
+});
+
+// ─── Galerie ─────────────────────────────────────────────────────
+const images = {{ destination.imagesList|json_encode|raw }};
+let currentIndex = 0;
+
+function goToImage(idx) {
+    if (idx < 0) idx = images.length - 1;
+    if (idx >= images.length) idx = 0;
+    currentIndex = idx;
+
+    const mainImg = document.getElementById('mainImage');
+    if (mainImg) {
+        mainImg.style.opacity = '0';
+        setTimeout(() => {
+            mainImg.src = images[idx];
+            mainImg.style.opacity = '1';
+        }, 150);
+    }
+
+    const counter = document.getElementById('galleryCounter');
+    if (counter) counter.textContent = (idx + 1) + ' / ' + images.length;
+
+    document.querySelectorAll('.thumb-item').forEach((el, i) => {
+        el.classList.toggle('active', i === idx);
+    });
+
+    const activeThumb = document.getElementById('thumb-' + idx);
+    if (activeThumb) activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+}
+
+function prevImage() { goToImage(currentIndex - 1); }
+function nextImage() { goToImage(currentIndex + 1); }
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft')  prevImage();
+    if (e.key === 'ArrowRight') nextImage();
+});
+
+// ─── Rejoindre ───────────────────────────────────────────────────
+async function rejoindreDestination() {
+    const btn = document.getElementById('btnRejoindre');
+    btn.classList.add('loading');
+    btn.textContent = '⏳ En cours…';
+
+    try {
+        const res = await fetch(URL_REJOINDRE, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            // Mise à jour compteur + barre
+            updateParticipantsUI(data.nbParticipants, data.capaciteMax, data.statut);
+
+            btn.classList.remove('loading', 'primary');
+            btn.classList.add('joined');
+            btn.textContent = '✅ Vous avez rejoint cette excursion !';
+            btn.disabled = true;
+
+            showToast('🎉 ' + data.message, 'success');
+        } else {
+            btn.classList.remove('loading');
+            btn.classList.add('joined');
+            btn.textContent = '✅ Vous avez déjà rejoint cette excursion';
+            btn.disabled = true;
+            showToast(data.message, 'info');
+        }
+    } catch (e) {
+        btn.classList.remove('loading');
+        btn.textContent = '✈️ Rejoindre cette excursion';
+        showToast('Erreur de connexion. Réessayez.', 'error');
+    }
+}
+
+function updateParticipantsUI(nb, max, statut) {
+    const pct = Math.min((nb / max) * 100, 100);
+    document.getElementById('nbParticipants').textContent = nb;
+    document.getElementById('progressFill').style.width = pct + '%';
+
+    // Badge statut
+    const badgeJoin = document.getElementById('statusBadgeJoin');
+    const badgeImg  = document.getElementById('statusBadgeImg');
+
+    if (statut === 'Disponible') {
+        if (badgeJoin) {
+            badgeJoin.className = 'status-badge-join status-dispo';
+            badgeJoin.textContent = '✅ Disponible';
+        }
+        if (badgeImg) {
+            badgeImg.className = 'badge-overlay badge-disponible';
+            badgeImg.textContent = '✅ Disponible';
+        }
+    } else if (statut === 'Complet') {
+        if (badgeJoin) {
+            badgeJoin.className = 'status-badge-join status-complet';
+            badgeJoin.textContent = '🔴 Complet';
+        }
+        if (badgeImg) {
+            badgeImg.className = 'badge-overlay badge-complet';
+            badgeImg.textContent = '🔴 Complet';
+        }
+        
+        // Désactivation du bouton rejoindre si nécessaire
+        const btn = document.getElementById('btnRejoindre');
+        if (btn && !btn.classList.contains('joined')) {
+            btn.className = 'btn-rejoindre full';
+            btn.textContent = '🚫 Désolé, cette excursion est complète';
+            btn.disabled = true;
+            btn.onclick = null;
+        }
+    }
+}
+
+// ─── Toast notification ──────────────────────────────────────────
+function showToast(msg, type = 'success') {
+    const colors = {
+        success: { bg: '#dcfce7', color: '#15803d', border: '#bbf7d0' },
+        error:   { bg: '#fee2e2', color: '#991b1b', border: '#fecaca' },
+        info:    { bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
+    };
+    const c = colors[type] || colors.success;
+
+    const t = document.createElement('div');
+    t.style.cssText = `
+        position:fixed; bottom:100px; right:24px; z-index:9999;
+        background:${c.bg}; color:${c.color}; border:1.5px solid ${c.border};
+        padding:14px 20px; border-radius:12px; font-size:.9rem; font-weight:600;
+        box-shadow:0 4px 16px rgba(0,0,0,.12); max-width:300px;
+        animation: slideInToast .3s ease;
+    `;
+    t.textContent = msg;
+
+    const style = document.createElement('style');
+    style.textContent = `@keyframes slideInToast { from { opacity:0; transform:translateX(30px); } to { opacity:1; transform:translateX(0); } }`;
+    document.head.appendChild(style);
+
+    document.body.appendChild(t);
+    setTimeout(() => {
+        t.style.transition = 'opacity .4s';
+        t.style.opacity = '0';
+        setTimeout(() => t.remove(), 400);
+    }, 3500);
+}
+
+// ─── Chat ────────────────────────────────────────────────────────
+let chatOpen       = false;
+let lastMsgCount   = 0;
+let pollInterval   = null;
+let firstLoad      = true;
+
+function toggleChat() {
+    chatOpen = !chatOpen;
+    const win = document.getElementById('chatWindow');
+    const btn = document.getElementById('chatToggleBtn');
+    win.classList.toggle('open', chatOpen);
+    btn.textContent = chatOpen ? '✕' : '💬';
+
+    const dot = document.getElementById('chatUnreadDot');
+    if (dot) dot.style.display = 'none';
+
+    if (chatOpen) {
+        loadMessages();
+        if (!pollInterval) {
+            pollInterval = setInterval(loadMessages, 3000);
+        }
+    } else {
+        clearInterval(pollInterval);
+        pollInterval = null;
+        firstLoad = true;
+    }
+}
+
+async function loadMessages() {
+    try {
+        const res = await fetch(URL_MESSAGES, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        const messages = await res.json();
+
+        const container = document.getElementById('chatMessages');
+        const empty     = document.getElementById('chatEmpty');
+
+        if (messages.length === 0) {
+            if (empty) empty.style.display = 'block';
+            return;
+        }
+        if (empty) empty.style.display = 'none';
+
+        // Ne re-rendre que si le nombre de messages a changé
+        if (messages.length === lastMsgCount && !firstLoad) return;
+        firstLoad = false;
+
+        // Indique non-lu si chat est fermé
+        if (!chatOpen && messages.length > lastMsgCount) {
+            const dot = document.getElementById('chatUnreadDot');
+            if (dot) dot.style.display = 'block';
+        }
+
+        lastMsgCount = messages.length;
+
+        // Reconstruit les bulles
+        container.innerHTML = '';
+        messages.forEach(m => {
+            const wrap = document.createElement('div');
+            wrap.className = 'chat-bubble-wrap' + (m.userId === CURRENT_USER_ID ? ' mine' : '');
+
+            const author = m.userId !== CURRENT_USER_ID
+                ? `<div class="chat-author">${escapeHtml(m.userNom)}</div>`
+                : '';
+
+            wrap.innerHTML = `
+                ${author}
+                <div class="chat-bubble">${escapeHtml(m.contenu)}</div>
+                <div class="chat-time">${m.time}</div>
+            `;
+            container.appendChild(wrap);
+        });
+
+        // Scroll bas
+        container.scrollTop = container.scrollHeight;
+    } catch (e) {
+        console.warn('Chat polling error:', e);
+    }
+}
+
+async function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const contenu = input.value.trim();
+    if (!contenu) return;
+
+    input.value = '';
+    input.disabled = true;
+
+    try {
+        const res = await fetch(URL_MSG_SEND, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ content: contenu })
+        });
+
+        if (res.ok) {
+            await loadMessages();
+        } else {
+            const err = await res.json();
+            showToast(err.error || 'Erreur envoi', 'error');
+        }
+    } catch (e) {
+        showToast('Erreur de connexion', 'error');
+    } finally {
+        input.disabled = false;
+        input.focus();
+    }
+}
+
+function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+}
+
+// Polling en arrière-plan même si chat fermé (pour le badge non-lu)
+setTimeout(() => {
+    setInterval(async () => {
+        if (!chatOpen) {
+            try {
+                const res = await fetch(URL_MESSAGES, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const messages = await res.json();
+                if (messages.length > lastMsgCount && lastMsgCount > 0) {
+                    const dot = document.getElementById('chatUnreadDot');
+                    if (dot) dot.style.display = 'block';
+                }
+            } catch {}
+        }
+    }, 10000); // check non-lu toutes les 10s
+}, 5000);
+
+let essentialsOpen = false;
+function toggleEssentials() {
+    essentialsOpen = !essentialsOpen;
+    const card = document.getElementById('essentialsCard');
+    const btn = document.getElementById('essentialsToggle');
+    card.classList.toggle('open', essentialsOpen);
+    btn.classList.toggle('active', essentialsOpen);
+
+    // Close chat if open
+    if (essentialsOpen && chatOpen) toggleChat();
+}
+
+// ============ VR 360 LOGIC ============
+let vrActive = false;
+let pannellumViewer = null;
+
+function toggleVR() {
+    const photoWrap = document.getElementById('photo-viewer');
+    const vrWrap = document.getElementById('vr-viewer');
+    const btn = document.getElementById('vrToggleButton');
+    const url = "{{ destination.panoramaUrl|escape('js') }}";
+
+    if (!vrActive) {
+        photoWrap.style.display = 'none';
+        vrWrap.style.display = 'block';
+        btn.classList.add('active');
+        btn.querySelector('.vr-text').textContent = 'Quitter 360°';
+        
+        if (url.includes('google.com/maps') || url.includes('google.com/streetview') || url.includes('goo.gl') || url.includes('maps.app.goo.gl') || url.includes('<iframe')) {
+            loadStreetView(url);
+        } else {
+            loadPannellum(url);
+        }
+        vrActive = true;
+    } else {
+        photoWrap.style.display = 'block';
+        vrWrap.style.display = 'none';
+        btn.classList.remove('active');
+        btn.querySelector('.vr-text').textContent = 'Vue 360°';
+        if (pannellumViewer) {
+            pannellumViewer.destroy();
+            pannellumViewer = null;
+        }
+        vrWrap.innerHTML = '';
+        vrActive = false;
+    }
+}
+
+function loadStreetView(url) {
+    const vrWrap = document.getElementById('vr-viewer');
+    
+    if (url.includes('<iframe')) {
+         vrWrap.innerHTML = url;
+         const ifr = vrWrap.querySelector('iframe');
+         if(ifr) {
+            ifr.style.width = '100%';
+            ifr.style.height = '100%';
+            ifr.style.border = 'none';
+         }
+    } else if (url.includes('goo.gl') || url.includes('maps.app.goo.gl')) {
+        // Warning pour les liens courts qui ne supportent pas l'iframe directe
+        vrWrap.innerHTML = `
+            <div style="color:white; text-align:center; padding:40px; background:#111; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                <p style="margin-bottom:20px;">⚠️ L'affichage direct de ce lien court est bloqué par Google.</p>
+                <a href="${url}" target="_blank" class="btn-rejoindre primary" style="text-decoration:none; display:inline-block; margin-bottom:15px;">
+                    Ouvrir dans Google Maps ↗️
+                </a>
+                <p style="font-size:0.8rem; color:#888;">Pour un affichage direct ici, utilisez l'option "Partager > Intégrer une carte" dans Maps.</p>
+            </div>`;
+    } else {
+        vrWrap.innerHTML = `<iframe src="${url}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>`;
+    }
+}
+
+function loadPannellum(url) {
+    const vrWrap = document.getElementById('vr-viewer');
+    vrWrap.innerHTML = '<div id="pannellum-container" style="width:100%; height:100%;"></div>';
+    
+    if (typeof pannellum === 'undefined') {
+        const script = document.createElement('script');
+        script.src = "https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js";
+        const link = document.createElement('link');
+        link.rel = "stylesheet";
+        link.href = "https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css";
+        document.head.appendChild(link);
+        document.head.appendChild(script);
+        script.onload = () => initPannellum(url);
+    } else {
+        initPannellum(url);
+    }
+}
+
+function initPannellum(url) {
+    pannellumViewer = pannellum.viewer('pannellum-container', {
+        "type": "equirectangular",
+        "panorama": url,
+        "autoLoad": true,
+        "showFullscreenCtrl": false
+    });
+}
+</script>
+{% endblock %}

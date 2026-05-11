@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox spacing="16" style="-fx-background-color: #F8FAFC; -fx-padding: 16;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.MesCommandesController">
+
+    <!-- HEADER -->
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <Button styleClass="btn-back" text="← Retour" />
+        <Text text="MES COMMANDES" styleClass="section-title" />
+        <Region HBox.hgrow="ALWAYS" />
+        <Button onAction="#handleRefresh" styleClass="btn-success" text="🔄" />
+    </HBox>
+
+    <!-- TABLE -->
+    <VBox spacing="8" styleClass="panel-white" prefHeight="300">
+        <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+        
+        <TableView fx:id="commandesTable" styleClass="table-white-simple" prefHeight="250">
+            <columns>
+                <TableColumn fx:id="idColumn" prefWidth="90" text="N° Commande" />
+                <TableColumn fx:id="dateColumn" prefWidth="160" text="Date" />
+                <TableColumn fx:id="totalColumn" prefWidth="120" text="Total (DH)" />
+                <TableColumn fx:id="statutColumn" prefWidth="120" text="Statut" />
+                <TableColumn fx:id="detailsColumn" prefWidth="350" text="Détails" />
+            </columns>
+        </TableView>
+    </VBox>
+
+    <!-- DETAILS CONTAINER -->
+    <VBox fx:id="detailsContainer" spacing="12" styleClass="panel-white" visible="false">
+        <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+        
+        <HBox alignment="CENTER_LEFT" spacing="12">
+            <Text text="DÉTAILS DE LA COMMANDE" styleClass="subsection-title" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Button fx:id="closeDetailsButton" onAction="#handleCloseDetails" styleClass="btn-outline" text="✕ Fermer" />
+        </HBox>
+        
+        <TableView fx:id="detailsTable" styleClass="table-white-simple" prefHeight="200">
+            <columns>
+                <TableColumn fx:id="produitColumn" prefWidth="300" text="Produit" />
+                <TableColumn fx:id="quantiteColumn" prefWidth="100" text="Quantité" />
+                <TableColumn fx:id="prixColumn" prefWidth="130" text="Prix unitaire" />
+                <TableColumn fx:id="sousTotalColumn" prefWidth="130" text="Sous-total" />
+            </columns>
+        </TableView>
+        
+        <Separator />
+        <HBox alignment="CENTER_RIGHT">
+            <Label fx:id="totalCommandeLabel" text="Total: 0.00 DH" style="-fx-font-size: 16px; -fx-font-weight: 700; -fx-text-fill: #111827;" />
+        </HBox>
+    </VBox>
+
+</VBox>

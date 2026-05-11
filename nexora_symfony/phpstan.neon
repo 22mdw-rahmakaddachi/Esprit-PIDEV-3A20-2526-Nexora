@@ -1,0 +1,20 @@
+parameters:
+    level: 6
+    paths:
+        - src/Entity/Avis.php
+        - src/Entity/Activite.php
+        - src/Entity/ProduitParent.php
+        - src/Entity/Commentaire.php
+        - src/Service/AvisManager.php
+        - src/Service/ActiviteManager.php
+        - src/Service/ProduitManager.php
+        - src/Service/CommentaireManager.php
+        - tests/Service/AvisManagerTest.php
+        - tests/Service/ActiviteManagerTest.php
+        - tests/Service/ProduitManagerTest.php
+        - tests/Service/CommentaireManagerTest.php
+    excludePaths:
+        - vendor/
+    ignoreErrors:
+        - message: '#Property App\\Entity\\.*::\$id \(int\|null\) is never assigned int#'
+          path: src/Entity/

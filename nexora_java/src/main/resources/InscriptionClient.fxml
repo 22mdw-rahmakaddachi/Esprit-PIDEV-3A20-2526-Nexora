@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0"
+            xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controller.InscriptionClientController">
+
+    <children>
+
+        <VBox spacing="15"
+              alignment="CENTER"
+              layoutX="150"
+              layoutY="80">
+
+            <Label text="Inscription Client" />
+
+            <TextField fx:id="nom"
+                       promptText="Nom" />
+
+            <TextField fx:id="prenom"
+                       promptText="Prénom" />
+            <TextField fx:id="num" promptText="Numéro de téléphone" />
+
+            <TextField fx:id="email"
+                       promptText="Email" />
+
+            <PasswordField fx:id="password"
+                           promptText="Mot de passe" />
+
+            <Button text="S'inscrire"
+                    onAction="#inscrireClient"/>
+
+        </VBox>
+
+    </children>
+
+</AnchorPane>

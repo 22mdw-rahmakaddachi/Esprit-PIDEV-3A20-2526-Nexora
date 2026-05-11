@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controller.DestinationFormController">
+
+    <top>
+        <Label text="Ajouter / Modifier Destination"
+               styleClass="title"
+               BorderPane.alignment="CENTER"/>
+    </top>
+
+    <center>
+        <VBox spacing="10" styleClass="form-container">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+
+            <TextField fx:id="nomField" promptText="Nom"/>
+            <TextField fx:id="descriptionField" promptText="Description"/>
+            <TextField fx:id="localisationField" promptText="Localisation"/>
+            <ComboBox fx:id="statutField" promptText="Sélectionner le statut"/>
+
+            <HBox spacing="5">
+                <TextField fx:id="imagesField"
+                           promptText="Image sélectionnée"
+                           editable="false"/>
+                <Button text="Choisir Image"
+                        onAction="#choisirImage"/>
+            </HBox>
+
+            <Button fx:id="btnSave"
+                    text="Enregistrer"
+                    onAction="#saveDestination"
+                    styleClass="btn-primary"/>
+
+            <Button text="Retour"
+                    onAction="#goBack"/>
+        </VBox>
+    </center>
+
+</BorderPane>

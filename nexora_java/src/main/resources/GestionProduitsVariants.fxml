@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controller.GestionProduitsVariantsController"
+            style="-fx-background-color: #F3F4F6;">
+
+    <top>
+        <VBox style="-fx-background-color: white; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+            <HBox alignment="CENTER_LEFT" spacing="15">
+                <Label text="🛍️ Gestion des Produits avec Variants" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="➕ Nouveau Produit" onAction="#handleNouveauProduit" 
+                        style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-padding: 10 20; -fx-cursor: hand; -fx-font-weight: bold;"/>
+            </HBox>
+            <Label text="Créez des produits avec plusieurs variants (taille, couleur, etc.)" 
+                   style="-fx-font-size: 14px; -fx-text-fill: #6B7280; -fx-padding: 5 0 0 0;"/>
+        </VBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;">
+            <VBox spacing="15" style="-fx-padding: 20;">
+                <FlowPane fx:id="produitsContainer" hgap="15" vgap="15" style="-fx-padding: 10;"/>
+            </VBox>
+        </ScrollPane>
+    </center>
+
+    <!-- Formulaire Modal -->
+    <right>
+        <VBox fx:id="formContainer" visible="false" spacing="15" 
+              style="-fx-background-color: white; -fx-padding: 20; -fx-min-width: 500; -fx-max-width: 500; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 15, 0, -5, 0);">
+            
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label fx:id="formTitle" text="Nouveau Produit" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="✖" onAction="#handleFermerForm" 
+                        style="-fx-background-color: transparent; -fx-text-fill: #6B7280; -fx-font-size: 18px; -fx-cursor: hand;"/>
+            </HBox>
+
+            <Separator/>
+
+            <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;" VBox.vgrow="ALWAYS">
+                <VBox spacing="15" style="-fx-padding: 5;">
+                    
+                    <!-- Informations générales -->
+                    <Label text="📝 Informations Générales" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2980b9;"/>
+                    
+                    <VBox spacing="5">
+                        <Label text="Nom du produit *" style="-fx-font-weight: bold;"/>
+                        <TextField fx:id="nomField" promptText="Ex: Tente de camping 4 places"/>
+                        <Label fx:id="nomError" visible="false" style="-fx-text-fill: #e74c3c; -fx-font-size: 12px;"/>
+                    </VBox>
+
+                    <VBox spacing="5">
+                        <Label text="Catégorie *" style="-fx-font-weight: bold;"/>
+                        <ComboBox fx:id="categorieCombo" prefWidth="460" onAction="#handleCategorieChange"/>
+                    </VBox>
+
+                    <VBox spacing="5">
+                        <Label text="Sous-Catégorie *" style="-fx-font-weight: bold;"/>
+                        <ComboBox fx:id="sousCategorieCombo" prefWidth="460"/>
+                        <Label fx:id="categorieError" visible="false" style="-fx-text-fill: #e74c3c; -fx-font-size: 12px;"/>
+                    </VBox>
+
+                    <VBox spacing="5">
+                        <Label text="Description courte" style="-fx-font-weight: bold;"/>
+                        <TextField fx:id="descriptionCourteField" promptText="Ex: Tente 2 places imperméable"/>
+                    </VBox>
+
+                    <VBox spacing="5">
+                        <Label text="Description complète" style="-fx-font-weight: bold;"/>
+                        <TextArea fx:id="descriptionField" promptText="Ex: Tente de camping 2 places, imperméable, facile à monter. Idéale pour les randonnées." prefRowCount="4"/>
+                    </VBox>
+
+                    <HBox spacing="10">
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Marque" style="-fx-font-weight: bold;"/>
+                            <TextField fx:id="marqueField" promptText="Ex: OutdoorPro"/>
+                        </VBox>
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Matériau" style="-fx-font-weight: bold;"/>
+                            <TextField fx:id="materiauField" promptText="Ex: Polyester imperméable"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="10">
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Poids en kg (virgule ou point acceptés)" style="-fx-font-weight: bold;"/>
+                            <TextField fx:id="poidsField" promptText="Ex: 2,5 ou 2.5"/>
+                        </VBox>
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Dimensions en cm" style="-fx-font-weight: bold;"/>
+                            <TextField fx:id="dimensionsField" promptText="Ex: 200x150x120"/>
+                        </VBox>
+                    </HBox>
+
+                    <VBox spacing="5">
+                        <Label text="Image principale" style="-fx-font-weight: bold;"/>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <TextField fx:id="imageField" promptText="Aucune image" editable="false" HBox.hgrow="ALWAYS"/>
+                            <Button text="📁" onAction="#handleSelectImage" 
+                                    style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-padding: 6 12;"/>
+                        </HBox>
+                        <ImageView fx:id="imagePreview" fitWidth="200" fitHeight="150" preserveRatio="true" visible="false"/>
+                    </VBox>
+
+                    <Separator/>
+
+                    <!-- Variants -->
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="🎨 Variants du Produit" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2980b9;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="➕ Ajouter Variant" onAction="#handleAjouterVariant" 
+                                style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-padding: 6 12; -fx-cursor: hand;"/>
+                    </HBox>
+
+                    <VBox fx:id="variantsContainer" spacing="10"/>
+
+                </VBox>
+            </ScrollPane>
+
+            <Separator/>
+
+            <HBox spacing="10" alignment="CENTER">
+                <Button text="💾 Enregistrer" onAction="#handleSave" 
+                        style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-padding: 10 30; -fx-cursor: hand; -fx-font-weight: bold;"/>
+                <Button text="❌ Annuler" onAction="#handleFermerForm" 
+                        style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-padding: 10 30; -fx-cursor: hand;"/>
+            </HBox>
+
+        </VBox>
+    </right>
+
+</BorderPane>

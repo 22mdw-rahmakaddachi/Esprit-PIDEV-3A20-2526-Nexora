@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.shape.*?>
+
+<BorderPane prefHeight="700.0" prefWidth="1100.0" stylesheets="@style.css"
+            xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="controller.DashboardPartenaireController">
+
+    <!-- ═══════════════════════════════════════
+         SIDEBAR GAUCHE
+    ═══════════════════════════════════════ -->
+    <left>
+        <VBox styleClass="sidebar-purple" prefWidth="245" spacing="0">
+
+            <!-- Logo -->
+            <HBox styleClass="sidebar-logo-box" alignment="CENTER_LEFT" spacing="10">
+                <Label text="✦" style="-fx-text-fill: #A78BFA; -fx-font-size: 18px;" />
+                <Text styleClass="sidebar-logo-text" text="NEXORA" />
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="PRO" styleClass="sidebar-logo-badge" />
+            </HBox>
+
+            <!-- Profil -->
+            <VBox alignment="CENTER" spacing="6" style="-fx-padding: 24 20 20 20;">
+                <StackPane>
+                    <Circle radius="32" fill="rgba(255,255,255,0.12)" />
+                    <Circle radius="32" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" fill="transparent" />
+                    <Label text="🏪" style="-fx-font-size: 28px;" />
+                </StackPane>
+                <Label fx:id="welcomeLabel" styleClass="sidebar-profile-name" text="Partenaire" />
+                <Label text="Espace Partenaire" styleClass="sidebar-profile-email" />
+            </VBox>
+
+            <!-- Ligne séparatrice -->
+            <Pane styleClass="sidebar-divider">
+                <padding><Insets left="16" right="16"/></padding>
+            </Pane>
+
+            <!-- Menu -->
+            <VBox spacing="2" style="-fx-padding: 12 10 8 10;">
+                <Label text="GESTION" styleClass="sidebar-section-label" />
+                <Button onAction="#showGestionProduits"
+                        styleClass="sidebar-btn" text="📦   Gestion Produits" prefWidth="Infinity" />
+            </VBox>
+
+            <Region VBox.vgrow="ALWAYS" />
+
+            <!-- Ligne séparatrice bas -->
+            <Pane styleClass="sidebar-divider">
+                <padding><Insets left="16" right="16"/></padding>
+            </Pane>
+
+            <!-- Déconnexion -->
+            <VBox style="-fx-padding: 10 10 20 10;">
+                <Button onAction="#handleLogout"
+                        styleClass="sidebar-logout-btn" text="🚪   Déconnexion" prefWidth="Infinity" />
+            </VBox>
+
+        </VBox>
+    </left>
+
+    <!-- ═══════════════════════════════════════
+         TOP BAR
+    ═══════════════════════════════════════ -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="dashboard-topbar">
+            <Label text="🏪" style="-fx-font-size: 16px;" />
+            <Label text="Mon Espace" styleClass="topbar-page-title" />
+            <Label text="Partenaire" styleClass="topbar-badge" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Button text="🔔" styleClass="topbar-btn-icon" />
+            <Button onAction="#handleLogout"
+                    style="-fx-background-color: #EF4444; -fx-text-fill: white; -fx-font-size: 12px; -fx-font-weight: 600; -fx-padding: 8 18; -fx-background-radius: 10; -fx-cursor: hand;"
+                    text="Déconnexion" />
+        </HBox>
+    </top>
+
+    <!-- ═══════════════════════════════════════
+         CONTENU CENTRAL
+    ═══════════════════════════════════════ -->
+    <center>
+        <StackPane fx:id="contentPane" styleClass="main-dashboard-area" />
+    </center>
+
+</BorderPane>

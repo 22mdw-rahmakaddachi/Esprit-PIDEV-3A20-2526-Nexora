@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="controller.GestionCodesPromoController"
+      spacing="20" style="-fx-background-color: #ecf0f1; -fx-padding: 20;">
+
+    <!-- Titre -->
+    <HBox alignment="CENTER" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 10;">
+        <Label text="🎁 Gestion des Codes Promo" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+    </HBox>
+
+    <!-- Formulaire de création/modification -->
+    <VBox spacing="15" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10;">
+        <Label text="Créer / Modifier un Code Promo" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+        
+        <GridPane hgap="15" vgap="10">
+            <!-- Ligne 1 -->
+            <Label text="Code:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <TextField fx:id="codeField" promptText="Ex: PROMO20" GridPane.columnIndex="1" GridPane.rowIndex="0" 
+                      style="-fx-pref-width: 200;"/>
+            
+            <Label text="Type de réduction:" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+            <ComboBox fx:id="typeReductionCombo" GridPane.columnIndex="3" GridPane.rowIndex="0" 
+                     style="-fx-pref-width: 200;"/>
+
+            <!-- Ligne 2 -->
+            <Label text="Valeur:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <TextField fx:id="valeurReductionField" promptText="Ex: 10 ou 20.5" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+            
+            <Label text="Montant minimum:" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+            <TextField fx:id="montantMinimumField" promptText="Ex: 50" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+
+            <!-- Ligne 3 -->
+            <Label text="Date début:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+            <DatePicker fx:id="dateDebutPicker" GridPane.columnIndex="1" GridPane.rowIndex="2" 
+                       style="-fx-pref-width: 200;"/>
+            
+            <Label text="Date fin:" GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+            <DatePicker fx:id="dateFinPicker" GridPane.columnIndex="3" GridPane.rowIndex="2" 
+                       style="-fx-pref-width: 200;"/>
+
+            <!-- Ligne 4 -->
+            <Label text="Limite utilisation:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+            <TextField fx:id="limiteUtilisationField" promptText="Laisser vide = illimité" 
+                      GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+            
+            <CheckBox fx:id="premiereCommandeCheck" text="Première commande seulement" 
+                     GridPane.columnIndex="2" GridPane.rowIndex="3" GridPane.columnSpan="2"/>
+
+            <!-- Ligne 5 -->
+            <Label text="Description:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+            <TextArea fx:id="descriptionArea" promptText="Description du code promo" 
+                     GridPane.columnIndex="1" GridPane.rowIndex="4" GridPane.columnSpan="3"
+                     prefRowCount="2"/>
+
+            <!-- Ligne 6 -->
+            <CheckBox fx:id="actifCheck" text="Actif" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+        </GridPane>
+
+        <!-- Boutons -->
+        <HBox spacing="10" alignment="CENTER">
+            <Button text="💾 Enregistrer" onAction="#handleCreer" 
+                   style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10 20;"/>
+            <Button text="❌ Annuler" onAction="#handleAnnuler" 
+                   style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10 20;"/>
+        </HBox>
+    </VBox>
+
+    <!-- Liste des codes promo -->
+    <VBox spacing="10" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10;" VBox.vgrow="ALWAYS">
+        <Label text="📋 Liste des Codes Promo" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+        
+        <TableView fx:id="codesTable" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="codeCol" text="Code" prefWidth="100"/>
+                <TableColumn fx:id="descriptionCol" text="Description" prefWidth="200"/>
+                <TableColumn fx:id="typeCol" text="Type" prefWidth="150"/>
+                <TableColumn fx:id="valeurCol" text="Valeur" prefWidth="80"/>
+                <TableColumn fx:id="utilisationsCol" text="Utilisations" prefWidth="100"/>
+                <TableColumn fx:id="actifCol" text="Actif" prefWidth="60"/>
+                <TableColumn fx:id="actionsCol" text="Actions" prefWidth="150"/>
+            </columns>
+        </TableView>
+    </VBox>
+
+</VBox>

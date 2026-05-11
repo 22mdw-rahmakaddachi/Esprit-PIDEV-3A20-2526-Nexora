@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane prefHeight="600.0" prefWidth="900.0"
+            xmlns="http://javafx.com/javafx/25"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="controller.Loginne"
+            style="-fx-background-color: linear-gradient(to bottom right, #6D28D9, #8B5CF6);">
+
+    <!-- TOP BAR -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20"
+              style="-fx-background-color: white; -fx-background-radius: 0 0 20 20;">
+            <padding><Insets top="16" right="32" bottom="16" left="32"/></padding>
+
+            <Text text="NEXORA"
+                  style="-fx-fill: #6D28D9; -fx-font-size: 22px; -fx-font-weight: bold;" />
+
+            <Region HBox.hgrow="ALWAYS" />
+
+            <Button text="← Retour"
+                    style="-fx-background-color: #6D28D9; -fx-text-fill: white;
+                           -fx-background-radius: 20; -fx-cursor: hand;" />
+        </HBox>
+    </top>
+
+    <!-- MAIN CONTENT -->
+    <center>
+        <HBox alignment="CENTER">
+            <VBox spacing="25"
+                  alignment="CENTER"
+                  prefWidth="420"
+                  style="-fx-background-color: white;
+                         -fx-background-radius: 20;
+                         -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 15,0,0,5);">
+
+                <padding><Insets top="45" right="40" bottom="45" left="40"/></padding>
+
+                <!-- TITLE -->
+                <VBox alignment="CENTER" spacing="8">
+                    <Text text="CONNEXION"
+                          style="-fx-fill: #6D28D9; -fx-font-size: 24px; -fx-font-weight: bold;" />
+                    <Label text="Connectez-vous à votre compte"
+                           style="-fx-text-fill: #6B7280; -fx-font-size: 14px;" />
+                </VBox>
+
+                <!-- FORM -->
+                <VBox spacing="18" prefWidth="320">
+
+                    <!-- EMAIL -->
+                    <VBox spacing="6">
+                        <Label text="Email"
+                               style="-fx-text-fill: #6D28D9; -fx-font-weight: bold;" />
+                        <TextField fx:id="emailL"
+                                   promptText="votre@email.com"
+                                   style="-fx-background-radius: 10;
+                                          -fx-border-radius: 10;
+                                          -fx-border-color: #DDD6FE;" />
+                    </VBox>
+
+                    <!-- PASSWORD -->
+                    <VBox spacing="6">
+                        <Label text="Mot de passe"
+                               style="-fx-text-fill: #6D28D9; -fx-font-weight: bold;" />
+
+                        <HBox alignment="CENTER_LEFT" spacing="5">
+
+                            <PasswordField fx:id="motpHidden"
+                                           promptText="••••••••"
+                                           HBox.hgrow="ALWAYS"
+                                           style="-fx-background-radius: 10;
+                                                  -fx-border-radius: 10;
+                                                  -fx-border-color: #DDD6FE;" />
+
+                            <TextField fx:id="motpVisible"
+                                       visible="false"
+                                       managed="false"
+                                       promptText="••••••••"
+                                       HBox.hgrow="ALWAYS"
+                                       style="-fx-background-radius: 10;
+                                              -fx-border-radius: 10;
+                                              -fx-border-color: #DDD6FE;" />
+
+                            <Button fx:id="showButton"
+                                    text="👁"
+                                    style="-fx-background-color: transparent;
+                                           -fx-font-size: 16px;
+                                           -fx-cursor: hand;" />
+                        </HBox>
+                    </VBox>
+
+                    <!-- REMEMBER -->
+                    <CheckBox fx:id="rememberMeCheckBox"
+                              text="Se souvenir de moi"
+                              style="-fx-text-fill: #6B7280;" />
+
+                    <!-- LOGIN BUTTON -->
+                    <Button text="Se connecter"
+                            onAction="#login"
+                            prefWidth="Infinity"
+                            style="-fx-background-color: #6D28D9;
+                                   -fx-text-fill: white;
+                                   -fx-font-size: 14px;
+                                   -fx-font-weight: bold;
+                                   -fx-background-radius: 25;
+                                   -fx-cursor: hand;" >
+                        <padding><Insets top="12" bottom="12"/></padding>
+                    </Button>
+
+                    <!-- OTHER BUTTONS -->
+                    <Button text="Créer un compte"
+                            onAction="#goToInscription"
+                            style="-fx-background-color: transparent;
+                                   -fx-text-fill: #6D28D9;
+                                   -fx-font-weight: bold;
+                                   -fx-cursor: hand;" />
+
+                    <Button text="Mot de passe oublié ?"
+                            onAction="#openForgotPassword"
+                            style="-fx-background-color: transparent;
+                                   -fx-text-fill: #8B5CF6;
+                                   -fx-cursor: hand;" />
+
+                    <Button text="Login Fingerprint"
+                            onAction="#loginEmpreinte"
+                            style="-fx-background-color: #8B5CF6;
+                                   -fx-text-fill: white;
+                                   -fx-background-radius: 20;
+                                   -fx-cursor: hand;" />
+
+                </VBox>
+            </VBox>
+        </HBox>
+    </center>
+
+</BorderPane>

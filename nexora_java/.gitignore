@@ -1,0 +1,155 @@
+# ============================================
+# GITIGNORE - Projet NEXORA
+# ============================================
+
+# ============================================
+# JAVA / MAVEN
+# ============================================
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Maven
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ============================================
+# IDE - IntelliJ IDEA
+# ============================================
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.idea_modules/
+
+# ============================================
+# IDE - Eclipse
+# ============================================
+.classpath
+.project
+.settings/
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.loadpath
+.recommenders
+
+# ============================================
+# IDE - NetBeans
+# ============================================
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# ============================================
+# IDE - VS Code
+# ============================================
+.vscode/
+*.code-workspace
+
+# ============================================
+# SYSTÈME D'EXPLOITATION
+# ============================================
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ============================================
+# LOGS
+# ============================================
+*.log
+logs/
+*.log.*
+
+# ============================================
+# BASES DE DONNÉES
+# ============================================
+*.db
+*.sqlite
+*.sqlite3
+
+# ============================================
+# FICHIERS TEMPORAIRES
+# ============================================
+*.tmp
+*.temp
+*.cache
+*.bak
+*.backup
+*~
+
+# ============================================
+# CONFIGURATION SENSIBLE
+# ============================================
+# NE PAS commiter les fichiers avec mots de passe ou clés API
+config.properties
+secrets.properties
+application-local.properties
+
+# ============================================
+# IMAGES UPLOADÉES (Optionnel)
+# ============================================
+# Décommentez si vous ne voulez pas versionner les images
+# images/products/*
+# images/categories/*
+# Mais gardez les dossiers
+!images/products/.gitkeep
+!images/categories/.gitkeep
+
+# ============================================
+# DOCUMENTATION TEMPORAIRE
+# ============================================
+# Fichiers de travail et notes
+TODO.md
+NOTES.md
+DRAFT*.md
+
+# ============================================
+# AUTRES
+# ============================================
+node_modules/
+package-lock.json
+yarn.lock

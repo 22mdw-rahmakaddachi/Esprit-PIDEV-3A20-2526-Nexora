@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controller.CatalogueClientVariantsController"
+            style="-fx-background-color: #F3F4F6;">
+
+    <top>
+        <VBox style="-fx-background-color: white; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+            <HBox alignment="CENTER_LEFT" spacing="15">
+                <Label text="🛍️ Catalogue Produits" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <TextField fx:id="searchField" promptText="🔍 Rechercher un produit..." prefWidth="300" 
+                          style="-fx-padding: 10; -fx-background-radius: 20;"/>
+                <Button text="Rechercher" onAction="#handleSearch" 
+                        style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-padding: 10 20; -fx-cursor: hand;"/>
+            </HBox>
+            <HBox spacing="10" style="-fx-padding: 10 0 0 0;">
+                <Label text="Catégorie:" style="-fx-font-weight: bold;"/>
+                <ComboBox fx:id="categorieFilter" promptText="Toutes" prefWidth="200" onAction="#handleFilterChange"/>
+                <Label text="Sous-catégorie:" style="-fx-font-weight: bold;"/>
+                <ComboBox fx:id="sousCategorieFilter" promptText="Toutes" prefWidth="200" onAction="#handleFilterChange"/>
+                <Button text="🔄 Réinitialiser" onAction="#handleResetFilters" 
+                        style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-padding: 6 12;"/>
+            </HBox>
+            <Label fx:id="countLabel" text="0 produits trouvés" 
+                   style="-fx-font-size: 14px; -fx-text-fill: #6B7280; -fx-padding: 5 0 0 0;"/>
+        </VBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;">
+            <FlowPane fx:id="produitsContainer" hgap="20" vgap="20" style="-fx-padding: 20;"/>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

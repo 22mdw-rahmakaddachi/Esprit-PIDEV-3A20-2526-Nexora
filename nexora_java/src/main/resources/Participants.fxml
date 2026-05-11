@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controller.ParticipantsController" prefHeight="600.0" prefWidth="900.0">
+
+    <top>
+        <VBox styleClass="header" spacing="10">
+            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+            <Label fx:id="activiteLabel" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+        </VBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" fitToHeight="true" style="-fx-background-color: transparent;">
+            <VBox spacing="15" style="-fx-padding: 20;">
+                <TableView fx:id="participantsTable" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="nomCol" text="Nom" prefWidth="150"/>
+                        <TableColumn fx:id="emailCol" text="Email" prefWidth="200"/>
+                        <TableColumn fx:id="telephoneCol" text="Téléphone" prefWidth="120"/>
+                        <TableColumn fx:id="statutCol" text="Statut" prefWidth="100"/>
+                        <TableColumn fx:id="dateCol" text="Date Demande" prefWidth="150"/>
+                        <TableColumn fx:id="paiementCol" text="Payé" prefWidth="80"/>
+                    </columns>
+                </TableView>
+
+                <HBox spacing="10">
+                    <Button text="Accepter" onAction="#accepterDemande" styleClass="btn-success"/>
+                    <Button text="Refuser" onAction="#refuserDemande" styleClass="btn-danger"/>
+                </HBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

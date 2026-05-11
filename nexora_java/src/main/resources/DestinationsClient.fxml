@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controller.DestinationsClientController"
+            prefHeight="800.0" prefWidth="1200.0"
+            style="-fx-background-color: #F9FAFB;">
+
+    <!-- ================= HEADER ================= -->
+    <top>
+        <VBox spacing="15"
+              style="-fx-background-color: white;
+                     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+            <padding>
+                <Insets top="20" right="30" bottom="20" left="30"/>
+            </padding>
+
+            <HBox alignment="CENTER_LEFT" spacing="20">
+                <Label text="Destinations Disponibles"
+                       style="-fx-font-size: 28px;
+                              -fx-font-weight: bold;
+                              -fx-text-fill: #1F2937;"/>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <Label fx:id="welcomeClientLabel"
+                       style="-fx-text-fill: #6B7280;
+                              -fx-font-size: 14px;
+                              -fx-font-weight: 600;"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- ================= CONTENU ================= -->
+    <center>
+        <StackPane>
+
+            <!-- ===== LISTE DESTINATIONS ===== -->
+            <ScrollPane fx:id="listeView"
+                        fitToWidth="true"
+                        style="-fx-background-color: transparent;">
+
+                <VBox spacing="20"
+                      alignment="TOP_CENTER"
+                      style="-fx-padding: 30;">
+
+                    <VBox spacing="15"
+                          maxWidth="900"
+                          style="-fx-background-color: white;
+                                 -fx-padding: 25;
+                                 -fx-background-radius: 12;
+                                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 3);">
+
+                        <Label text="Toutes les Destinations"
+                               style="-fx-font-size: 20px;
+                                      -fx-font-weight: bold;
+                                      -fx-text-fill: #1F2937;"/>
+
+                        <Separator/>
+
+                        <!-- Container des cartes -->
+                        <VBox fx:id="destinationsContainer"
+                              spacing="15"
+                              style="-fx-padding: 10;"/>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+
+            <!-- ===== DETAILS DESTINATION ===== -->
+            <ScrollPane fx:id="detailsView"
+                        fitToWidth="true"
+                        visible="false"
+                        managed="false"
+                        style="-fx-background-color: transparent;">
+
+                <VBox spacing="20"
+                      style="-fx-padding: 30;">
+
+                    <!-- Bouton retour -->
+                    <Button text="← Retour à la liste"
+                            onAction="#retourListe"
+                            style="-fx-background-color: #6B7280;
+                                   -fx-text-fill: white;
+                                   -fx-background-radius: 8;
+                                   -fx-padding: 10 20;
+                                   -fx-font-size: 14px;
+                                   -fx-cursor: hand;"/>
+
+                    <VBox spacing="20"
+                          style="-fx-background-color: white;
+                                 -fx-padding: 30;
+                                 -fx-background-radius: 12;
+                                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 3);">
+
+                        <Label text="Détails de la destination"
+                               style="-fx-font-size: 24px;
+                                      -fx-font-weight: bold;
+                                      -fx-text-fill: #1F2937;"/>
+
+                        <Separator/>
+
+                        <HBox spacing="30" alignment="TOP_LEFT">
+
+                            <!-- IMAGE -->
+                            <VBox alignment="CENTER">
+                                <ImageView fx:id="imageView"
+                                           fitWidth="450"
+                                           fitHeight="300"
+                                           preserveRatio="true"
+                                           style="-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0, 0, 2);"/>
+                            </VBox>
+
+                            <!-- INFOS -->
+                            <VBox spacing="15" HBox.hgrow="ALWAYS">
+
+                                <Label fx:id="nomLabel"
+                                       wrapText="true"
+                                       style="-fx-font-size: 28px;
+                                              -fx-font-weight: bold;
+                                              -fx-text-fill: #1F2937;"/>
+
+                                <VBox spacing="8">
+                                    <Label text="Localisation"
+                                           style="-fx-font-weight: bold;
+                                                  -fx-text-fill: #6B7280;"/>
+                                    <Label fx:id="lieuLabel"
+                                           style="-fx-font-size: 16px;"/>
+                                </VBox>
+
+                                <VBox spacing="8">
+                                    <Label text="Prix"
+                                           style="-fx-font-weight: bold;
+                                                  -fx-text-fill: #6B7280;"/>
+                                    <Label fx:id="prixLabel"
+                                           style="-fx-font-size: 20px;
+                                                  -fx-font-weight: bold;
+                                                  -fx-text-fill: #10B981;"/>
+                                </VBox>
+
+                                <VBox spacing="8"
+                                      style="-fx-background-color: #F9FAFB;
+                                             -fx-padding: 15;
+                                             -fx-background-radius: 8;">
+                                    <Label text="Description"
+                                           style="-fx-font-weight: bold;"/>
+                                    <Label fx:id="descriptionLabel"
+                                           wrapText="true"
+                                           style="-fx-text-fill: #4B5563;
+                                                  -fx-font-size: 14px;"/>
+                                </VBox>
+
+                                <Separator/>
+
+                                <!-- PARTENAIRE -->
+                                <VBox spacing="8"
+                                      style="-fx-background-color: #F3F4F6;
+                                             -fx-padding: 15;
+                                             -fx-background-radius: 8;">
+                                    <Label text="Informations du Partenaire"
+                                           style="-fx-font-weight: bold;
+                                                  -fx-font-size: 16px;"/>
+                                    <Label fx:id="partenaireNomLabel"/>
+                                    <Label fx:id="partenaireTelLabel"/>
+                                </VBox>
+
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+
+        </StackPane>
+    </center>
+
+</BorderPane>

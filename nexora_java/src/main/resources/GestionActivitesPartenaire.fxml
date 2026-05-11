@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controller.GestionActivitesPartenaireController"
+            prefHeight="800.0" prefWidth="1200.0"
+            style="-fx-background-color: #F9FAFB;">
+
+    <!-- HEADER -->
+    <top>
+        <VBox spacing="15" style="-fx-background-color: white; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+            <padding><Insets top="20" right="30" bottom="20" left="30"/></padding>
+
+            <!-- Titre et notifications -->
+            <HBox alignment="CENTER_LEFT" spacing="20">
+                <Label text="Gestion des Activités" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <!-- Badge notifications -->
+                <HBox alignment="CENTER" spacing="5" style="-fx-cursor: hand; -fx-padding: 8;" onMouseClicked="#ouvrirNotifications">
+                    <Label text="🔔" style="-fx-font-size: 24px;"/>
+                    <Label fx:id="notificationBadge" text="0"
+                           style="-fx-background-color: #EF4444; -fx-text-fill: white; -fx-padding: 3 10; -fx-background-radius: 12; -fx-font-weight: bold; -fx-font-size: 12px;"
+                           visible="false" managed="false"/>
+                </HBox>
+
+                <Button text="Déconnexion" onAction="#deconnexion"
+                        style="-fx-background-color: #DC2626; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 10 20; -fx-font-size: 14px; -fx-cursor: hand;"/>
+            </HBox>
+
+            <!-- FILTRES ET BOUTON AJOUTER -->
+            <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-background-color: #F3F4F6; -fx-padding: 15; -fx-background-radius: 8;">
+                <Label text="Filtres:" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
+
+                <ComboBox fx:id="filtreTypeCombo" promptText="Type" prefWidth="150"
+                          style="-fx-background-radius: 6;"/>
+
+                <ComboBox fx:id="filtreLieuCombo" promptText="Lieu" prefWidth="150"
+                          style="-fx-background-radius: 6;"/>
+
+                <DatePicker fx:id="filtreDatePicker" promptText="Date" prefWidth="150"
+                            style="-fx-background-radius: 6;"/>
+
+                <Button text="Rechercher" onAction="#appliquerFiltres"
+                        style="-fx-background-color: #3B82F6; -fx-text-fill: white; -fx-background-radius: 6; -fx-padding: 8 20; -fx-cursor: hand;"/>
+
+                <Button text="Réinitialiser" onAction="#reinitialiserFiltres"
+                        style="-fx-background-color: #6B7280; -fx-text-fill: white; -fx-background-radius: 6; -fx-padding: 8 20; -fx-cursor: hand;"/>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <Button fx:id="toggleFormulaireBtn" text="➕ Ajouter" onAction="#toggleFormulaire"
+                        style="-fx-background-color: #10B981; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 10 25; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- CONTENU PRINCIPAL -->
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
+            <VBox spacing="20" style="-fx-padding: 30;">
+
+                <!-- FORMULAIRE (caché par défaut) -->
+                <VBox fx:id="formulairePane" spacing="20"
+                      style="-fx-background-color: white; -fx-padding: 25; -fx-background-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 3);"
+                      visible="false" managed="false">
+
+                    <Label text="Informations de l'activité"
+                           style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
+
+                    <Separator/>
+
+                    <GridPane hgap="20" vgap="15">
+                        <!-- Colonne 1 -->
+                        <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                            <Label text="Nom de l'activité *" style="-fx-font-weight: bold;"/>
+                            <TextField fx:id="nomField" promptText="Ex: Randonnée en montagne"
+                                       prefWidth="350" style="-fx-padding: 10; -fx-background-radius: 6;"/>
+                            <Label fx:id="nomErrorLabel" style="-fx-text-fill: #DC2626; -fx-font-size: 12px;"
+                                   visible="false" managed="false"/>
+                        </VBox>
+
+                        <!-- Colonne 2 -->
+                        <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                            <Label text="Type *" style="-fx-font-weight: bold;"/>
+                            <ComboBox fx:id="typeCombo" prefWidth="350"
+                                      style="-fx-background-radius: 6;"/>
+                            <TextField fx:id="autreTypeField" promptText="Type personnalisé..."
+                                       prefWidth="350" visible="false" managed="false"
+                                       style="-fx-padding: 10; -fx-background-radius: 6;"/>
+                            <Label fx:id="typeErrorLabel" style="-fx-text-fill: #DC2626; -fx-font-size: 12px;"
+                                   visible="false" managed="false"/>
+                        </VBox>
+
+                        <!-- Ligne 2 -->
+                        <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                            <Label text="Lieu *" style="-fx-font-weight: bold;"/>
+                            <ComboBox fx:id="lieuCombo" prefWidth="350"
+                                      style="-fx-background-radius: 6;"/>
+                            <Label fx:id="lieuErrorLabel" style="-fx-text-fill: #DC2626; -fx-font-size: 12px;"
+                                   visible="false" managed="false"/>
+                        </VBox>
+
+                        <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                            <Label text="Date de l'activité *" style="-fx-font-weight: bold;"/>
+                            <DatePicker fx:id="dateActivitePicker" prefWidth="350"
+                                        style="-fx-background-radius: 6;"/>
+                            <Label fx:id="dateErrorLabel" style="-fx-text-fill: #DC2626; -fx-font-size: 12px;"
+                                   visible="false" managed="false"/>
+                        </VBox>
+
+                        <!-- Ligne 3 -->
+                        <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                            <Label text="Prix (TND) *" style="-fx-font-weight: bold;"/>
+                            <TextField fx:id="prixField" promptText="Ex: 50.00" prefWidth="350"
+                                       style="-fx-padding: 10; -fx-background-radius: 6;"/>
+                            <Label fx:id="prixErrorLabel" style="-fx-text-fill: #DC2626; -fx-font-size: 12px;"
+                                   visible="false" managed="false"/>
+                        </VBox>
+
+                        <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                            <Label text="Nombre de places *" style="-fx-font-weight: bold;"/>
+                            <TextField fx:id="nombrePlacesField" promptText="Ex: 20" prefWidth="350"
+                                       style="-fx-padding: 10; -fx-background-radius: 6;"/>
+                            <Label fx:id="placesErrorLabel" style="-fx-text-fill: #DC2626; -fx-font-size: 12px;"
+                                   visible="false" managed="false"/>
+                        </VBox>
+                    </GridPane>
+
+                    <!-- Description (pleine largeur) -->
+                    <VBox spacing="5">
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="Description" style="-fx-font-weight: bold;"/>
+                            <Button fx:id="genererDescriptionBtn" text="✨ Générer avec IA" onAction="#genererDescription"
+                                    style="-fx-background-color: #8B5CF6; -fx-text-fill: white; -fx-background-radius: 6; -fx-padding: 5 15; -fx-font-size: 12px; -fx-cursor: hand;"/>
+                        </HBox>
+                        <TextArea fx:id="descriptionArea" promptText="Décrivez votre activité... (optionnel - sera généré automatiquement si vide)"
+                                  prefRowCount="4" wrapText="true"
+                                  style="-fx-padding: 10; -fx-background-radius: 6;"/>
+                        <Label text="💡 Astuce: Laissez vide pour une génération automatique, ou utilisez le bouton IA pour un résumé intelligent"
+                               style="-fx-text-fill: #6B7280; -fx-font-size: 11px; -fx-font-style: italic;"/>
+                    </VBox>
+
+                    <!-- Image -->
+                    <VBox spacing="5">
+                        <Label text="Image" style="-fx-font-weight: bold;"/>
+                        <HBox spacing="10">
+                            <TextField fx:id="imagesField" prefWidth="600" editable="false"
+                                       style="-fx-padding: 10; -fx-background-radius: 6;"/>
+                            <Button fx:id="selectImageBtn" text="📁 Parcourir..." onAction="#selectImage"
+                                    style="-fx-background-color: #6B7280; -fx-text-fill: white; -fx-background-radius: 6; -fx-padding: 10 20; -fx-cursor: hand;"/>
+                        </HBox>
+                    </VBox>
+
+                    <Separator/>
+
+                    <!-- Boutons d'action -->
+                    <HBox spacing="15" alignment="CENTER">
+                        <Button fx:id="enregistrerBtn" text="💾 Enregistrer" onAction="#enregistrerActivite"
+                                style="-fx-background-color: #10B981; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 12 30; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;"/>
+                        <Button text="❌ Annuler" onAction="#toggleFormulaire"
+                                style="-fx-background-color: #EF4444; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 12 30; -fx-font-size: 14px; -fx-cursor: hand;"/>
+                    </HBox>
+                </VBox>
+
+                <!-- LISTE DES ACTIVITÉS -->
+                <VBox spacing="15"
+                      style="-fx-background-color: white; -fx-padding: 25; -fx-background-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 3);">
+
+                    <HBox alignment="CENTER_LEFT" spacing="15">
+                        <Label text="Mes Activités"
+                               style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
+                        <Label fx:id="countLabel" text="(0 activités)"
+                               style="-fx-text-fill: #6B7280; -fx-font-size: 14px;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="🔄 Actualiser" onAction="#actualiserActivites"
+                                style="-fx-background-color: #3B82F6; -fx-text-fill: white; -fx-background-radius: 6; -fx-padding: 8 20; -fx-cursor: hand;"/>
+                    </HBox>
+
+                    <Separator/>
+
+                    <TableView fx:id="activitesTable" VBox.vgrow="ALWAYS"
+                               style="-fx-background-radius: 8;">
+                        <columns>
+                            <TableColumn fx:id="nomCol" text="Nom" prefWidth="180"/>
+                            <TableColumn fx:id="typeCol" text="Type" prefWidth="110"/>
+                            <TableColumn fx:id="lieuCol" text="Lieu" prefWidth="110"/>
+                            <TableColumn fx:id="dateCol" text="Date" prefWidth="110"/>
+                            <TableColumn fx:id="prixCol" text="Prix (TND)" prefWidth="90"/>
+                            <TableColumn fx:id="placesCol" text="Places" prefWidth="80"/>
+                            <TableColumn fx:id="partenaireCol" text="Partenaire" prefWidth="110"/>
+                            <TableColumn fx:id="actionsCol" text="Actions" prefWidth="180"/>
+                        </columns>
+                    </TableView>
+
+                    <HBox spacing="10">
+                        <Button text="👥 Voir les participants" onAction="#voirParticipants"
+                                style="-fx-background-color: #8B5CF6; -fx-text-fill: white; -fx-background-radius: 6; -fx-padding: 10 20; -fx-cursor: hand;"/>
+                    </HBox>
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

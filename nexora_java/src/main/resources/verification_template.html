@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vérification Paiement - NEXORA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .status {
+            background: #10B981;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .status::before {
+            content: "✓ ";
+            font-size: 24px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .info-group {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .info-group:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #6B7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 18px;
+            color: #1F2937;
+            font-weight: 600;
+        }
+
+        .amount {
+            font-size: 32px;
+            color: #10B981;
+            font-weight: bold;
+        }
+
+        .footer {
+            background: #F9FAFB;
+            padding: 20px;
+            text-align: center;
+            color: #6B7280;
+            font-size: 14px;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .amount {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>NEXORA</h1>
+        <p>Plateforme de Gestion d'Activités</p>
+    </div>
+
+    <div class="status">
+        Paiement Vérifié
+    </div>
+
+    <div class="content">
+        <div class="info-group">
+            <div class="info-label">Référence</div>
+            <div class="info-value" id="reference">REF-XXXXXXXX</div>
+        </div>
+
+        <div class="info-group">
+            <div class="info-label">Client</div>
+            <div class="info-value" id="client">Nom du Client</div>
+        </div>
+
+        <div class="info-group">
+            <div class="info-label">Activité</div>
+            <div class="info-value" id="activite">Nom de l'Activité</div>
+        </div>
+
+        <div class="info-group">
+            <div class="info-label">Méthode de Paiement</div>
+            <div class="info-value" id="methode">Carte Bancaire</div>
+        </div>
+
+        <div class="info-group">
+            <div class="info-label">Montant Payé</div>
+            <div class="amount" id="montant">0.00 TND</div>
+        </div>
+
+        <div class="info-group">
+            <div class="info-label">Date de Paiement</div>
+            <div class="info-value" id="date">01/03/2026 14:30</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Ce reçu est authentique et vérifié par NEXORA</p>
+        <p><a href="https://nexora.tn">www.nexora.tn</a></p>
+    </div>
+</div>
+
+<script>
+    // Récupérer les paramètres de l'URL
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // Remplir les informations
+    document.getElementById('reference').textContent = urlParams.get('ref') || 'REF-XXXXXXXX';
+    document.getElementById('client').textContent = urlParams.get('client') || 'Nom du Client';
+    document.getElementById('activite').textContent = urlParams.get('activite') || 'Nom de l\'Activité';
+    document.getElementById('methode').textContent = urlParams.get('methode') || 'Carte Bancaire';
+    document.getElementById('montant').textContent = (urlParams.get('montant') || '0.00') + ' TND';
+    document.getElementById('date').textContent = urlParams.get('date') || new Date().toLocaleString('fr-FR');
+</script>
+</body>
+</html>

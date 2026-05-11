@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane prefHeight="500.0" prefWidth="650.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.detailleController">
+
+    <!-- TOP BAR -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20" styleClass="top-bar-white">
+            <padding><Insets top="12" right="24" bottom="12" left="24"/></padding>
+            <Button styleClass="btn-back" text="← Retour" />
+            <Text styleClass="logo-top-white" text="NEXORA" />
+            <Region HBox.hgrow="ALWAYS" />
+        </HBox>
+    </top>
+
+    <!-- MAIN CONTENT -->
+    <center>
+        <VBox alignment="CENTER" style="-fx-background-color: #F8FAFC; -fx-padding: 24;">
+            
+            <VBox spacing="24" styleClass="panel-white" prefWidth="450" alignment="CENTER">
+                <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
+                
+                <Text text="DÉTAILS UTILISATEUR" styleClass="section-title" />
+                
+                <VBox spacing="20" prefWidth="360">
+                    
+                    <VBox spacing="6" styleClass="info-white">
+                        <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+                        <Label text="Nom" styleClass="info-header-white" />
+                        <Label fx:id="textnom" styleClass="info-line-white" style="-fx-font-size: 15px; -fx-font-weight: 600;" />
+                    </VBox>
+                    
+                    <VBox spacing="6" styleClass="info-white">
+                        <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+                        <Label text="Prénom" styleClass="info-header-white" />
+                        <Label fx:id="textprenom" styleClass="info-line-white" style="-fx-font-size: 15px; -fx-font-weight: 600;" />
+                    </VBox>
+                    
+                    <VBox spacing="6" styleClass="info-white">
+                        <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+                        <Label text="Email" styleClass="info-header-white" />
+                        <Label fx:id="textemail" styleClass="info-line-white" style="-fx-font-size: 15px; -fx-font-weight: 600;" />
+                    </VBox>
+                    
+                </VBox>
+                
+            </VBox>
+            
+        </VBox>
+    </center>
+
+</BorderPane>

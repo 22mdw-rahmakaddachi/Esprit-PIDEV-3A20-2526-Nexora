@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox xmlns="http://javafx.com/javafx/20.0.2" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="controller.PaiementController" 
+      spacing="20" style="-fx-background-color: #F3F4F6; -fx-padding: 30;">
+
+    <!-- En-tête -->
+    <VBox alignment="CENTER" spacing="10" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+        <Label text="💳 Paiement de la Commande" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
+        <Label fx:id="commandeLabel" text="Commande #123" style="-fx-font-size: 14px; -fx-text-fill: #6B7280;"/>
+        <Label fx:id="montantLabel" text="0,000 TND" style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #2980b9;"/>
+    </VBox>
+
+    <!-- Méthodes de paiement -->
+    <VBox spacing="15" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+        <Label text="Choisir une méthode de paiement:" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
+        
+        <!-- Konnect -->
+        <RadioButton fx:id="rbKonnect" text="🔵 Konnect (Flouci)" style="-fx-font-size: 14px; -fx-padding: 10; -fx-background-color: #F9FAFB; -fx-background-radius: 6;">
+            <tooltip>
+                <Tooltip text="Paiement via Konnect (anciennement Flouci) - Solution tunisienne"/>
+            </tooltip>
+        </RadioButton>
+        
+        <!-- Carte bancaire -->
+        <RadioButton fx:id="rbCarteBancaire" text="💳 Carte Bancaire" style="-fx-font-size: 14px; -fx-padding: 10; -fx-background-color: #F9FAFB; -fx-background-radius: 6;">
+            <tooltip>
+                <Tooltip text="Paiement par carte bancaire (Visa, Mastercard)"/>
+            </tooltip>
+        </RadioButton>
+        
+        <!-- Détails carte bancaire -->
+        <VBox fx:id="carteDetailsBox" spacing="10" style="-fx-padding: 10 0 0 30; -fx-background-color: #F9FAFB; -fx-background-radius: 6;">
+            <Label text="Informations de la carte:" style="-fx-font-size: 12px; -fx-font-weight: bold;"/>
+            
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Numéro:" style="-fx-min-width: 100;"/>
+                <TextField fx:id="numeroCarteField" promptText="1234 5678 9012 3456" prefWidth="250"/>
+            </HBox>
+            
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Expiration:" style="-fx-min-width: 100;"/>
+                <TextField fx:id="dateExpirationField" promptText="MM/AA" prefWidth="100"/>
+                <Label text="CVV:" style="-fx-min-width: 50;"/>
+                <TextField fx:id="cvvField" promptText="123" prefWidth="80"/>
+            </HBox>
+        </VBox>
+        
+        <!-- Espèces -->
+        <RadioButton fx:id="rbEspeces" text="💵 Espèces (à la livraison)" style="-fx-font-size: 14px; -fx-padding: 10; -fx-background-color: #F9FAFB; -fx-background-radius: 6;">
+            <tooltip>
+                <Tooltip text="Paiement en espèces lors de la livraison"/>
+            </tooltip>
+        </RadioButton>
+    </VBox>
+
+    <!-- Indicateur de progression -->
+    <HBox alignment="CENTER">
+        <ProgressIndicator fx:id="progressIndicator" prefWidth="50" prefHeight="50"/>
+    </HBox>
+
+    <!-- Boutons d'action -->
+    <HBox spacing="15" alignment="CENTER" style="-fx-padding: 10 0 0 0;">
+        <Button fx:id="btnPayer" text="✓ Payer" onAction="#handlePayer" 
+                style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 15 40; -fx-cursor: hand; -fx-background-radius: 8;" 
+                prefWidth="200"/>
+        
+        <Button text="✗ Annuler" onAction="#handleAnnuler" 
+                style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 15 40; -fx-cursor: hand; -fx-background-radius: 8;" 
+                prefWidth="150"/>
+    </HBox>
+
+    <!-- Note de sécurité -->
+    <Label text="🔒 Paiement sécurisé - Vos informations sont protégées" 
+           style="-fx-font-size: 12px; -fx-text-fill: #6B7280; -fx-alignment: center;"/>
+
+</VBox>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="controller.ChatbotController"
+            style="-fx-background-color: #f5f6fa;">
+
+    <!-- Header -->
+    <top>
+        <VBox style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-padding: 20;">
+            <HBox alignment="CENTER_LEFT" spacing="15">
+                <Label text="🤖" style="-fx-font-size: 32px;"/>
+                <VBox>
+                    <Label text="Assistant Shopping" style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;"/>
+                    <Label text="Trouvez les meilleurs produits selon votre budget" 
+                           style="-fx-text-fill: rgba(255,255,255,0.8); -fx-font-size: 12px;"/>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="🗑️ Effacer" onAction="#handleClearChat"
+                        style="-fx-background-color: rgba(255,255,255,0.2); -fx-text-fill: white; 
+                               -fx-padding: 8 15; -fx-background-radius: 20; -fx-cursor: hand;"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- Chat Area -->
+    <center>
+        <ScrollPane fx:id="scrollPane" fitToWidth="true" 
+                    style="-fx-background-color: transparent; -fx-background: transparent;">
+            <VBox fx:id="chatContainer" spacing="10" style="-fx-padding: 20; -fx-background-color: #f5f6fa;"/>
+        </ScrollPane>
+    </center>
+
+    <!-- Input Area -->
+    <bottom>
+        <VBox style="-fx-background-color: white; -fx-padding: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, -2);">
+            <HBox spacing="10" alignment="CENTER">
+                <TextField fx:id="messageField" promptText="Tapez votre message... (ex: 'produits à moins de 50 TND')"
+                          HBox.hgrow="ALWAYS"
+                          style="-fx-background-color: #f5f6fa; -fx-padding: 12; -fx-font-size: 13px; 
+                                 -fx-background-radius: 25; -fx-border-color: transparent;"/>
+                <Button fx:id="sendButton" text="Envoyer 📤" onAction="#handleSendMessage"
+                        style="-fx-background-color: #667eea; -fx-text-fill: white; -fx-padding: 12 25; 
+                               -fx-font-weight: bold; -fx-background-radius: 25; -fx-cursor: hand;"/>
+            </HBox>
+            
+            <!-- Suggestions rapides -->
+            <HBox spacing="8" style="-fx-padding: 10 0 0 0;">
+                <Label text="Suggestions:" style="-fx-text-fill: #7f8c8d; -fx-font-size: 11px;"/>
+                <Button text="Budget 50 TND" onAction="#handleSuggestion1"
+                        style="-fx-background-color: #ecf0f1; -fx-text-fill: #2c3e50; -fx-padding: 5 10; 
+                               -fx-font-size: 11px; -fx-background-radius: 15; -fx-cursor: hand;"/>
+                <Button text="Voir les promos" onAction="#handleSuggestion2"
+                        style="-fx-background-color: #ecf0f1; -fx-text-fill: #2c3e50; -fx-padding: 5 10; 
+                               -fx-font-size: 11px; -fx-background-radius: 15; -fx-cursor: hand;"/>
+                <Button text="Produits camping" onAction="#handleSuggestion3"
+                        style="-fx-background-color: #ecf0f1; -fx-text-fill: #2c3e50; -fx-padding: 5 10; 
+                               -fx-font-size: 11px; -fx-background-radius: 15; -fx-cursor: hand;"/>
+            </HBox>
+        </VBox>
+    </bottom>
+
+</BorderPane>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controller.GestionCategoriesController"
+            style="-fx-background-color: #F3F4F6;">
+
+    <!-- En-tête -->
+    <top>
+        <VBox style="-fx-background-color: white; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+            <Label text="📂 Gestion des Catégories" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
+            <Label text="Organisez vos produits par catégories et sous-catégories" style="-fx-font-size: 14px; -fx-text-fill: #6B7280; -fx-padding: 5 0 0 0;"/>
+        </VBox>
+    </top>
+
+    <!-- Contenu principal -->
+    <center>
+        <HBox spacing="20" style="-fx-padding: 20;">
+            
+            <!-- Liste des catégories -->
+            <VBox spacing="15" style="-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="Catégories" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="➕ Nouvelle Catégorie" onAction="#handleAjouterCategorie" 
+                            style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-padding: 8 16; -fx-cursor: hand;"/>
+                </HBox>
+                
+                <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;">
+                    <VBox fx:id="categoriesContainer" spacing="10" style="-fx-padding: 10;"/>
+                </ScrollPane>
+            </VBox>
+
+            <!-- Formulaire catégorie/sous-catégorie -->
+            <VBox fx:id="formContainer" spacing="15" visible="false" 
+                  style="-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2); -fx-min-width: 400;">
+                
+                <Label fx:id="formTitle" text="Nouvelle Catégorie" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                
+                <VBox spacing="5">
+                    <Label text="Nom *" style="-fx-font-weight: bold;"/>
+                    <TextField fx:id="nomField" promptText="Ex: Camping, Randonnée"/>
+                    <Label fx:id="nomError" visible="false" style="-fx-text-fill: #e74c3c; -fx-font-size: 12px;"/>
+                </VBox>
+
+                <VBox spacing="5">
+                    <Label text="Description" style="-fx-font-weight: bold;"/>
+                    <TextArea fx:id="descriptionField" promptText="Description de la catégorie" prefRowCount="3"/>
+                </VBox>
+
+                <VBox spacing="5" fx:id="categorieParentBox" visible="false" managed="false">
+                    <Label text="Catégorie Parente *" style="-fx-font-weight: bold;"/>
+                    <ComboBox fx:id="categorieParenteCombo" prefWidth="360"/>
+                </VBox>
+
+                <VBox spacing="5">
+                    <Label text="Image" style="-fx-font-weight: bold;"/>
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <TextField fx:id="imagePathField" promptText="Aucune image" editable="false" HBox.hgrow="ALWAYS"/>
+                        <Button text="📁 Parcourir" onAction="#handleSelectImage" 
+                                style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-padding: 6 12;"/>
+                    </HBox>
+                </VBox>
+
+                <HBox spacing="10" alignment="CENTER">
+                    <Button text="💾 Enregistrer" onAction="#handleSave" 
+                            style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-padding: 10 20; -fx-cursor: hand; -fx-font-weight: bold;"/>
+                    <Button text="❌ Annuler" onAction="#handleCancel" 
+                            style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-padding: 10 20; -fx-cursor: hand;"/>
+                </HBox>
+            </VBox>
+
+        </HBox>
+    </center>
+
+</BorderPane>

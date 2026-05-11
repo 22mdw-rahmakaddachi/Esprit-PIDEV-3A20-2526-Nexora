@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.modifierControler">
+   <children>
+      <TextField fx:id="nommodif" layoutX="169.0" layoutY="35.0" prefHeight="26.0" prefWidth="239.0" />
+      <TextField fx:id="prenommodif" layoutX="169.0" layoutY="88.0" prefHeight="26.0" prefWidth="239.0" />
+      <TextField fx:id="nummodif" layoutX="169.0" layoutY="187.0" prefHeight="26.0" prefWidth="239.0" />
+      <TextField fx:id="emailmodif" layoutX="169.0" layoutY="137.0" prefHeight="26.0" prefWidth="239.0" />
+      <TextField fx:id="rolemodif" layoutX="169.0" layoutY="230.0" prefHeight="26.0" prefWidth="239.0" />
+      <Button layoutX="205.0" layoutY="298.0" onAction="#modifierEtRetour" prefHeight="26.0" prefWidth="166.0" text="affecter_modificationne " />
+   </children>
+</AnchorPane>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controller.DestinationController">
+
+    <!-- TOP -->
+    <top>
+        <Label text="Travel Management System"
+               styleClass="title"
+               BorderPane.alignment="CENTER"/>
+    </top>
+
+    <!-- CENTER -->
+    <center>
+        <VBox spacing="10">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <!-- SEARCH + ADD BUTTON -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Recherche par localisation:"/>
+                <TextField fx:id="searchField" promptText="Tapez la localisation..."/>
+
+                <Button text="Ajouter"
+                        fx:id="btnGoToAdd"
+                        onAction="#goToAddPage"
+                        style="-fx-background-color: #2196F3; -fx-text-fill: white;"/>
+                <Button text="🔄 Reload" onAction="#reloadTable"/>
+            </HBox>
+
+            <!-- TABLE -->
+            <TableView fx:id="tableView">
+                <columns>
+                    <TableColumn fx:id="colId" text="ID"/>
+                    <TableColumn fx:id="colNom" text="Nom"/>
+                    <TableColumn fx:id="colDescription" text="Description"/>
+                    <TableColumn fx:id="colLocalisation" text="Localisation"/>
+                    <TableColumn fx:id="colStatut" text="Statut"/>
+                    <TableColumn fx:id="colImages" text="Images"/>
+                    <TableColumn fx:id="colActions" text="Actions"/>
+                </columns>
+            </TableView>
+
+            <Pagination fx:id="pagination" pageCount="1"/>
+        </VBox>
+    </center>
+
+</BorderPane>

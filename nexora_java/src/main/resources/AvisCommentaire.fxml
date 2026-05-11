@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane prefHeight="600.0" prefWidth="1100.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="controller.AvisController">
+
+    <!-- TOP BAR -->
+    <top>
+        <VBox spacing="8" styleClass="top-bar-white">
+            <padding><Insets top="12" right="24" bottom="12" left="24"/></padding>
+            
+            <HBox spacing="12" alignment="CENTER_LEFT">
+                <Button styleClass="btn-back" text="← Retour" />
+                <Text text="Gestion Avis &amp; Commentaires" styleClass="section-title" />
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="🔄" onAction="#onRefresh" styleClass="btn-secondary" />
+            </HBox>
+            
+            <Label text="Voyage &amp; Loisirs • CRUD + contrôle de saisie" style="-fx-text-fill: #6B7280; -fx-font-size: 12px;" />
+        </VBox>
+    </top>
+
+    <!-- MAIN CONTENT -->
+    <center>
+        <SplitPane dividerPositions="0.58" style="-fx-background-color: #F8FAFC;">
+
+            <!-- AVIS SECTION -->
+            <VBox spacing="12" style="-fx-padding: 16;">
+                
+                <HBox spacing="8" alignment="CENTER_LEFT" styleClass="panel-white">
+                    <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+                    <Text text="Avis" styleClass="subsection-title" />
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="Ajouter" onAction="#onAddAvis" styleClass="btn-violet" />
+                    <Button text="Modifier" onAction="#onEditAvis" styleClass="btn-warning" />
+                    <Button text="Supprimer" onAction="#onDeleteAvis" styleClass="btn-danger" />
+                </HBox>
+
+                <TableView fx:id="avisTable" VBox.vgrow="ALWAYS" styleClass="table-white-simple">
+                    <columns>
+                        <TableColumn fx:id="colAvisId" text="ID" prefWidth="50"/>
+                        <TableColumn fx:id="colAvisUser" text="Utilisateur" prefWidth="150"/>
+                        <TableColumn fx:id="colAvisRating" text="★" prefWidth="60"/>
+                        <TableColumn fx:id="colAvisTitre" text="Titre" prefWidth="230"/>
+                        <TableColumn fx:id="colAvisCreated" text="Créé le" prefWidth="140"/>
+                    </columns>
+                </TableView>
+
+                <Label text="💡 Sélectionnez un avis puis chargez ses commentaires" style="-fx-text-fill: #6B7280; -fx-font-size: 12px;" />
+            </VBox>
+
+            <!-- COMMENTAIRES SECTION -->
+            <VBox spacing="12" style="-fx-padding: 16;">
+                
+                <VBox spacing="6" styleClass="info-white">
+                    <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+                    <Label text="Avis sélectionné" styleClass="info-header-white" />
+                    <Label fx:id="selectedAvisLabel" text="Aucun avis sélectionné." styleClass="info-line-white" />
+                </VBox>
+
+                <HBox spacing="8" alignment="CENTER_LEFT" styleClass="panel-white">
+                    <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+                    <Text text="Commentaires" styleClass="subsection-title" />
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="Charger" onAction="#onLoadComs" styleClass="btn-secondary" />
+                    <Button text="Ajouter" onAction="#onAddAvis" styleClass="btn-violet" />
+                    <Button text="Modifier" onAction="#onEditAvis" styleClass="btn-warning" />
+                    <Button text="Supprimer" onAction="#onDeleteCom" styleClass="btn-danger" />
+                </HBox>
+
+                <TableView fx:id="comTable" VBox.vgrow="ALWAYS" styleClass="table-white-simple">
+                    <columns>
+                        <TableColumn fx:id="colComId" text="ID" prefWidth="50"/>
+                        <TableColumn fx:id="colComAvis" text="AvisId" prefWidth="70"/>
+                        <TableColumn fx:id="colComUser" text="Utilisateur" prefWidth="130"/>
+                        <TableColumn fx:id="colComContenu" text="Contenu" prefWidth="250"/>
+                        <TableColumn fx:id="colComCreated" text="Créé le" prefWidth="120"/>
+                    </columns>
+                </TableView>
+
+            </VBox>
+        </SplitPane>
+    </center>
+
+</BorderPane>

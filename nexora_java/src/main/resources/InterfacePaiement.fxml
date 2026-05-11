@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controller.InterfacePaiementController" prefHeight="500.0" prefWidth="500.0"
+            stylesheets="@style.css">
+
+    <top>
+        <VBox styleClass="header" spacing="10" style="-fx-background-color: #7C3AED; -fx-padding: 20;">
+            <Label text="💳 Paiement Sécurisé" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+            <Label text="Finalisez votre réservation" style="-fx-font-size: 14px; -fx-text-fill: #E9D5FF;"/>
+        </VBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+            <VBox spacing="20" style="-fx-padding: 30;">
+
+                <!-- Informations de la réservation -->
+                <VBox spacing="10" style="-fx-background-color: #F3F4F6; -fx-padding: 15; -fx-background-radius: 8;">
+                    <Label text="📋 Détails de la réservation" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                    <Separator/>
+                    <Label fx:id="activiteLabel" style="-fx-font-size: 14px;"/>
+                    <Label fx:id="clientLabel" style="-fx-font-size: 14px;"/>
+                    <Label fx:id="prixLabel" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #7C3AED;"/>
+                </VBox>
+
+                <!-- Méthode de paiement -->
+                <VBox spacing="10">
+                    <Label text="💳 Méthode de paiement" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                    <ComboBox fx:id="methodePaiementCombo" prefWidth="400"/>
+                </VBox>
+
+                <!-- Informations de carte bancaire -->
+                <VBox spacing="15">
+                    <Label text="🔒 Informations de paiement" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+                    <VBox spacing="5">
+                        <Label text="Numéro de carte:"/>
+                        <TextField fx:id="numeroCarteField" promptText="1234 5678 9012 3456" prefWidth="400"/>
+                    </VBox>
+
+                    <HBox spacing="15">
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <Label text="Date d'expiration:"/>
+                            <TextField fx:id="dateExpirationField" promptText="MM/AA"/>
+                        </VBox>
+
+                        <VBox spacing="5">
+                            <Label text="CVV:"/>
+                            <TextField fx:id="cvvField" promptText="123" prefWidth="80"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- Note de sécurité -->
+                <VBox spacing="5" style="-fx-background-color: #EEF2FF; -fx-padding: 15; -fx-background-radius: 8;">
+                    <Label text="🔐 Paiement sécurisé" style="-fx-font-weight: bold; -fx-text-fill: #4338CA;"/>
+                    <Label text="Vos informations de paiement sont cryptées et sécurisées."
+                           style="-fx-text-fill: #6366F1; -fx-font-size: 12px;" wrapText="true"/>
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+    <bottom>
+        <HBox spacing="15" alignment="CENTER_RIGHT" style="-fx-padding: 20; -fx-background-color: #F9FAFB; -fx-border-color: #E5E7EB; -fx-border-width: 1 0 0 0;">
+            <Button fx:id="annulerBtn" text="Annuler" onAction="#annuler"
+                    style="-fx-background-color: #6B7280; -fx-text-fill: white; -fx-padding: 12 30; -fx-font-size: 14px; -fx-background-radius: 6; -fx-cursor: hand;"/>
+            <Button fx:id="payerBtn" text="Payer maintenant" onAction="#effectuerPaiement"
+                    style="-fx-background-color: #10B981; -fx-text-fill: white; -fx-padding: 12 30; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

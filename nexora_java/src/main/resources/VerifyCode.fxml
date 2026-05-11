@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+
+<BorderPane prefHeight="500.0"
+            prefWidth="700.0"
+            stylesheets="@style.css"
+            xmlns="http://javafx.com/javafx/20"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controller.VerifyCodeController">
+
+    <!-- ===== TOP BAR ===== -->
+    <top>
+        <HBox alignment="CENTER_LEFT"
+              spacing="20"
+              styleClass="top-bar-white">
+
+            <padding>
+                <Insets top="16" right="32" bottom="16" left="32"/>
+            </padding>
+
+            <Text text="NEXORA"
+                  styleClass="logo-top-white"/>
+
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <!-- Bouton Retour -->
+            <Button text="← Retour"
+                    styleClass="btn-back"
+                    onAction="#goBack"/>
+        </HBox>
+    </top>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <center>
+        <HBox alignment="CENTER"
+              style="-fx-background-color: #F8FAFC;">
+
+            <VBox spacing="24"
+                  alignment="CENTER"
+                  prefWidth="450"
+                  styleClass="panel-white">
+
+                <padding>
+                    <Insets top="48" right="48" bottom="48" left="48"/>
+                </padding>
+
+                <!-- Title -->
+                <VBox alignment="CENTER" spacing="8">
+                    <Text text="VÉRIFICATION"
+                          styleClass="page-title"/>
+
+                    <Label text="Entrez le code reçu par email"
+                           style="-fx-text-fill: #6B7280; -fx-font-size: 14px;"/>
+                </VBox>
+
+                <!-- Form -->
+                <VBox spacing="20" prefWidth="350">
+
+                    <padding>
+                        <Insets top="24"/>
+                    </padding>
+
+                    <VBox spacing="12">
+                        <Label text="Code de vérification"
+                               styleClass="field-label-white"/>
+
+                        <TextField fx:id="codeField"
+                                   promptText="Entrez le code à 6 chiffres"
+                                   styleClass="field-white-simple"/>
+
+                        <Label text="Le code est valide pendant 5 minutes"
+                               style="-fx-text-fill: #6B7280; -fx-font-size: 12px; -fx-font-style: italic;"/>
+                    </VBox>
+
+                    <!-- Verify Button -->
+                    <Button text="Vérifier le code"
+                            styleClass="btn-violet"
+                            onAction="#verifyCode"
+                            prefWidth="Infinity">
+                        <padding>
+                            <Insets top="14" right="24" bottom="14" left="24"/>
+                        </padding>
+                    </Button>
+
+                    <!-- Resend Button -->
+                    <Button text="Renvoyer le code"
+                            styleClass="btn-secondary"
+                            onAction="#resendCode"/>
+
+                </VBox>
+
+            </VBox>
+        </HBox>
+    </center>
+
+</BorderPane>

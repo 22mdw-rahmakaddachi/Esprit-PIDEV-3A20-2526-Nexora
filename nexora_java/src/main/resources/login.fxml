@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+
+<BorderPane prefHeight="700.0" prefWidth="1100.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.LoginController">
+
+    <!-- TOP BAR -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20" styleClass="top-bar-white">
+            <padding><Insets top="12" right="24" bottom="12" left="24"/></padding>
+            <Text styleClass="logo-top-white" text="NEXORA" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Button styleClass="btn-back" text="← Retour" />
+        </HBox>
+    </top>
+
+    <!-- MAIN CONTENT -->
+    <center>
+        <StackPane style="-fx-background-color: #F8FAFC;">
+
+            <!-- TABLE VIEW -->
+            <VBox spacing="16" style="-fx-padding: 24;">
+
+                <!-- HEADER -->
+                <HBox alignment="CENTER_LEFT" spacing="16">
+                    <Text styleClass="section-title" text="GESTION DES UTILISATEURS" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Button onAction="#ajouterdonner" styleClass="btn-violet" text="+ AJOUTER UTILISATEUR" />
+                    <Button onAction="#showStatistique" styleClass="btn-secondary" text="📊 STATISTIQUES" />
+                    <Button onAction="#exportPDF" styleClass="btn-success" text="📄 EXPORT PDF" />
+                </HBox>
+
+                <!-- TABLE -->
+                <VBox spacing="8" VBox.vgrow="ALWAYS" styleClass="panel-white">
+                    <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+
+                    <Label styleClass="table-label-white" text="Liste des Utilisateurs" />
+                    <TableView fx:id="table" styleClass="table-white-simple" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="nomT" prefWidth="130" text="NOM" />
+                            <TableColumn fx:id="prenomT" prefWidth="130" text="PRÉNOM" />
+                            <TableColumn fx:id="emailT" prefWidth="180" text="EMAIL" />
+                            <TableColumn fx:id="numT" prefWidth="130" text="TÉLÉPHONE" />
+                            <TableColumn fx:id="roleT" prefWidth="100" text="RÔLE" />
+                            <TableColumn fx:id="mdpT" prefWidth="110" text="MOT DE PASSE" />
+                            <TableColumn fx:id="actionsT" prefWidth="200" text="ACTIONS" />
+                        </columns>
+                    </TableView>
+                    <Label fx:id="statusLabel"
+                           text=""
+                           style="-fx-text-fill: #6D28D9; -fx-font-weight: bold;"
+                    />
+                </VBox>
+            </VBox>
+
+            <!-- FORMULAIRE CACHÉ (s'affiche au-dessus du tableau) -->
+            <VBox fx:id="formContainer" spacing="10" styleClass="panel-white"
+                  prefWidth="400" maxHeight="500" visible="false"
+                  style="-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20, 0, 0, 10);">
+                <padding><Insets top="16" right="20" bottom="16" left="20"/></padding>
+
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <Text fx:id="formTitle" styleClass="section-title" text="AJOUTER UTILISATEUR"
+                          style="-fx-font-size: 18px;" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Button onAction="#annulerFormulaire" styleClass="btn-icon" text="✕" />
+                </HBox>
+
+                <VBox spacing="6">
+                    <Label styleClass="field-label-white" text="NOM" style="-fx-font-size: 11px;" />
+                    <TextField fx:id="nomtext" styleClass="field-white-simple" promptText="Entrez le nom"
+                               style="-fx-pref-height: 32px; -fx-font-size: 13px;" />
+                </VBox>
+
+                <VBox spacing="6">
+                    <Label styleClass="field-label-white" text="PRÉNOM" style="-fx-font-size: 11px;" />
+                    <TextField fx:id="prenomtext" styleClass="field-white-simple" promptText="Entrez le prénom"
+                               style="-fx-pref-height: 32px; -fx-font-size: 13px;" />
+                </VBox>
+
+                <VBox spacing="6">
+                    <Label styleClass="field-label-white" text="EMAIL" style="-fx-font-size: 11px;" />
+                    <TextField fx:id="emailtext" styleClass="field-white-simple" promptText="exemple@email.com"
+                               style="-fx-pref-height: 32px; -fx-font-size: 13px;" />
+                </VBox>
+
+                <VBox spacing="6">
+                    <Label styleClass="field-label-white" text="TÉLÉPHONE" style="-fx-font-size: 11px;" />
+                    <TextField fx:id="numtel" styleClass="field-white-simple" promptText="+212 6XX XXX XXX"
+                               style="-fx-pref-height: 32px; -fx-font-size: 13px;" />
+                </VBox>
+
+                <VBox spacing="6">
+                    <Label styleClass="field-label-white" text="MOT DE PASSE" style="-fx-font-size: 11px;" />
+                    <TextField fx:id="mdp" styleClass="field-white-simple" promptText="••••••••"
+                               style="-fx-pref-height: 32px; -fx-font-size: 13px;" />
+                </VBox>
+
+                <VBox spacing="6">
+                    <Label styleClass="field-label-white" text="RÔLE" style="-fx-font-size: 11px;" />
+                    <ComboBox fx:id="textrole" styleClass="combo-white-simple" promptText="Sélectionner un rôle"
+                              prefWidth="Infinity" style="-fx-pref-height: 32px; -fx-font-size: 13px;" />
+                </VBox>
+
+                <HBox spacing="10" alignment="CENTER">
+                    <padding><Insets top="8"/></padding>
+                    <Button fx:id="saveButton" onAction="#enregistrerUser" styleClass="btn-violet"
+                            text="ENREGISTRER" prefWidth="130" style="-fx-font-size: 12px; -fx-pref-height: 34px;" />
+                    <Button onAction="#annulerFormulaire" styleClass="btn-outline"
+                            text="ANNULER" prefWidth="130" style="-fx-font-size: 12px; -fx-pref-height: 34px;" />
+                </HBox>
+            </VBox>
+
+        </StackPane>
+    </center>
+
+</BorderPane>
